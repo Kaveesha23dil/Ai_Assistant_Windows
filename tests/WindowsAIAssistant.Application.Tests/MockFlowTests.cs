@@ -22,6 +22,7 @@ public sealed class MockFlowTests
 
         Assert.True(response.IsSuccessful);
         Assert.Equal(AIProviderType.Local, response.Provider);
+        Assert.Equal("mock-model", response.Model);
         Assert.Contains("Hello", response.Content);
     }
 

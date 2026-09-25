@@ -1,9 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.UI.Xaml;
 using WindowsAIAssistant.Application;
 using WindowsAIAssistant.Infrastructure;
+using WindowsAIAssistant.Infrastructure.Configuration.Options;
 
 namespace WindowsAIAssistant.App;
 
@@ -32,7 +34,12 @@ public partial class App : Microsoft.UI.Xaml.Application
         try
         {
             await _host.StartAsync();
-            _logger.LogInformation("Windows AI Assistant starting.");
+            var environment = _host.Services.GetRequiredService<IHostEnvironment>().EnvironmentName;
+            var aiOptions = _host.Services.GetRequiredService<IOptions<AIOptions>>().Value;
+            _logger.LogInformation(
+                "Windows AI Assistant started in {Environment} environment. AI provider configured as {Provider}.",
+                environment,
+                aiOptions.Provider);
 
             _window = _host.Services.GetRequiredService<MainWindow>();
             _window.Closed += (_, _) => _ = ShutdownHostAsync();
