@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using WindowsAIAssistant.Application.DTOs;
 using WindowsAIAssistant.Application.Files.Queries.SearchFiles;
 using WindowsAIAssistant.Application.Tests.Fakes;
@@ -18,7 +19,7 @@ public sealed class SearchFilesHandlerTests
                 new FileSearchResult("notes.txt", @"C:\notes.txt", ".txt", 42, timestamp, 0.9)
             ]
         };
-        var handler = new SearchFilesHandler(service);
+        var handler = new SearchFilesHandler(service, NullLogger<SearchFilesHandler>.Instance);
 
         IReadOnlyCollection<FileSearchResultDto> results = await handler.HandleAsync(
             new SearchFilesQuery("notes"));
@@ -33,7 +34,7 @@ public sealed class SearchFilesHandlerTests
     [Fact]
     public async Task HandleAsync_WithNoResults_ReturnsEmptyCollection()
     {
-        var handler = new SearchFilesHandler(new FakeFileSearchService());
+        var handler = new SearchFilesHandler(new FakeFileSearchService(), NullLogger<SearchFilesHandler>.Instance);
 
         var results = await handler.HandleAsync(new SearchFilesQuery("missing"));
 
@@ -46,7 +47,7 @@ public sealed class SearchFilesHandlerTests
     public async Task HandleAsync_WithEmptySearchTerm_ThrowsArgumentException(string searchTerm)
     {
         var service = new FakeFileSearchService();
-        var handler = new SearchFilesHandler(service);
+        var handler = new SearchFilesHandler(service, NullLogger<SearchFilesHandler>.Instance);
 
         await Assert.ThrowsAsync<ArgumentException>(() => handler.HandleAsync(new SearchFilesQuery(searchTerm)));
 

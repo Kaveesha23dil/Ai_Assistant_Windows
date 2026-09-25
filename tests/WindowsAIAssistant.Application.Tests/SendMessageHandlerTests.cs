@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using WindowsAIAssistant.Application.AI.Commands.SendMessage;
 using WindowsAIAssistant.Application.Tests.Fakes;
 using WindowsAIAssistant.Core.Enums;
@@ -10,7 +11,7 @@ public sealed class SendMessageHandlerTests
     public async Task HandleAsync_WithValidMessage_CallsServiceAndReturnsResponse()
     {
         var service = new FakeAIService();
-        var handler = new SendMessageHandler(service);
+        var handler = new SendMessageHandler(service, NullLogger<SendMessageHandler>.Instance);
 
         var response = await handler.HandleAsync(new SendMessageCommand("Hello"));
 
@@ -27,7 +28,7 @@ public sealed class SendMessageHandlerTests
     public async Task HandleAsync_WithEmptyMessage_ThrowsArgumentException(string message)
     {
         var service = new FakeAIService();
-        var handler = new SendMessageHandler(service);
+        var handler = new SendMessageHandler(service, NullLogger<SendMessageHandler>.Instance);
 
         await Assert.ThrowsAsync<ArgumentException>(() => handler.HandleAsync(new SendMessageCommand(message)));
 
