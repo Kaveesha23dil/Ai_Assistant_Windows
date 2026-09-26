@@ -64,25 +64,71 @@
             Grid.Row="2"
             Padding="32,12,32,24"
             Background="{ThemeResource LayerFillColorDefaultBrush}">
-            <Grid ColumnSpacing="12" MaxWidth="1024" HorizontalAlignment="Stretch">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <TextBox
-                    AutomationProperties.Name="Message to send to the assistant"
-                    PlaceholderText="{x:Bind ViewModel.PlaceholderText, Mode=OneWay}"
-                    Style="{StaticResource AppComposerTextBoxStyle}"
-                    Text="{x:Bind ViewModel.DraftText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                <Button
-                    Grid.Column="1"
-                    MinWidth="96"
-                    VerticalAlignment="Bottom"
-                    AutomationProperties.Name="Send message"
-                    Command="{x:Bind ViewModel.SendCommand}"
-                    Content="Send"
-                    Style="{StaticResource AccentButtonStyle}" />
-            </Grid>
+            <StackPanel MaxWidth="1024" HorizontalAlignment="Stretch" Spacing="8">
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        AutomationProperties.Name="Message to send to the assistant"
+                        PlaceholderText="{x:Bind ViewModel.PlaceholderText, Mode=OneWay}"
+                        Style="{StaticResource AppComposerTextBoxStyle}"
+                        Text="{x:Bind ViewModel.DraftText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button
+                        Grid.Column="1"
+                        MinWidth="96"
+                        VerticalAlignment="Bottom"
+                        AutomationProperties.Name="Cancel voice request"
+                        Command="{x:Bind ViewModel.CancelVoiceCommand}"
+                        Content="Cancel"
+                        ToolTipService.ToolTip="Discard the transcript without acting on it."
+                        Visibility="{x:Bind ViewModel.CanCancelVoice}" />
+                    <Button
+                        Grid.Column="2"
+                        MinWidth="96"
+                        VerticalAlignment="Bottom"
+                        AutomationProperties.Name="Send message"
+                        Command="{x:Bind ViewModel.SendCommand}"
+                        Content="Send"
+                        Style="{StaticResource AccentButtonStyle}" />
+                </Grid>
+
+                <Grid
+                    ColumnSpacing="12"
+                    Visibility="{x:Bind ViewModel.IsVoiceEnabled}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Spacing="4">
+                        <TextBlock
+                            Style="{StaticResource AppCaptionTextBlockStyle}"
+                            Text="{x:Bind ViewModel.VoiceStatus, Mode=OneWay}" />
+                        <TextBlock
+                            Style="{StaticResource AppSecondaryTextBlockStyle}"
+                            Text="{x:Bind ViewModel.LiveTranscript, Mode=OneWay}"
+                            Visibility="{x:Bind ViewModel.HasLiveTranscript}" />
+                    </StackPanel>
+
+                    <Button
+                        Grid.Column="1"
+                        MinWidth="112"
+                        VerticalAlignment="Bottom"
+                        AutomationProperties.Name="Ask by voice"
+                        Command="{x:Bind ViewModel.StartListeningCommand}"
+                        Content="Ask by voice"
+                        ToolTipService.ToolTip="Open the microphone for one command."
+                        Visibility="{x:Bind ViewModel.CanStartListening}" />
+                </Grid>
+
+                <TextBlock
+                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                    Text="{x:Bind ViewModel.VoiceUnavailableMessage, Mode=OneWay}"
+                    Visibility="{x:Bind ViewModel.IsVoiceUnavailable}" />
+            </StackPanel>
         </Border>
     </Grid>
 </Page>

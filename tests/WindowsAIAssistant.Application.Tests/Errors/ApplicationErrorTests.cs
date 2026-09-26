@@ -1,4 +1,5 @@
 using WindowsAIAssistant.Application.Common.Errors;
+using WindowsAIAssistant.Core.Common;
 
 namespace WindowsAIAssistant.Application.Tests.Errors;
 

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using WindowsAIAssistant.Application.Common.Errors;
+using WindowsAIAssistant.Core.Common;
 using WindowsAIAssistant.Application.Common.Exceptions;
 using WindowsAIAssistant.Core.Exceptions;
 

@@ -246,6 +246,214 @@
             </StackPanel>
 
             <StackPanel Spacing="12">
+                <TextBlock Style="{StaticResource AppMutedHeadingTextBlockStyle}" Text="Voice" />
+                <Border Style="{StaticResource AppSurfaceCardStyle}">
+                    <StackPanel Spacing="16">
+                        <TextBlock
+                            Style="{StaticResource AppCaptionTextBlockStyle}"
+                            Text="{x:Bind ViewModel.VoiceNotice, Mode=OneWay}" />
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Voice assistant" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Turn spoken commands on and off." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Voice assistant"
+                                IsOn="{x:Bind ViewModel.IsVoiceEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Microphone access" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Required before the assistant may open the microphone." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Microphone access"
+                                IsOn="{x:Bind ViewModel.IsMicrophoneAccessEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Voice processing" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Allow audio to be processed at all. Turn this off to release the microphone." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Voice processing"
+                                IsOn="{x:Bind ViewModel.IsVoiceProcessingEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="Speak replies aloud" />
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Speak replies aloud"
+                                IsOn="{x:Bind ViewModel.IsSpokenResponsesEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Continuous listening" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Keeps the microphone open between commands. Off by default." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Continuous listening"
+                                IsOn="{x:Bind ViewModel.IsContinuousListeningEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Confirm sensitive actions" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Holds back actions such as closing a file or changing the volume until you say yes." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Confirm sensitive actions"
+                                IsOn="{x:Bind ViewModel.IsConfirmSensitiveActionsEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Cloud speech processing" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Sends audio to a cloud recognizer instead of using the local one." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Cloud speech processing"
+                                IsOn="{x:Bind ViewModel.IsCloudSpeechProcessingEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Screen capture" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Allows the assistant to save a screenshot when you ask." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Screen capture"
+                                IsOn="{x:Bind ViewModel.IsScreenCaptureEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="System control" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Allows spoken changes to output volume and mute." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="System control"
+                                IsOn="{x:Bind ViewModel.IsSystemControlEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Wake word" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="{x:Bind ViewModel.WakeWordNotice, Mode=OneWay}" />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Wake word"
+                                IsEnabled="{x:Bind ViewModel.IsWakeWordSupported}"
+                                IsOn="{x:Bind ViewModel.IsWakeWordEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Spacing="12">
                 <TextBlock Style="{StaticResource AppMutedHeadingTextBlockStyle}" Text="Notifications" />
                 <Border Style="{StaticResource AppSurfaceCardStyle}">
                     <Grid Style="{StaticResource AppSectionRowStyle}">

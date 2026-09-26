@@ -1,7 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <!--
+      The Application layer stays platform independent and targets plain net10.0, but this
+      test project also references Infrastructure in order to check the composition root and
+      the option wiring. Infrastructure needs the Windows APIs, so the tests run on the same
+      Windows target framework. The tests themselves still exercise nothing Windows specific.
+    -->
+    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
