@@ -1,0 +1,246 @@
+<Page
+    x:Class="WindowsAIAssistant.App.Views.Pages.HomePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
+        <StackPanel
+                Style="{StaticResource AppPagePadding}"
+                MaxWidth="1120"
+                HorizontalAlignment="Center">
+
+            <StackPanel Spacing="4">
+                <TextBlock Style="{StaticResource AppPageTitleTextBlockStyle}" Text="{x:Bind ViewModel.Greeting}" />
+                <TextBlock
+                    Style="{StaticResource AppSecondaryTextBlockStyle}"
+                    Text="{x:Bind ViewModel.WelcomeMessage}" />
+            </StackPanel>
+
+            <Border Style="{StaticResource AppSurfaceCardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock
+                        Style="{StaticResource AppCardTitleTextBlockStyle}"
+                        Text="How can I help?" />
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox
+                            MinHeight="40"
+                            AutomationProperties.Name="Ask the assistant a question"
+                            HorizontalAlignment="Stretch"
+                            PlaceholderText="Ask anything..."
+                            Text="{x:Bind ViewModel.DraftText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button
+                            Grid.Column="1"
+                            MinWidth="96"
+                            AutomationProperties.Name="Send question"
+                            Command="{x:Bind ViewModel.SubmitDraftCommand}"
+                            Content="Send"
+                            Style="{StaticResource AccentButtonStyle}"
+                            ToolTipService.ToolTip="Chat arrives in a later step." />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Spacing="12">
+                <TextBlock
+                    Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                    Text="Quick actions" />
+                <Grid ColumnSpacing="16" RowSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Button
+                        AutomationProperties.Name="Ask AI"
+                        Command="{x:Bind ViewModel.AskAiCommand}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Style="{StaticResource AppQuickActionButtonStyle}"
+                        ToolTipService.ToolTip="Start a conversation with the assistant.">
+                        <StackPanel Spacing="8">
+                            <SymbolIcon
+                                HorizontalAlignment="Left"
+                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                Symbol="Message" />
+                            <TextBlock
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="Ask AI" />
+                            <TextBlock
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource AppCaptionTextBlockStyle}"
+                                Text="Start a conversation with the assistant." />
+                        </StackPanel>
+                    </Button>
+
+                    <Button
+                        Grid.Column="1"
+                        AutomationProperties.Name="Search Files"
+                        Command="{x:Bind ViewModel.SearchFilesCommand}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Style="{StaticResource AppQuickActionButtonStyle}"
+                        ToolTipService.ToolTip="Find documents using natural language.">
+                        <StackPanel Spacing="8">
+                            <SymbolIcon
+                                HorizontalAlignment="Left"
+                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                Symbol="Find" />
+                            <TextBlock
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="Search Files" />
+                            <TextBlock
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource AppCaptionTextBlockStyle}"
+                                Text="Find documents using natural language." />
+                        </StackPanel>
+                    </Button>
+
+                    <Button
+                        Grid.Row="1"
+                        AutomationProperties.Name="System Information"
+                        Command="{x:Bind ViewModel.SystemInfoCommand}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Style="{StaticResource AppQuickActionButtonStyle}"
+                        ToolTipService.ToolTip="Review a summary of this PC.">
+                        <StackPanel Spacing="8">
+                            <SymbolIcon
+                                HorizontalAlignment="Left"
+                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                Symbol="Repair" />
+                            <TextBlock
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="System Information" />
+                            <TextBlock
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource AppCaptionTextBlockStyle}"
+                                Text="Review a summary of this PC." />
+                        </StackPanel>
+                    </Button>
+
+                    <Button
+                        Grid.Row="1"
+                        Grid.Column="1"
+                        AutomationProperties.Name="Clipboard Assistant"
+                        Command="{x:Bind ViewModel.ClipboardAssistantCommand}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Style="{StaticResource AppQuickActionButtonStyle}"
+                        ToolTipService.ToolTip="Work with text from the clipboard.">
+                        <StackPanel Spacing="8">
+                            <SymbolIcon
+                                HorizontalAlignment="Left"
+                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                Symbol="Paste" />
+                            <TextBlock
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="Clipboard Assistant" />
+                            <TextBlock
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource AppCaptionTextBlockStyle}"
+                                Text="Work with text from the clipboard." />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </StackPanel>
+
+            <Grid ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Style="{StaticResource AppSurfaceCardStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock
+                            Style="{StaticResource AppCardTitleTextBlockStyle}"
+                            Text="System overview" />
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppSecondaryTextBlockStyle}"
+                                Text="AI provider" />
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="{x:Bind ViewModel.AiProvider, Mode=OneWay}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppSecondaryTextBlockStyle}"
+                                Text="AI status" />
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="{x:Bind ViewModel.AiStatus, Mode=OneWay}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppSecondaryTextBlockStyle}"
+                                Text="System status" />
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="{x:Bind ViewModel.SystemStatus, Mode=OneWay}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Style="{StaticResource AppSurfaceCardStyle}">
+                    <StackPanel Spacing="12">
+                        <TextBlock
+                            Style="{StaticResource AppCardTitleTextBlockStyle}"
+                            Text="Privacy and activity" />
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppSecondaryTextBlockStyle}"
+                                Text="Privacy mode" />
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="{x:Bind ViewModel.PrivacyMode, Mode=OneWay}" />
+                        </Grid>
+                        <TextBlock
+                            Style="{StaticResource AppCaptionTextBlockStyle}"
+                            Text="No activity yet. Assistant actions will be listed here." />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.UI.Xaml;
+using WindowsAIAssistant.App.Views;
 using WindowsAIAssistant.Application;
 using WindowsAIAssistant.Application.Common.Errors;
 using WindowsAIAssistant.Infrastructure;
@@ -86,7 +87,7 @@ public partial class App : Microsoft.UI.Xaml.Application
             {
                 services.AddApplication();
                 services.AddInfrastructure(context.Configuration);
-                services.AddSingleton<MainWindow>();
+                services.AddAppShell();
             })
             .Build();
     }
