@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using WindowsAIAssistant.Application.System.Queries.GetSystemInformation;
 using WindowsAIAssistant.Application.Tests.Fakes;
 
@@ -9,7 +10,9 @@ public sealed class GetSystemInformationHandlerTests
     public async Task HandleAsync_ReturnsMappedSystemInformation()
     {
         var service = new FakeWindowsSystemService();
-        var handler = new GetSystemInformationHandler(service);
+        var handler = new GetSystemInformationHandler(
+            service,
+            NullLogger<GetSystemInformationHandler>.Instance);
 
         var result = await handler.HandleAsync(new GetSystemInformationQuery());
 

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 using WindowsAIAssistant.Application.AI.Services;
 using WindowsAIAssistant.Application.Common.Exceptions;
 using WindowsAIAssistant.Application.DTOs;
@@ -10,6 +11,13 @@ public sealed class ConversationService : IConversationService
 {
     private const string DefaultConversationTitle = "New Conversation";
     private readonly ConcurrentDictionary<Guid, ConversationState> _conversations = new();
+    private readonly ILogger<ConversationService> _logger;
+
+    public ConversationService(ILogger<ConversationService> logger)
+    {
+        ArgumentNullException.ThrowIfNull(logger);
+        _logger = logger;
+    }
 
     public Task<ConversationDto> CreateConversationAsync(CancellationToken cancellationToken = default)
     {
@@ -17,6 +25,7 @@ public sealed class ConversationService : IConversationService
 
         var state = new ConversationState(Guid.NewGuid(), DefaultConversationTitle, DateTimeOffset.UtcNow);
         _conversations[state.Id] = state;
+        _logger.LogInformation("Conversation created. {ConversationId}", state.Id);
 
         return Task.FromResult(CreateDto(state));
     }
@@ -69,6 +78,7 @@ public sealed class ConversationService : IConversationService
             state.UpdatedAt = DateTimeOffset.UtcNow;
         }
 
+        _logger.LogInformation("Conversation cleared. {ConversationId}", conversationId);
         return Task.CompletedTask;
     }
 

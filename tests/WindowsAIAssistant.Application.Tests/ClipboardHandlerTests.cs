@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using WindowsAIAssistant.Application.Clipboard.Commands.SetClipboardText;
 using WindowsAIAssistant.Application.Clipboard.Queries.GetClipboardText;
 using WindowsAIAssistant.Application.Tests.Fakes;
@@ -11,7 +12,9 @@ public sealed class ClipboardHandlerTests
     public async Task GetTextAsync_WithClipboardText_ReturnsText()
     {
         var service = new FakeClipboardService { Text = "clipboard value" };
-        var handler = new GetClipboardTextHandler(service);
+        var handler = new GetClipboardTextHandler(
+            service,
+            NullLogger<GetClipboardTextHandler>.Instance);
 
         var result = await handler.HandleAsync(new GetClipboardTextQuery());
 
@@ -22,7 +25,9 @@ public sealed class ClipboardHandlerTests
     [Fact]
     public async Task GetTextAsync_WithoutClipboardText_ReturnsNull()
     {
-        var handler = new GetClipboardTextHandler(new FakeClipboardService());
+        var handler = new GetClipboardTextHandler(
+            new FakeClipboardService(),
+            NullLogger<GetClipboardTextHandler>.Instance);
 
         var result = await handler.HandleAsync(new GetClipboardTextQuery());
 
@@ -34,7 +39,9 @@ public sealed class ClipboardHandlerTests
     {
         var expectedResult = Result.Success();
         var service = new FakeClipboardService { SetTextResult = expectedResult };
-        var handler = new SetClipboardTextHandler(service);
+        var handler = new SetClipboardTextHandler(
+            service,
+            NullLogger<SetClipboardTextHandler>.Instance);
 
         var result = await handler.HandleAsync(new SetClipboardTextCommand("new value"));
 
@@ -47,7 +54,9 @@ public sealed class ClipboardHandlerTests
     public async Task SetTextAsync_WithNullText_ThrowsArgumentNullException()
     {
         var service = new FakeClipboardService();
-        var handler = new SetClipboardTextHandler(service);
+        var handler = new SetClipboardTextHandler(
+            service,
+            NullLogger<SetClipboardTextHandler>.Instance);
 
         await Assert.ThrowsAsync<ArgumentNullException>(() => handler.HandleAsync(new SetClipboardTextCommand(null!)));
 

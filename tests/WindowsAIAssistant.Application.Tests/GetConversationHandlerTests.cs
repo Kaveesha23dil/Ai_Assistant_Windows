@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using WindowsAIAssistant.Application.AI.Queries.GetConversation;
 using WindowsAIAssistant.Application.AI.Services;
 
@@ -8,7 +9,7 @@ public sealed class GetConversationHandlerTests
     [Fact]
     public async Task HandleAsync_WithExistingConversation_ReturnsConversation()
     {
-        var service = new ConversationService();
+        var service = new ConversationService(NullLogger<ConversationService>.Instance);
         var conversation = await service.CreateConversationAsync();
         var handler = new GetConversationHandler(service);
 
@@ -21,7 +22,8 @@ public sealed class GetConversationHandlerTests
     [Fact]
     public async Task HandleAsync_WithUnknownConversation_ReturnsNull()
     {
-        var handler = new GetConversationHandler(new ConversationService());
+        var handler = new GetConversationHandler(
+            new ConversationService(NullLogger<ConversationService>.Instance));
 
         var result = await handler.HandleAsync(new GetConversationQuery(Guid.NewGuid()));
 

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using WindowsAIAssistant.Application.System.Commands.LaunchApplication;
 using WindowsAIAssistant.Application.Tests.Fakes;
 using WindowsAIAssistant.Core.Common;
@@ -14,7 +15,9 @@ public sealed class LaunchApplicationHandlerTests
         {
             LaunchResult = expectedResult
         };
-        var handler = new LaunchApplicationHandler(service);
+        var handler = new LaunchApplicationHandler(
+            service,
+            NullLogger<LaunchApplicationHandler>.Instance);
 
         var result = await handler.HandleAsync(new LaunchApplicationCommand("Calculator"));
 
@@ -29,7 +32,9 @@ public sealed class LaunchApplicationHandlerTests
     public async Task HandleAsync_WithEmptyName_ThrowsArgumentException(string applicationName)
     {
         var service = new FakeApplicationLauncherService();
-        var handler = new LaunchApplicationHandler(service);
+        var handler = new LaunchApplicationHandler(
+            service,
+            NullLogger<LaunchApplicationHandler>.Instance);
 
         await Assert.ThrowsAsync<ArgumentException>(() => handler.HandleAsync(new LaunchApplicationCommand(applicationName)));
 

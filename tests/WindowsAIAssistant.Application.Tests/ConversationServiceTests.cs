@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using WindowsAIAssistant.Application.AI.Services;
 using WindowsAIAssistant.Application.Common.Exceptions;
 using WindowsAIAssistant.Core.Enums;
@@ -7,10 +8,13 @@ namespace WindowsAIAssistant.Application.Tests;
 
 public sealed class ConversationServiceTests
 {
+    private static ConversationService CreateService() =>
+        new(NullLogger<ConversationService>.Instance);
+
     [Fact]
     public async Task Conversation_CanStoreAndRetrieveMessages()
     {
-        var service = new ConversationService();
+        var service = CreateService();
         var conversation = await service.CreateConversationAsync();
         var message = new AIMessage(
             Guid.NewGuid(),
@@ -30,7 +34,7 @@ public sealed class ConversationServiceTests
     [Fact]
     public async Task ClearConversationAsync_RemovesStoredMessages()
     {
-        var service = new ConversationService();
+        var service = CreateService();
         var conversation = await service.CreateConversationAsync();
         await service.AddMessageAsync(conversation.Id, AIMessage.CreateAssistant("Hello"));
 
@@ -44,7 +48,7 @@ public sealed class ConversationServiceTests
     [Fact]
     public async Task GetConversationAsync_WithUnknownId_ReturnsNull()
     {
-        var service = new ConversationService();
+        var service = CreateService();
 
         var result = await service.GetConversationAsync(Guid.NewGuid());
 
@@ -54,7 +58,7 @@ public sealed class ConversationServiceTests
     [Fact]
     public async Task AddMessageAsync_WithUnknownConversation_Throws()
     {
-        var service = new ConversationService();
+        var service = CreateService();
 
         await Assert.ThrowsAsync<ConversationNotFoundException>(() => service.AddMessageAsync(
             Guid.NewGuid(),

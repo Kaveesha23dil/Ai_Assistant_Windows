@@ -1,0 +1,79 @@
+<Page
+    x:Class="WindowsAIAssistant.App.Views.Pages.FilesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
+        <StackPanel
+                Style="{StaticResource AppPagePadding}"
+                MaxWidth="1120"
+                HorizontalAlignment="Center">
+
+            <StackPanel Spacing="4">
+                <TextBlock Style="{StaticResource AppPageTitleTextBlockStyle}" Text="{x:Bind ViewModel.HeaderTitle}" />
+                <TextBlock
+                    Style="{StaticResource AppSecondaryTextBlockStyle}"
+                    Text="{x:Bind ViewModel.Description}" />
+            </StackPanel>
+
+            <Border Style="{StaticResource AppSurfaceCardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBox
+                        MinHeight="40"
+                        AutomationProperties.Name="Search local files"
+                        HorizontalAlignment="Stretch"
+                        PlaceholderText="{x:Bind ViewModel.PlaceholderText, Mode=OneWay}"
+                        Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <StackPanel
+                        Margin="0,4,0,0"
+                        Orientation="Horizontal"
+                        Spacing="8">
+                        <Button
+                            AutomationProperties.Name="Search files"
+                            Command="{x:Bind ViewModel.SearchCommand}"
+                            Content="Search Files"
+                            ToolTipService.ToolTip="File search arrives in a later step." />
+                        <Button
+                            AutomationProperties.Name="Chat with a document"
+                            Command="{x:Bind ViewModel.ChatWithDocumentCommand}"
+                            Content="Chat with Document"
+                            ToolTipService.ToolTip="Document chat arrives in a later step." />
+                        <Button
+                            AutomationProperties.Name="Index a folder"
+                            Command="{x:Bind ViewModel.IndexFolderCommand}"
+                            Content="Index Folder"
+                            ToolTipService.ToolTip="Indexing requires the file indexing permission." />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Spacing="12">
+                <TextBlock
+                    Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                    Text="Recent files" />
+                <Border Style="{StaticResource AppSurfaceCardStyle}">
+                    <StackPanel
+                        Padding="16"
+                        HorizontalAlignment="Stretch"
+                        Spacing="12">
+                        <Border Style="{StaticResource AppEmptyStateIconStyle}">
+                            <SymbolIcon
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Symbol="Folder" />
+                        </Border>
+                        <TextBlock
+                            Style="{StaticResource AppEmptyStateTitleTextBlockStyle}"
+                            Text="{x:Bind ViewModel.EmptyStateTitle}" />
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            Style="{StaticResource AppSecondaryTextBlockStyle}"
+                            Text="{x:Bind ViewModel.EmptyStateMessage}"
+                            TextAlignment="Center" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

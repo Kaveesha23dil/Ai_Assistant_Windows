@@ -14,12 +14,20 @@ public sealed class FakeAIService : IAIService
 
     public int CallCount { get; private set; }
 
+    /// <summary>When set, <see cref="SendMessageAsync(IReadOnlyCollection{AIMessage}, CancellationToken)"/> throws this exception.</summary>
+    public Exception? ExceptionToThrow { get; set; }
+
     public Task<AIResponse> SendMessageAsync(
         IReadOnlyCollection<AIMessage> messages,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         CallCount++;
+        if (ExceptionToThrow is not null)
+        {
+            throw ExceptionToThrow;
+        }
+
         LastMessages = messages;
         LastMessage = messages.SingleOrDefault();
         return Task.FromResult(Response);

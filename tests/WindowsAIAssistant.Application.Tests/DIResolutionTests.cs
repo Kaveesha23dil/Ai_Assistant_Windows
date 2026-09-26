@@ -5,6 +5,7 @@ using WindowsAIAssistant.Application.AI.Queries.GetConversation;
 using WindowsAIAssistant.Application.AI.Services;
 using WindowsAIAssistant.Application.Clipboard.Commands.SetClipboardText;
 using WindowsAIAssistant.Application.Clipboard.Queries.GetClipboardText;
+using WindowsAIAssistant.Application.Common.Errors;
 using WindowsAIAssistant.Application.Files.Queries.SearchFiles;
 using WindowsAIAssistant.Application.Settings.Commands.UpdateSetting;
 using WindowsAIAssistant.Application.Settings.Queries.GetSetting;
@@ -39,6 +40,7 @@ public sealed class DIResolutionTests
         Assert.IsType<MockClipboardService>(provider.GetRequiredService<IClipboardService>());
         Assert.IsType<InMemorySettingsStorage>(provider.GetRequiredService<ISettingsStorage>());
         Assert.NotNull(provider.GetRequiredService<IConversationService>());
+        Assert.NotNull(provider.GetRequiredService<IErrorHandler>());
         Assert.NotNull(provider.GetRequiredService<SendMessageHandler>());
         Assert.NotNull(provider.GetRequiredService<GetConversationHandler>());
         Assert.NotNull(provider.GetRequiredService<SearchFilesHandler>());

@@ -1,6 +1,8 @@
+using WindowsAIAssistant.Core.Exceptions;
+
 namespace WindowsAIAssistant.Application.Common.Exceptions;
 
-public sealed class ConversationNotFoundException : KeyNotFoundException
+public sealed class ConversationNotFoundException : AssistantException
 {
     public ConversationNotFoundException(Guid conversationId)
         : base($"Conversation '{conversationId}' was not found.")

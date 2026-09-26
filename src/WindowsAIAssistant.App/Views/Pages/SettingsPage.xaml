@@ -1,0 +1,289 @@
+<Page
+    x:Class="WindowsAIAssistant.App.Views.Pages.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
+        <StackPanel
+                Style="{StaticResource AppPagePadding}"
+                MaxWidth="1000"
+                HorizontalAlignment="Center">
+
+            <StackPanel Spacing="4">
+                <TextBlock Style="{StaticResource AppPageTitleTextBlockStyle}" Text="Settings" />
+                <TextBlock
+                    Style="{StaticResource AppSecondaryTextBlockStyle}"
+                    Text="{x:Bind ViewModel.PersistenceNotice}" />
+            </StackPanel>
+
+            <StackPanel Spacing="12">
+                <TextBlock Style="{StaticResource AppMutedHeadingTextBlockStyle}" Text="General" />
+                <Border Style="{StaticResource AppSurfaceCardStyle}">
+                    <StackPanel Spacing="16">
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="Launch at startup" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Start Windows AI Assistant when you sign in." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                AutomationProperties.Name="Launch at startup"
+                                IsOn="{x:Bind ViewModel.IsLaunchAtStartupEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="Show system tray icon" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Keep the assistant available from the notification area." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                AutomationProperties.Name="Show system tray icon"
+                                IsOn="{x:Bind ViewModel.IsSystemTrayIconEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Spacing="12">
+                <TextBlock Style="{StaticResource AppMutedHeadingTextBlockStyle}" Text="AI" />
+                <Border Style="{StaticResource AppSurfaceCardStyle}">
+                    <StackPanel Spacing="16">
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="AI provider" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Credentials are configured separately and are never shown here." />
+                            </StackPanel>
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="{x:Bind ViewModel.AiProvider, Mode=OneWay}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="AI model" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Model selected by the current provider." />
+                            </StackPanel>
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppSecondaryTextBlockStyle}"
+                                Text="{x:Bind ViewModel.AiModel, Mode=OneWay}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="Cloud AI" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Allow requests that leave this device." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                AutomationProperties.Name="Cloud AI"
+                                IsOn="{x:Bind ViewModel.IsCloudAiEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="Local AI" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Run models on this device. Requires a local provider." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                AutomationProperties.Name="Local AI"
+                                IsOn="{x:Bind ViewModel.IsLocalAiEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Spacing="12">
+                <TextBlock Style="{StaticResource AppMutedHeadingTextBlockStyle}" Text="Appearance" />
+                <Border Style="{StaticResource AppSurfaceCardStyle}">
+                    <Grid Style="{StaticResource AppSectionRowStyle}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2">
+                            <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="Theme" />
+                            <TextBlock
+                                Style="{StaticResource AppCaptionTextBlockStyle}"
+                                Text="System follows your Windows light or dark setting." />
+                        </StackPanel>
+                        <ComboBox
+                            Grid.Column="1"
+                            MinWidth="140"
+                            VerticalAlignment="Center"
+                            AutomationProperties.Name="Theme"
+                            ItemsSource="{x:Bind ViewModel.ThemeOptions, Mode=OneWay}"
+                            SelectedIndex="{x:Bind ViewModel.SelectedThemeIndex, Mode=TwoWay}" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Spacing="12">
+                <TextBlock Style="{StaticResource AppMutedHeadingTextBlockStyle}" Text="Privacy" />
+                <Border Style="{StaticResource AppSurfaceCardStyle}">
+                    <StackPanel Spacing="16">
+                        <TextBlock
+                            Style="{StaticResource AppCaptionTextBlockStyle}"
+                            Text="{x:Bind ViewModel.PrivacyNotice}" />
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="Clipboard processing" />
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                AutomationProperties.Name="Clipboard processing"
+                                IsOn="{x:Bind ViewModel.IsClipboardProcessingEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="File indexing" />
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                AutomationProperties.Name="File indexing"
+                                IsOn="{x:Bind ViewModel.IsFileIndexingEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="Screen analysis" />
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                AutomationProperties.Name="Screen analysis"
+                                IsOn="{x:Bind ViewModel.IsScreenAnalysisEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="Conversation history" />
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                AutomationProperties.Name="Conversation history"
+                                IsOn="{x:Bind ViewModel.IsConversationHistoryEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="Telemetry" />
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                AutomationProperties.Name="Telemetry"
+                                IsOn="{x:Bind ViewModel.IsTelemetryEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Spacing="12">
+                <TextBlock Style="{StaticResource AppMutedHeadingTextBlockStyle}" Text="Notifications" />
+                <Border Style="{StaticResource AppSurfaceCardStyle}">
+                    <Grid Style="{StaticResource AppSectionRowStyle}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Spacing="2">
+                            <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="Notifications" />
+                            <TextBlock
+                                Style="{StaticResource AppCaptionTextBlockStyle}"
+                                Text="Show notifications when background work finishes." />
+                        </StackPanel>
+                        <ToggleSwitch
+                            Grid.Column="1"
+                            AutomationProperties.Name="Notifications"
+                            IsOn="{x:Bind ViewModel.IsNotificationsEnabled, Mode=TwoWay}"
+                            Style="{StaticResource AppSettingsToggleStyle}" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Spacing="12">
+                <TextBlock Style="{StaticResource AppMutedHeadingTextBlockStyle}" Text="About" />
+                <Border Style="{StaticResource AppSurfaceCardStyle}">
+                    <StackPanel Spacing="8">
+                        <TextBlock
+                            Style="{StaticResource AppCardTitleTextBlockStyle}"
+                            Text="{x:Bind ViewModel.ApplicationName, Mode=OneWay}" />
+                        <TextBlock
+                            Style="{StaticResource AppSecondaryTextBlockStyle}"
+                            Text="{x:Bind ViewModel.VersionDisplay, Mode=OneWay}" />
+                        <TextBlock
+                            Style="{StaticResource AppSecondaryTextBlockStyle}"
+                            Text="{x:Bind ViewModel.Platform, Mode=OneWay}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

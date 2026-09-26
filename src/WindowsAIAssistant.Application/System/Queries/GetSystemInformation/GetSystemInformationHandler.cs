@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using WindowsAIAssistant.Application.Common.Mapping;
 using WindowsAIAssistant.Application.DTOs;
 using WindowsAIAssistant.Core.Abstractions.System;
@@ -7,11 +8,16 @@ namespace WindowsAIAssistant.Application.System.Queries.GetSystemInformation;
 public sealed class GetSystemInformationHandler
 {
     private readonly IWindowsSystemService _windowsSystemService;
+    private readonly ILogger<GetSystemInformationHandler> _logger;
 
-    public GetSystemInformationHandler(IWindowsSystemService windowsSystemService)
+    public GetSystemInformationHandler(
+        IWindowsSystemService windowsSystemService,
+        ILogger<GetSystemInformationHandler> logger)
     {
         ArgumentNullException.ThrowIfNull(windowsSystemService);
+        ArgumentNullException.ThrowIfNull(logger);
         _windowsSystemService = windowsSystemService;
+        _logger = logger;
     }
 
     public async Task<SystemInformationDto> HandleAsync(
@@ -21,10 +27,26 @@ public sealed class GetSystemInformationHandler
         ArgumentNullException.ThrowIfNull(query);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var information = await _windowsSystemService
-            .GetSystemInformationAsync(cancellationToken)
-            .ConfigureAwait(false);
+        _logger.LogInformation("System information request started.");
+        try
+        {
+            var information = await _windowsSystemService
+                .GetSystemInformationAsync(cancellationToken)
+                .ConfigureAwait(false);
+            cancellationToken.ThrowIfCancellationRequested();
 
-        return information.ToDto();
+            _logger.LogInformation("System information request completed.");
+            return information.ToDto();
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogInformation("System information request cancelled by caller.");
+            throw;
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "System information request failed.");
+            throw;
+        }
     }
 }
