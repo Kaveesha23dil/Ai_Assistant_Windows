@@ -44,16 +44,48 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial int SelectedThemeIndex { get; set; }
 
+    [ObservableProperty]
+    public partial bool IsVoiceEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsMicrophoneAccessEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsVoiceProcessingEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsSpokenResponsesEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsContinuousListeningEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsConfirmSensitiveActionsEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsCloudSpeechProcessingEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsScreenCaptureEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsSystemControlEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsWakeWordEnabled { get; set; }
+
     public SettingsViewModel(
         IOptions<AIOptions> aiOptions,
         IOptions<FeatureOptions> featureOptions,
         IOptions<PrivacyOptions> privacyOptions,
-        IOptions<UIOptions> uiOptions)
+        IOptions<UIOptions> uiOptions,
+        IOptions<VoiceOptions> voiceOptions)
     {
         ArgumentNullException.ThrowIfNull(aiOptions);
         ArgumentNullException.ThrowIfNull(featureOptions);
         ArgumentNullException.ThrowIfNull(privacyOptions);
         ArgumentNullException.ThrowIfNull(uiOptions);
+        ArgumentNullException.ThrowIfNull(voiceOptions);
 
         AiProvider = aiOptions.Value.Provider;
         AiModel = aiOptions.Value.Model;
@@ -65,6 +97,21 @@ public sealed partial class SettingsViewModel : ObservableObject
         IsConversationHistoryEnabled = privacyOptions.Value.StoreConversationHistory;
         IsTelemetryEnabled = privacyOptions.Value.AllowTelemetry;
         IsSystemTrayIconEnabled = uiOptions.Value.ShowSystemTrayIcon;
+
+        var voice = voiceOptions.Value;
+        var privacy = privacyOptions.Value;
+
+        IsVoiceEnabled = voice.Enabled;
+        IsSpokenResponsesEnabled = voice.SpeakResponses;
+        IsContinuousListeningEnabled = voice.ContinuousListening;
+        IsConfirmSensitiveActionsEnabled = voice.ConfirmSensitiveActions;
+        IsWakeWordEnabled = voice.WakeWordEnabled;
+
+        IsMicrophoneAccessEnabled = privacy.AllowMicrophoneAccess;
+        IsVoiceProcessingEnabled = privacy.AllowVoiceProcessing;
+        IsCloudSpeechProcessingEnabled = privacy.AllowCloudSpeechProcessing;
+        IsScreenCaptureEnabled = privacy.AllowScreenCapture;
+        IsSystemControlEnabled = privacy.AllowSystemControl;
 
         SelectedThemeIndex = ThemeOptions.ToList()
             .FindIndex(option => string.Equals(option, uiOptions.Value.Theme, StringComparison.OrdinalIgnoreCase));
@@ -93,6 +140,19 @@ public sealed partial class SettingsViewModel : ObservableObject
     public string PersistenceNotice => "Changes apply to this session only. Saved preferences arrive in a later step.";
 
     public string PrivacyNotice => "These capabilities are permission controlled. Clipboard, file indexing, screen analysis, cloud AI and telemetry stay off until you turn them on here and the matching feature step is implemented.";
+
+    public string VoiceNotice =>
+        "The microphone is closed by default and only opens while you ask a question. Recognition runs on this device; cloud speech is off unless you allow it.";
+
+    /// <summary>
+    /// Gets a value indicating whether the wake phrase can be armed. It cannot yet, because no
+    /// local wake-word engine is selected, and the control stays visible and disabled so the
+    /// gap is obvious rather than hidden.
+    /// </summary>
+    public bool IsWakeWordSupported => false;
+
+    public string WakeWordNotice =>
+        "Wake word detection is unavailable: no local engine is installed, and no cloud alternative is offered.";
 
     partial void OnSelectedThemeIndexChanged(int value) => OnPropertyChanged(nameof(Theme));
 }

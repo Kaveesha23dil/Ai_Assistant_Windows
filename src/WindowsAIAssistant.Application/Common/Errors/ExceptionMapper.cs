@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using WindowsAIAssistant.Application.Common.Exceptions;
+using WindowsAIAssistant.Core.Common;
 using WindowsAIAssistant.Core.Exceptions;
 
 namespace WindowsAIAssistant.Application.Common.Errors;
@@ -18,6 +19,10 @@ public static class ExceptionMapper
         return exception switch
         {
             OperationCanceledException => Cancelled(),
+            VoiceException voice => new ApplicationError(
+                voice.ErrorCode,
+                VoiceMessage(voice),
+                VoiceErrorType(voice)),
             ConversationNotFoundException => new ApplicationError(
                 ErrorCodes.ConversationNotFound,
                 "The requested conversation was not found.",
@@ -60,6 +65,21 @@ public static class ExceptionMapper
         ErrorCodes.OperationCancelled,
         "The operation was cancelled.",
         ErrorType.Cancelled);
+
+    /// <summary>
+    /// Voice exceptions carry their own code; the message is supplied by the throwing layer
+    /// and is always a fixed user-safe literal, so it is safe to surface.
+    /// </summary>
+    private static string VoiceMessage(VoiceException exception) => exception.Message;
+
+    private static ErrorType VoiceErrorType(VoiceException exception) => exception switch
+    {
+        VoicePermissionException => ErrorType.Permission,
+        VoiceCommandNotRecognizedException => ErrorType.Validation,
+        SpeechRecognitionException => ErrorType.ExternalService,
+        SpeechSynthesisException => ErrorType.ExternalService,
+        _ => ErrorType.System
+    };
 
     private static ApplicationError Unknown() => new(
         ErrorCodes.UnknownError,

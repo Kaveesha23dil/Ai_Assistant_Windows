@@ -17,6 +17,7 @@ public static class ConfigurationExtensions
 
         services.AddSingleton<IValidateOptions<ApplicationOptions>, ApplicationOptionsValidator>();
         services.AddSingleton<IValidateOptions<AIOptions>, AIOptionsValidator>();
+        services.AddSingleton<IValidateOptions<VoiceOptions>, VoiceOptionsValidator>();
 
         services.AddOptions<ApplicationOptions>()
             .Bind(configuration.GetSection(ApplicationOptions.SectionName))
@@ -29,6 +30,9 @@ public static class ConfigurationExtensions
             .ValidateOnStart();
         services.AddOptions<PrivacyOptions>()
             .Bind(configuration.GetSection(PrivacyOptions.SectionName))
+            .ValidateOnStart();
+        services.AddOptions<VoiceOptions>()
+            .Bind(configuration.GetSection(VoiceOptions.SectionName))
             .ValidateOnStart();
         services.AddOptions<UIOptions>()
             .Bind(configuration.GetSection(UIOptions.SectionName))

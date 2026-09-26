@@ -7,7 +7,6 @@ using WindowsAIAssistant.Application.Files.Queries.SearchFiles;
 using WindowsAIAssistant.Application.System.Queries.GetSystemInformation;
 using WindowsAIAssistant.Core.Enums;
 using WindowsAIAssistant.Infrastructure;
-
 namespace WindowsAIAssistant.Application.Tests;
 
 public sealed class MockFlowTests
@@ -70,6 +69,11 @@ public sealed class MockFlowTests
         var services = new ServiceCollection();
         services.AddApplication();
         services.AddInfrastructure(configuration);
+
+        // The production composition root talks to the real machine. These tests want the
+        // deterministic development implementations, so they ask for them by name.
+        services.AddDevelopmentServices();
+
         return services.BuildServiceProvider();
     }
 }

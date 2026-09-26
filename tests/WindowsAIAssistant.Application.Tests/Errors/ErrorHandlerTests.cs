@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using WindowsAIAssistant.Application.Common.Errors;
+using WindowsAIAssistant.Core.Common;
 using WindowsAIAssistant.Application.Tests.Helpers;
 using WindowsAIAssistant.Core.Exceptions;
 

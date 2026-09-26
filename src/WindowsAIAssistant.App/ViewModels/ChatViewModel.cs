@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using WindowsAIAssistant.Core.Abstractions.Voice;
 
 namespace WindowsAIAssistant.App.ViewModels;
 
@@ -7,10 +8,15 @@ namespace WindowsAIAssistant.App.ViewModels;
 /// Chat page state for the shell only. The conversation flow is intentionally not connected
 /// to any AI service yet.
 /// </summary>
-public sealed partial class ChatViewModel : ObservableObject
+public sealed partial class ChatViewModel : VoiceInteractionViewModel
 {
     [ObservableProperty]
     public partial string DraftText { get; set; } = string.Empty;
+
+    public ChatViewModel(IVoiceAssistantService voice)
+        : base(voice)
+    {
+    }
 
     public string HeaderTitle => "Chat";
 

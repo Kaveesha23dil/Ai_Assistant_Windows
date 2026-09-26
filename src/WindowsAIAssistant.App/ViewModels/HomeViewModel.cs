@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Options;
+using WindowsAIAssistant.Core.Abstractions.Voice;
 using WindowsAIAssistant.Infrastructure.Configuration.Options;
 
 namespace WindowsAIAssistant.App.ViewModels;
@@ -9,12 +10,16 @@ namespace WindowsAIAssistant.App.ViewModels;
 /// Landing page state. Values shown here are derived from configuration where possible and
 /// never contain machine or account details.
 /// </summary>
-public sealed partial class HomeViewModel : ObservableObject
+public sealed partial class HomeViewModel : VoiceInteractionViewModel
 {
     [ObservableProperty]
     public partial string DraftText { get; set; } = string.Empty;
 
-    public HomeViewModel(IOptions<AIOptions> aiOptions, IOptions<PrivacyOptions> privacyOptions)
+    public HomeViewModel(
+        IOptions<AIOptions> aiOptions,
+        IOptions<PrivacyOptions> privacyOptions,
+        IVoiceAssistantService voice)
+        : base(voice)
     {
         ArgumentNullException.ThrowIfNull(aiOptions);
         ArgumentNullException.ThrowIfNull(privacyOptions);

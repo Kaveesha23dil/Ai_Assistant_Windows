@@ -42,8 +42,11 @@ Neither file contains credentials.
 | `FeatureOptions` | `Features` | Configuration-level feature flags |
 | `PrivacyOptions` | `Privacy` | Privacy-sensitive capability permissions |
 | `UIOptions` | `UI` | Theme and launch preferences for future UI behavior |
+| `VoiceOptions` | `Voice` | Speech, confidence, confirmation, and response-length behaviour |
 
 All options are registered by `AddApplicationConfiguration` and validated on host startup. Static startup settings should be consumed with `IOptions<T>`. `IOptionsMonitor<T>` and `IOptionsSnapshot<T>` should be introduced only if their scoped or changing behavior is required.
+
+`VoiceOptions` is read by the App composition root, which maps it onto `VoiceIntentPolicy` so that the Application layer stays free of configuration types. The settings screen currently shows these values and edits them in memory only; changes made there do not yet reach a running session.
 
 ## Environment-variable overrides
 
@@ -88,7 +91,7 @@ The committed defaults enable only mock-ready capabilities:
 - Clipboard
 - System information
 
-Automation, voice, screen AI, and local AI are disabled. These flags describe configuration only and do not implement the corresponding features.
+Automation, screen AI, and local AI are disabled. Voice is implemented but disabled by default: the `Voice` section governs recognition, and the privacy switches below decide which capabilities it may reach.
 
 ## Privacy defaults
 
@@ -102,8 +105,20 @@ All sensitive capabilities default to disabled:
 | `AllowFileIndexing` | `false` |
 | `AllowScreenAnalysis` | `false` |
 | `StoreConversationHistory` | `false` |
+| `AllowMicrophoneAccess` | `false` |
+| `AllowVoiceProcessing` | `false` |
+| `AllowCloudSpeechProcessing` | `false` |
+| `AllowScreenCapture` | `false` |
+| `AllowSystemControl` | `false` |
+| `StoreVoiceHistory` | `false` |
+| `AllowApplicationLaunch` | `true` |
+| `AllowWebSearch` | `true` |
 
-Consent and user-facing privacy controls are not implemented in this step.
+Each spoken capability maps onto one of these: voice input needs `AllowMicrophoneAccess` *and* `AllowVoiceProcessing`, file search follows `AllowFileIndexing`, and screenshots follow `AllowScreenCapture`.
+
+A voice command is refused unless the matching capability is granted, so enabling `Voice` alone does not grant anything. Application launching and web search are on by default because they only ever act on an allow-listed name or a query the user spoke aloud, and both are still gated behind spoken confirmation.
+
+The settings screen exposes these switches, but edits are in memory for now and are not written back to configuration.
 
 ## Secrets
 
