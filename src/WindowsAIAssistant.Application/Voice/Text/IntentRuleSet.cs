@@ -34,6 +34,7 @@ internal static class IntentRuleSet
         ScreenshotRules(),
         .. ClipboardRules(),
         SettingsRules(),
+        .. NavigationRules(),
         KnownFolderRules(),
         .. SiteSearchRules(),
         WebSearchRules(),
@@ -306,6 +307,37 @@ internal static class IntentRuleSet
             @"^show (?:me )?(?:my |the )?(?<folder>downloads?|documents?|desktop|pictures?|music|videos?)$",
             @"^open (?:my )?(?<folder>downloads?|documents?|desktop|pictures?|music|videos?) folder$"
         ]);
+
+    /// <summary>
+    /// Phrasings that move between this application's own pages.
+    /// <para>
+    /// The group sits directly after the Windows Settings rules and directly before the
+    /// application-launch rules, and both positions are load-bearing. Before the launcher,
+    /// because "open chat" would otherwise be read as a request to start an application called
+    /// chat. After the Windows Settings rules, because those already own the bare "open
+    /// settings" and must keep owning it. Only phrases that name the assistant reach this
+    /// group, so "open Windows settings" still opens Windows while "open assistant settings"
+    /// opens the assistant's own page.
+    /// </para>
+    /// </summary>
+    private static IReadOnlyList<IntentRule> NavigationRules() =>
+    [
+        new IntentRule(
+            AssistantIntent.Navigate,
+            [
+                @"^(?:go|navigate) to (?:the )?(?<destination>home|chat|files|automations)$",
+
+                // The destination has to be captured here as well as in the pattern above, or the
+                // rule would match "go home" and then hand the handler a command with nowhere to
+                // go, which the handler rightly refuses.
+                @"^(?:go|navigate) (?<destination>home)$",
+                @"^(?:go|show|take me) (?:to )?(?:the )?(?<destination>home)$",
+                @"^(?:open|show) (?:me )?(?:the )?(?<destination>chat|files|automations)$",
+                @"^show (?:me )?(?:my |the )?(?<destination>files)$",
+                @"^(?:open|show) (?:the )?(?<destination>assistant settings|app settings|application settings)$",
+                @"^(?:open|show) (?:me )?(?:the )?(?<destination>assistant settings|app settings)$"
+            ])
+    ];
 
     private static IReadOnlyList<IntentRule> SiteSearchRules() =>
     [

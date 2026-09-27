@@ -8,6 +8,7 @@ using WindowsAIAssistant.Application.Clipboard.Commands.SetClipboardText;
 using WindowsAIAssistant.Application.Clipboard.Queries.GetClipboardText;
 using WindowsAIAssistant.Application.Common.Errors;
 using WindowsAIAssistant.Application.Files.Queries.SearchFiles;
+using WindowsAIAssistant.Application.Navigation;
 using WindowsAIAssistant.Application.Settings.Commands.SaveUserSettings;
 using WindowsAIAssistant.Application.Settings.Commands.UpdateSetting;
 using WindowsAIAssistant.Application.Settings.Queries.GetSetting;
@@ -17,6 +18,7 @@ using WindowsAIAssistant.Application.Voice.Commands.AiQuestion;
 using WindowsAIAssistant.Application.Voice.Commands.AssistantControl;
 using WindowsAIAssistant.Application.Voice.Commands.Clipboard;
 using WindowsAIAssistant.Application.Voice.Commands.FileSearch;
+using WindowsAIAssistant.Application.Voice.Commands.Navigation;
 using WindowsAIAssistant.Application.Voice.Commands.OpenApplication;
 using WindowsAIAssistant.Application.Voice.Commands.OpenFolder;
 using WindowsAIAssistant.Application.Voice.Commands.Screenshot;
@@ -25,6 +27,7 @@ using WindowsAIAssistant.Application.Voice.Commands.Volume;
 using WindowsAIAssistant.Application.Voice.Commands.WebSearch;
 using WindowsAIAssistant.Application.Voice;
 using WindowsAIAssistant.Application.Voice.Services;
+using WindowsAIAssistant.Core.Abstractions.Navigation;
 using WindowsAIAssistant.Core.Abstractions.Voice;
 
 namespace WindowsAIAssistant.Application;
@@ -76,6 +79,12 @@ public static class DependencyInjection
 
         services.TryAddSingleton(new VoiceIntentPolicy());
 
+        // The pipeline can be built without a window, and a command that needs navigation has
+        // to be routable there or the container would not resolve. The placeholder reports that
+        // the destination is unavailable; a host with a shell registers its own navigator after
+        // this and the placeholder is never consulted.
+        services.TryAddSingleton<IApplicationNavigator, NullApplicationNavigator>();
+
         services.AddSingleton<AssistantSession>();
         services.AddSingleton<IVoiceCommandHistory, VoiceCommandHistory>();
         services.AddSingleton<IIntentRecognizer, IntentRecognizer>();
@@ -87,6 +96,7 @@ public static class DependencyInjection
         services.AddTransient<IAssistantActionExecutor, OpenApplicationVoiceHandler>();
         services.AddTransient<IAssistantActionExecutor, OpenFolderVoiceHandler>();
         services.AddTransient<IAssistantActionExecutor, OpenSettingsVoiceHandler>();
+        services.AddTransient<IAssistantActionExecutor, NavigateVoiceHandler>();
         services.AddTransient<IAssistantActionExecutor, WebSearchVoiceHandler>();
         services.AddTransient<IAssistantActionExecutor, FileSearchVoiceHandler>();
         services.AddTransient<IAssistantActionExecutor, SystemInformationVoiceHandler>();

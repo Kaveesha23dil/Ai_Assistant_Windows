@@ -29,6 +29,17 @@ public enum AssistantIntent
     /// <summary>Open a Windows Settings page through a supported settings URI.</summary>
     OpenSettings,
 
+    /// <summary>
+    /// Move to another page of this application, such as the conversation or files page.
+    /// <para>
+    /// This is deliberately separate from <see cref="OpenSettings"/>: that intent opens the
+    /// Windows Settings application, while this one opens the assistant's own settings page.
+    /// Keeping them apart is what stops "open settings" from being ambiguous, and it means a
+    /// spoken "open Windows settings" can never land somebody on the assistant's page.
+    /// </para>
+    /// </summary>
+    Navigate,
+
     /// <summary>Run a web search through the default search provider.</summary>
     WebSearch,
 
