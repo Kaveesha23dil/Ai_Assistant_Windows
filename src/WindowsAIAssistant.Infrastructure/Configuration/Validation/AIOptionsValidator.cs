@@ -36,6 +36,21 @@ public sealed class AIOptionsValidator : IValidateOptions<AIOptions>
             failures.Add("AI:RequestTimeoutSeconds must be between 1 and 600.");
         }
 
+        if (options.MaxConversationMessages < 2)
+        {
+            // Two is the floor that still makes a conversation coherent: a question and the
+            // answer to it. One would mean the model never saw what it was replying to.
+            failures.Add("AI:MaxConversationMessages must be at least 2.");
+        }
+
+        if (string.IsNullOrWhiteSpace(options.ApiKeyEnvironmentVariable))
+        {
+            failures.Add("AI:ApiKeyEnvironmentVariable must name an environment variable.");
+        }
+
+        // An unrecognised provider name is deliberately not a failure here. The factory reports
+        // it at the moment a request is made, with a sentence the person can act on, which is
+        // more use than refusing to start the application.
         return failures.Count == 0
             ? ValidateOptionsResult.Success
             : ValidateOptionsResult.Fail(failures);

@@ -6,16 +6,24 @@ using WindowsAIAssistant.Application.System.Queries.GetSystemInformation;
 using WindowsAIAssistant.Application.Tests.Fakes;
 using WindowsAIAssistant.Application.Tests.Helpers;
 using WindowsAIAssistant.Core.Exceptions;
-
 namespace WindowsAIAssistant.Application.Tests.Logging;
 
 public sealed class HandlerLoggingTests
 {
+    private static SendMessageHandler CreateHandler(
+        FakeAIService service,
+        Microsoft.Extensions.Logging.ILogger<SendMessageHandler> logger) =>
+        new(
+            service,
+            AITestHarness.CreateContextBuilder(),
+            AITestHarness.CreateConversations(),
+            logger);
+
     [Fact]
     public async Task SendMessage_OnSuccess_LogsStartedAndCompletedWithoutMessageContent()
     {
         var logger = new TestLogger<SendMessageHandler>();
-        var handler = new SendMessageHandler(new FakeAIService(), logger);
+        var handler = CreateHandler(new FakeAIService(), logger);
 
         await handler.HandleAsync(new SendMessageCommand("my private salary question"));
 
@@ -30,7 +38,7 @@ public sealed class HandlerLoggingTests
     {
         var logger = new TestLogger<SendMessageHandler>();
         var service = new FakeAIService { ExceptionToThrow = new AIServiceException("provider down") };
-        var handler = new SendMessageHandler(service, logger);
+        var handler = CreateHandler(service, logger);
 
         await Assert.ThrowsAsync<AIServiceException>(
             () => handler.HandleAsync(new SendMessageCommand("Hello")));
@@ -44,7 +52,7 @@ public sealed class HandlerLoggingTests
     {
         var logger = new TestLogger<SendMessageHandler>();
         var service = new FakeAIService { ExceptionToThrow = new OperationCanceledException() };
-        var handler = new SendMessageHandler(service, logger);
+        var handler = CreateHandler(service, logger);
 
         await Assert.ThrowsAsync<OperationCanceledException>(
             () => handler.HandleAsync(new SendMessageCommand("Hello")));

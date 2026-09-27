@@ -35,6 +35,13 @@ public sealed record AIMessage
     /// <summary>Creates an assistant message with a new identifier and the current UTC time.</summary>
     public static AIMessage CreateAssistant(string content) => Create(AIMessageRole.Assistant, content);
 
+    /// <summary>
+    /// Creates the system-instruction message that opens a conversation. It is a first-class
+    /// message rather than something a provider prepends, so every provider receives the same
+    /// instructions in the same position.
+    /// </summary>
+    public static AIMessage CreateSystem(string content) => Create(AIMessageRole.System, content);
+
     private static AIMessage Create(AIMessageRole role, string content)
         => new(Guid.NewGuid(), role, content, DateTimeOffset.UtcNow);
 }

@@ -21,7 +21,11 @@ public sealed class MockFlowTests
         var response = await handler.HandleAsync(new SendMessageCommand("Hello"));
 
         Assert.True(response.IsSuccessful);
-        Assert.Equal(AIProviderType.Local, response.Provider);
+
+        // Mock, not Local: the offline provider now says what it is. Reporting itself as a local
+        // model would claim a model that is not running, and would misreport whether a request
+        // left the device.
+        Assert.Equal(AIProviderType.Mock, response.Provider);
         Assert.Equal("mock-model", response.Model);
         Assert.Contains("Hello", response.Content);
     }

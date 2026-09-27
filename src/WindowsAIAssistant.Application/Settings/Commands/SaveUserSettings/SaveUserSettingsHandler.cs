@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using WindowsAIAssistant.Core.Abstractions.Configuration;
 using WindowsAIAssistant.Core.Common;
+using WindowsAIAssistant.Core.Enums;
 using WindowsAIAssistant.Core.Models;
 
 namespace WindowsAIAssistant.Application.Settings.Commands.SaveUserSettings;
@@ -91,9 +92,27 @@ public sealed class SaveUserSettingsHandler
             return "These settings are incomplete. Nothing was saved.";
         }
 
+        if (settings.AI is null)
+        {
+            return "These settings are incomplete. Nothing was saved.";
+        }
+
         if (!SupportedThemes.Contains(settings.UI.Theme, StringComparer.OrdinalIgnoreCase))
         {
             return $"Choose a theme from {string.Join(", ", SupportedThemes)}.";
+        }
+
+        if (string.IsNullOrWhiteSpace(settings.AI.Provider) ||
+            !AIProviderTypes.SupportedNames.Contains(settings.AI.Provider.Trim(), StringComparer.OrdinalIgnoreCase))
+        {
+            // A provider this build cannot serve is rejected rather than written, because it
+            // would leave the assistant unable to answer at all.
+            return $"Choose an AI provider from {string.Join(", ", AIProviderTypes.SupportedNames)}.";
+        }
+
+        if (string.IsNullOrWhiteSpace(settings.AI.Model))
+        {
+            return "Enter the model name your AI provider uses.";
         }
 
         return null;

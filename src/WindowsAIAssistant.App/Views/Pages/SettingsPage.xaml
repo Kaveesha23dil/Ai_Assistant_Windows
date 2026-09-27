@@ -94,13 +94,16 @@
                                 <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="AI provider" />
                                 <TextBlock
                                     Style="{StaticResource AppCaptionTextBlockStyle}"
-                                    Text="Credentials are configured separately and are never shown here." />
+                                    Text="{x:Bind ViewModel.ProviderNotice, Mode=OneWay}"
+                                    TextWrapping="Wrap" />
                             </StackPanel>
-                            <TextBlock
+                            <ComboBox
                                 Grid.Column="1"
+                                MinWidth="160"
                                 VerticalAlignment="Center"
-                                Style="{StaticResource AppCardTitleTextBlockStyle}"
-                                Text="{x:Bind ViewModel.AiProvider, Mode=OneWay}" />
+                                AutomationProperties.Name="AI provider"
+                                ItemsSource="{x:Bind ViewModel.ProviderOptions, Mode=OneWay}"
+                                SelectedIndex="{x:Bind ViewModel.SelectedProviderIndex, Mode=TwoWay}" />
                         </Grid>
                         <Grid Style="{StaticResource AppSectionRowStyle}">
                             <Grid.ColumnDefinitions>
@@ -111,13 +114,31 @@
                                 <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="AI model" />
                                 <TextBlock
                                     Style="{StaticResource AppCaptionTextBlockStyle}"
-                                    Text="Model selected by the current provider." />
+                                    Text="The model name your provider account can use. It is sent exactly as typed." />
                             </StackPanel>
-                            <TextBlock
+                            <TextBox
                                 Grid.Column="1"
+                                MinWidth="200"
                                 VerticalAlignment="Center"
-                                Style="{StaticResource AppSecondaryTextBlockStyle}"
-                                Text="{x:Bind ViewModel.AiModel, Mode=OneWay}" />
+                                AutomationProperties.Name="AI model"
+                                Text="{x:Bind ViewModel.AiModelText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="Stream answers" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Show each part of an answer as it arrives. Turn off to wait for the whole answer." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                AutomationProperties.Name="Stream answers"
+                                IsOn="{x:Bind ViewModel.IsStreamingEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
                         </Grid>
                         <Grid Style="{StaticResource AppSectionRowStyle}">
                             <Grid.ColumnDefinitions>
@@ -128,7 +149,7 @@
                                 <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="Cloud AI" />
                                 <TextBlock
                                     Style="{StaticResource AppCaptionTextBlockStyle}"
-                                    Text="Allow requests that leave this device." />
+                                    Text="Allow requests that leave this device. Nothing is sent while this is off." />
                             </StackPanel>
                             <ToggleSwitch
                                 Grid.Column="1"

@@ -21,6 +21,12 @@
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
     <PackageReference Include="NAudio" />
+    <!--
+      The only third-party AI SDK in the solution, and it is referenced here on purpose: this
+      is the innermost project, so Core, Application, and the interface cannot acquire a
+      provider type even by accident. Everything above talks to IAIProvider.
+    -->
+    <PackageReference Include="OpenAI" />
   </ItemGroup>
 
   <ItemGroup>
