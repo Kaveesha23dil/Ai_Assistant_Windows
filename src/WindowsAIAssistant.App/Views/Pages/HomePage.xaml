@@ -131,6 +131,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
                     <Button
@@ -226,6 +227,30 @@
                                 HorizontalAlignment="Left"
                                 Style="{StaticResource AppCaptionTextBlockStyle}"
                                 Text="Work with text from the clipboard." />
+                        </StackPanel>
+                    </Button>
+
+                    <Button
+                        Grid.Row="2"
+                        AutomationProperties.Name="Assistant settings"
+                        Command="{x:Bind ViewModel.OpenSettingsCommand}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Stretch"
+                        Style="{StaticResource AppQuickActionButtonStyle}"
+                        ToolTipService.ToolTip="Open the assistant's own settings.">
+                        <StackPanel Spacing="8">
+                            <SymbolIcon
+                                HorizontalAlignment="Left"
+                                Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                Symbol="Setting" />
+                            <TextBlock
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="Assistant Settings" />
+                            <TextBlock
+                                HorizontalAlignment="Left"
+                                Style="{StaticResource AppCaptionTextBlockStyle}"
+                                Text="Voice, privacy, and behaviour for this assistant." />
                         </StackPanel>
                     </Button>
                 </Grid>

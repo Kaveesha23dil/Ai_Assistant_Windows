@@ -4,6 +4,7 @@ using WindowsAIAssistant.Application;
 using WindowsAIAssistant.Application.Tests.Fakes;
 using WindowsAIAssistant.Application.Voice;
 using WindowsAIAssistant.Application.Voice.Services;
+using WindowsAIAssistant.Core.Abstractions.Navigation;
 using WindowsAIAssistant.Core.Abstractions.Security;
 using WindowsAIAssistant.Core.Abstractions.System;
 using WindowsAIAssistant.Core.Abstractions.Time;
@@ -40,6 +41,7 @@ public sealed class VoicePipelineHarness : IDisposable
         FakeUriLauncherService uriLauncher,
         FakeBatteryService battery,
         FakeApplicationResolver resolver,
+        FakeApplicationNavigator navigator,
         List<Uri> openedUris)
     {
         _provider = provider;
@@ -50,6 +52,7 @@ public sealed class VoicePipelineHarness : IDisposable
         UriLauncher = uriLauncher;
         Battery = battery;
         Resolver = resolver;
+        Navigator = navigator;
         OpenedUris = openedUris;
     }
 
@@ -74,6 +77,12 @@ public sealed class VoicePipelineHarness : IDisposable
     public FakeApplicationResolver Resolver { get; }
 
     public FakeUriLauncherService UriLauncher { get; }
+
+    /// <summary>
+    /// Gets the stand-in for the shell's navigation service, so a test can assert which
+    /// destination a spoken request resolved to without a window existing.
+    /// </summary>
+    public FakeApplicationNavigator Navigator { get; }
 
     /// <summary>Gets every address the pipeline asked the shell to open.</summary>
     public List<Uri> OpenedUris { get; }
@@ -122,9 +131,15 @@ public sealed class VoicePipelineHarness : IDisposable
     /// Optionally overrides the policy before it is registered, by handing it a replacement set
     /// of values. Everything the caller does not set keeps the safe default.
     /// </param>
+    /// <param name="configureNavigator">
+    /// Optionally adjusts the navigation stand-in, for example to make a destination
+    /// unavailable or to seed the route already on screen.
+    /// </param>
     public static VoicePipelineHarness Create(
         Action<VoiceIntentPolicy>? configurePolicy = null,
-        params PermissionCapability[] denied)    {
+        Action<FakeApplicationNavigator>? configureNavigator = null,
+        params PermissionCapability[] denied)
+    {
         var configuration = new ConfigurationManager();
 
         var services = new ServiceCollection();
@@ -150,6 +165,8 @@ public sealed class VoicePipelineHarness : IDisposable
         var screenshot = new FakeScreenshotService();
         var time = new FakeDateTimeProvider(new DateTimeOffset(2026, 3, 14, 9, 30, 0, TimeSpan.Zero));
         var webProviders = new FakeWebSearchProviders();
+        var navigator = new FakeApplicationNavigator();
+        configureNavigator?.Invoke(navigator);
 
         // Registered after AddInfrastructure so these win. Anything not replaced here would
         // reach real hardware, so the list is deliberately explicit and complete.
@@ -166,6 +183,11 @@ public sealed class VoicePipelineHarness : IDisposable
         services.AddSingleton<IDriveSpaceService>(driveSpace);
         services.AddSingleton<IScreenshotService>(screenshot);
         services.AddSingleton<IDateTimeProvider>(time);
+
+        // The Application layer registers a placeholder navigator that can show nothing, because
+        // the pipeline has to be constructible without a window. Replacing it here is what lets
+        // a spoken navigation request be observed as a route rather than refused.
+        services.AddSingleton<IApplicationNavigator>(navigator);
 
         // A collection of providers cannot be shadowed by adding a later one, so the real
         // registrations are removed rather than merely outranked.
@@ -197,6 +219,7 @@ public sealed class VoicePipelineHarness : IDisposable
             uriLauncher,
             battery,
             applicationResolver,
+            navigator,
             openedUris);
     }
 
@@ -245,19 +268,72 @@ public sealed class FakeKnownFolderService : IKnownFolderService
     }
 }
 
-/// <summary>Resolves the settings pages the assistant is allowed to open.</summary>
+/// <summary>
+/// Resolves the settings pages the assistant is allowed to open.
+/// <para>
+/// The table mirrors the real platform service, including the root "settings" page the handler
+/// falls back to for a bare "open settings". A stand-in that offered only named pages would
+/// make the real allow list look stricter than it is, and the phrase people say most often
+/// would be the one thing the fake could not answer.
+/// </para>
+/// </summary>
 public sealed class FakeWindowsSettingsService : IWindowsSettingsService
 {
-    public IReadOnlyCollection<string> SupportedPages { get; } =
-        ["wifi", "bluetooth", "display", "sound", "power"];
+    private static readonly IReadOnlyDictionary<string, string> PageAddresses =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["settings"] = "home",
+            ["home"] = "home",
+            ["system"] = "system",
+            ["display"] = "display",
+            ["sound"] = "sound",
+            ["audio"] = "sound",
+            ["volume"] = "sound",
+            ["notifications"] = "notifications",
+            ["power"] = "power",
+            ["battery"] = "batterysaver",
+            ["storage"] = "storagesense",
+            ["privacy"] = "privacy",
+            ["network"] = "network",
+            ["network and internet"] = "network",
+            ["internet"] = "network",
+            ["wifi"] = "wifi",
+            ["wireless"] = "wifi",
+            ["bluetooth"] = "bluetooth",
+            ["personalization"] = "personalization",
+            ["background"] = "personalization-background",
+            ["homepage"] = "personalization-start",
+            ["apps"] = "appsfeatures",
+            ["default apps"] = "defaultapps",
+            ["account"] = "yourinfo",
+            ["about"] = "about",
+            ["update"] = "windowsupdate",
+            ["windows update"] = "windowsupdate",
+            ["printers"] = "printers",
+            ["device manager"] = "devicemanager",
+            ["security"] = "security",
+            ["mouse"] = "mouse",
+            ["keyboard"] = "keyboard",
+            ["recovery"] = "recovery"
+        };
+
+    public IReadOnlyCollection<string> SupportedPages => PageAddresses.Keys.ToArray();
 
     public Result<Uri> ResolvePageUri(string pageName)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(pageName);
 
-        return SupportedPages.Contains(pageName, StringComparer.OrdinalIgnoreCase)
-            ? Result<Uri>.Success(new Uri($"ms-settings:{pageName}"))
-            : Result<Uri>.Failure($"The settings page '{pageName}' is not supported.");
+        // The intent table produces names like "bluetooth settings", so the trailing noun is
+        // dropped before the lookup, exactly as the real service does.
+        var key = pageName.Trim();
+        if (key.EndsWith(" settings", StringComparison.OrdinalIgnoreCase))
+        {
+            key = key[..^" settings".Length].Trim();
+        }
+
+        return PageAddresses.TryGetValue(key, out var address)
+            ? Result<Uri>.Success(new Uri($"ms-settings:{address}"))
+            : Result<Uri>.Failure($"The settings page '{key}' is not supported.");
     }
 }
 

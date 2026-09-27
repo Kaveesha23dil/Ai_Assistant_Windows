@@ -7,13 +7,28 @@
 
     <NavigationView
         x:Name="NavView"
-        IsBackButtonVisible="Collapsed"
+        AutomationProperties.Name="Main navigation"
+        BackRequested="OnNavigationBackRequested"
+        IsBackButtonVisible="Auto"
+        IsBackEnabled="{Binding CanGoBack, Mode=OneWay}"
         IsPaneToggleButtonVisible="False"
         IsPaneOpen="{Binding IsNavigationPaneOpen, Mode=TwoWay}"
         IsSettingsVisible="False"
         OpenPaneLength="260"
         PaneDisplayMode="Left"
         SelectionChanged="OnNavigationSelectionChanged">
+
+        <!--
+          Alt+Left is registered here as well as on the navigation view itself. The guard in the
+          code-behind makes the two paths safe to have at once: whichever one the toolkit
+          chooses to use, only one back step is taken.
+        -->
+        <NavigationView.KeyboardAccelerators>
+            <KeyboardAccelerator
+                Invoked="OnBackAcceleratorInvoked"
+                Key="Left"
+                Modifiers="Menu" />
+        </NavigationView.KeyboardAccelerators>
 
         <NavigationView.PaneHeader>
             <Grid
@@ -44,23 +59,44 @@
             </Grid>
         </NavigationView.PaneHeader>
 
+        <!--
+          Each item carries a Tag naming its route rather than relying on its visible text, so a
+          wording change cannot break routing and a translation can happen without touching code.
+          The names match the NavigationRoute values and are read by the shared parser.
+        -->
         <NavigationView.MenuItems>
-            <NavigationViewItem Content="Home" Tag="Home">
+            <NavigationViewItem
+                AutomationProperties.Name="Home"
+                Content="Home"
+                Tag="Home"
+                ToolTipService.ToolTip="Home">
                 <NavigationViewItem.Icon>
                     <SymbolIcon Symbol="Home" />
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
-            <NavigationViewItem Content="Chat" Tag="Chat">
+            <NavigationViewItem
+                AutomationProperties.Name="Chat"
+                Content="Chat"
+                Tag="Chat"
+                ToolTipService.ToolTip="Chat">
                 <NavigationViewItem.Icon>
                     <SymbolIcon Symbol="Message" />
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
-            <NavigationViewItem Content="Files" Tag="Files">
+            <NavigationViewItem
+                AutomationProperties.Name="Files"
+                Content="Files"
+                Tag="Files"
+                ToolTipService.ToolTip="Files">
                 <NavigationViewItem.Icon>
                     <SymbolIcon Symbol="Folder" />
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
-            <NavigationViewItem Content="Automations" Tag="Automations">
+            <NavigationViewItem
+                AutomationProperties.Name="Automations"
+                Content="Automations"
+                Tag="Automations"
+                ToolTipService.ToolTip="Automations">
                 <NavigationViewItem.Icon>
                     <SymbolIcon Symbol="Play" />
                 </NavigationViewItem.Icon>
@@ -68,7 +104,11 @@
         </NavigationView.MenuItems>
 
         <NavigationView.FooterMenuItems>
-            <NavigationViewItem Content="Settings" Tag="Settings">
+            <NavigationViewItem
+                AutomationProperties.Name="Assistant settings"
+                Content="Settings"
+                Tag="Settings"
+                ToolTipService.ToolTip="Assistant settings">
                 <NavigationViewItem.Icon>
                     <SymbolIcon Symbol="Setting" />
                 </NavigationViewItem.Icon>

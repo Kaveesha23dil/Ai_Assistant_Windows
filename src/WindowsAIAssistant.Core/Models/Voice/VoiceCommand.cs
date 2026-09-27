@@ -33,6 +33,13 @@ public sealed record VoiceCommand
     /// <summary>Parameter name carrying text that should be spoken aloud.</summary>
     public const string TextParameter = "text";
 
+    /// <summary>
+    /// Parameter name carrying the name of the application page a navigation intent is asking
+    /// for. The value is a destination name such as "chat" or "assistant settings", never a
+    /// page type and never an address.
+    /// </summary>
+    public const string NavigationDestinationParameter = "destination";
+
     public VoiceCommand(
         Guid id,
         string originalText,

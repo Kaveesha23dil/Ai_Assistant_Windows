@@ -30,6 +30,13 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\WindowsAIAssistant.Application\WindowsAIAssistant.Application.csproj" />
     <ProjectReference Include="..\..\src\WindowsAIAssistant.Infrastructure\WindowsAIAssistant.Infrastructure.csproj" />
+    <!--
+      The navigation route-to-page registry lives in the App project because it maps routes
+      onto WinUI pages. Referencing the project here lets the registry be asserted as plain
+      reflection over Type objects. No test instantiates a page or opens a window, so the tests
+      stay headless; only the mapping table is under test, never the Frame.
+    -->
+    <ProjectReference Include="..\..\src\WindowsAIAssistant.App\WindowsAIAssistant.App.csproj" />
   </ItemGroup>
 
 </Project>
