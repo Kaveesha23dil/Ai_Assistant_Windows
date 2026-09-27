@@ -213,7 +213,11 @@ public abstract partial class VoiceInteractionViewModel : ObservableObject, IDis
         }
     }
 
-    public void Dispose()
+    /// <summary>
+    /// Releases the voice subscriptions. Declared virtual so a derived view model that owns
+    /// something of its own can add to the teardown instead of hiding it.
+    /// </summary>
+    public virtual void Dispose()
     {
         if (_disposed)
         {

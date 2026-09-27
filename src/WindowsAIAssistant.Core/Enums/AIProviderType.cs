@@ -18,5 +18,12 @@ public enum AIProviderType
     Local,
 
     /// <summary>A custom or plug-in provider.</summary>
-    Custom
+    Custom,
+
+    /// <summary>
+    /// The built-in development provider. It answers without leaving the machine, which is
+    /// what lets the application be built, demonstrated, and tested with no account, no key,
+    /// and no network.
+    /// </summary>
+    Mock
 }
