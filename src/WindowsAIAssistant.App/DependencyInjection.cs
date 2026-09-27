@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using WindowsAIAssistant.App.ViewModels;
+using WindowsAIAssistant.App.Services;
 using WindowsAIAssistant.App.Views;
 using WindowsAIAssistant.App.Views.Pages;
 using WindowsAIAssistant.Application.Voice;
@@ -20,6 +21,7 @@ public static class DependencyInjection
 
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();
+        services.AddSingleton<UserSettingsService>();
 
         services.AddTransient<HomeViewModel>();
         services.AddTransient<ChatViewModel>();
@@ -45,11 +47,13 @@ public static class DependencyInjection
     /// rather than repeated by every host.
     /// </para>
     /// <para>
-    /// The policy is a singleton resolved from <see cref="IOptions{TOptions}"/>, so it is read
-    /// once when the pipeline is first built. That is intentional: a command already in flight
-    /// should not change behaviour halfway through because a setting was edited. Consent is a
-    /// different matter and is re-read per operation by the permission service, so revoking
-    /// microphone access takes effect on the very next request.
+    /// The policy is a singleton, so it is read once when the pipeline is first built. A
+    /// command already in flight therefore keeps the behaviour it started with rather than
+    /// changing halfway through because a setting was edited. Consent is a different matter
+    /// and is re-read per operation by the permission service, so revoking microphone access
+    /// takes effect on the very next request. When the person saves a change, the policy is
+    /// handed a new set of values as a whole, which is the one moment a running pipeline is
+    /// allowed to pick up new decisions.
     /// </para>
     /// </summary>
     public static IServiceCollection AddVoiceConfiguration(this IServiceCollection services)
@@ -58,20 +62,33 @@ public static class DependencyInjection
 
         services.AddSingleton(sp =>
         {
-            var options = sp.GetRequiredService<IOptions<VoiceOptions>>().Value;
+            var policy = new VoiceIntentPolicy();
+            policy.Update(CreatePolicyValues(sp.GetRequiredService<IOptions<VoiceOptions>>().Value));
 
-            return new VoiceIntentPolicy
-            {
-                Enabled = options.Enabled,
-                SpeakResponses = options.SpeakResponses,
-                EnableContinuousListening = options.ContinuousListening,
-                Language = options.Language,
-                MinimumCommandConfidence = options.MinimumCommandConfidence,
-                ConfirmLowConfidenceCommands = options.ConfirmLowConfidenceCommands,
-                MaximumSpokenResponseLength = options.MaximumSpokenResponseLength,
-            };
+            return policy;
         });
 
         return services;
+    }
+
+    /// <summary>
+    /// Maps the bound voice configuration onto the Application layer's policy values. Written
+    /// once here because this is the only place in the solution that sees both types, and
+    /// reused when a save has to be applied to a running session.
+    /// </summary>
+    public static VoiceIntentPolicyValues CreatePolicyValues(VoiceOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        return new VoiceIntentPolicyValues
+        {
+            Enabled = options.Enabled,
+            SpeakResponses = options.SpeakResponses,
+            EnableContinuousListening = options.ContinuousListening,
+            Language = options.Language,
+            MinimumCommandConfidence = options.MinimumCommandConfidence,
+            ConfirmLowConfidenceCommands = options.ConfirmLowConfidenceCommands,
+            MaximumSpokenResponseLength = options.MaximumSpokenResponseLength,
+        };
     }
 }

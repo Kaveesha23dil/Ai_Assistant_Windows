@@ -119,17 +119,17 @@ public sealed class VoicePipelineHarness : IDisposable
             requiresConfirmation);
 
     /// <param name="configurePolicy">
-    /// Optionally returns a modified policy. The policy is a record, so a caller overrides one
-    /// setting with <c>policy with { ... }</c> and leaves the rest at its safe default.
+    /// Optionally overrides the policy before it is registered, by handing it a replacement set
+    /// of values. Everything the caller does not set keeps the safe default.
     /// </param>
     public static VoicePipelineHarness Create(
-        Func<VoiceIntentPolicy, VoiceIntentPolicy>? configurePolicy = null,
+        Action<VoiceIntentPolicy>? configurePolicy = null,
         params PermissionCapability[] denied)    {
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationManager();
 
         var services = new ServiceCollection();
         services.AddApplication();
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, AbsentSettingsFile.FilePath);
 
         var permissions = new FakePermissionService();
         foreach (var capability in denied)
@@ -180,10 +180,7 @@ public sealed class VoicePipelineHarness : IDisposable
         services.AddSingleton<IWebSearchProvider>(webProviders.YouTube);
 
         var policy = new VoiceIntentPolicy();
-        if (configurePolicy is not null)
-        {
-            policy = configurePolicy(policy) ?? policy;
-        }
+        configurePolicy?.Invoke(policy);
         services.AddSingleton(policy);
 
         // The application registers the history only behind its interface, but a test has to

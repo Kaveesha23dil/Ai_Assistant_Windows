@@ -9,11 +9,33 @@
                 MaxWidth="1000"
                 HorizontalAlignment="Center">
 
-            <StackPanel Spacing="4">
+            <StackPanel Spacing="8">
                 <TextBlock Style="{StaticResource AppPageTitleTextBlockStyle}" Text="Settings" />
                 <TextBlock
                     Style="{StaticResource AppSecondaryTextBlockStyle}"
                     Text="{x:Bind ViewModel.PersistenceNotice}" />
+                <StackPanel Spacing="8" Orientation="Horizontal">
+                    <Button
+                        AutomationProperties.Name="Save settings"
+                        Command="{x:Bind ViewModel.SaveCommand}"
+                        IsEnabled="{x:Bind ViewModel.CanSave, Mode=OneWay}"
+                        Padding="20,8"
+                        CornerRadius="{StaticResource AppCardCornerRadius}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <ProgressRing
+                                Width="16"
+                                Height="16"
+                                IsActive="{x:Bind ViewModel.IsSaving, Mode=OneWay}"
+                                Visibility="{x:Bind ViewModel.SavingVisibility, Mode=OneWay}" />
+                            <TextBlock Text="Save" />
+                        </StackPanel>
+                    </Button>
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Style="{StaticResource AppCaptionTextBlockStyle}"
+                        Text="{x:Bind ViewModel.SaveStatus, Mode=OneWay}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
             </StackPanel>
 
             <StackPanel Spacing="12">
@@ -29,11 +51,12 @@
                                 <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="Launch at startup" />
                                 <TextBlock
                                     Style="{StaticResource AppCaptionTextBlockStyle}"
-                                    Text="Start Windows AI Assistant when you sign in." />
+                                    Text="{x:Bind ViewModel.LaunchAtStartupNotice}" />
                             </StackPanel>
                             <ToggleSwitch
                                 Grid.Column="1"
                                 AutomationProperties.Name="Launch at startup"
+                                IsEnabled="{x:Bind ViewModel.IsLaunchAtStartupSupported}"
                                 IsOn="{x:Bind ViewModel.IsLaunchAtStartupEnabled, Mode=TwoWay}"
                                 Style="{StaticResource AppSettingsToggleStyle}" />
                         </Grid>
@@ -465,11 +488,12 @@
                             <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="Notifications" />
                             <TextBlock
                                 Style="{StaticResource AppCaptionTextBlockStyle}"
-                                Text="Show notifications when background work finishes." />
+                                Text="{x:Bind ViewModel.NotificationsNotice}" />
                         </StackPanel>
                         <ToggleSwitch
                             Grid.Column="1"
                             AutomationProperties.Name="Notifications"
+                            IsEnabled="{x:Bind ViewModel.IsNotificationsSupported}"
                             IsOn="{x:Bind ViewModel.IsNotificationsEnabled, Mode=TwoWay}"
                             Style="{StaticResource AppSettingsToggleStyle}" />
                     </Grid>

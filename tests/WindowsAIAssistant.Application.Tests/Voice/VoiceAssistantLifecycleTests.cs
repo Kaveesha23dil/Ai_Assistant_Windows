@@ -1,4 +1,5 @@
 using WindowsAIAssistant.Application.Tests.Helpers;
+using WindowsAIAssistant.Application.Voice;
 using WindowsAIAssistant.Core.Enums;
 using WindowsAIAssistant.Core.Models.Voice;
 
@@ -27,7 +28,8 @@ public sealed class VoiceAssistantLifecycleTests
     [Fact]
     public async Task StartingListeningIsRefusedWhenTheFeatureIsSwitchedOff()
     {
-        using var harness = VoicePipelineHarness.Create(policy => policy with { Enabled = false });
+        using var harness = VoicePipelineHarness.Create(
+            policy => policy.Update(new VoiceIntentPolicyValues { Enabled = false }));
 
         var result = await harness.Assistant.StartListeningAsync();
 
@@ -113,11 +115,11 @@ public sealed class VoiceAssistantLifecycleTests
     [Fact]
     public async Task AReplyIsSpokenWhenSpokenResponsesAreOn()
     {
-        using var harness = VoicePipelineHarness.Create(policy => policy with
+        using var harness = VoicePipelineHarness.Create(policy => policy.Update(new VoiceIntentPolicyValues
         {
             SpeakResponses = true,
             MaximumSpokenResponseLength = 240,
-        });
+        }));
 
         var result = await harness.Assistant.ProcessTranscriptAsync("what time is it");
 
@@ -130,10 +132,10 @@ public sealed class VoiceAssistantLifecycleTests
     [Fact]
     public async Task AReplyIsNotSpokenWhenSpokenResponsesAreOff()
     {
-        using var harness = VoicePipelineHarness.Create(policy => policy with
+        using var harness = VoicePipelineHarness.Create(policy => policy.Update(new VoiceIntentPolicyValues
         {
             SpeakResponses = false,
-        });
+        }));
 
         var result = await harness.Assistant.ProcessTranscriptAsync("what time is it");
 
@@ -144,11 +146,11 @@ public sealed class VoiceAssistantLifecycleTests
     [Fact]
     public async Task ALongReplyIsShortenedToTheConfiguredLimit()
     {
-        using var harness = VoicePipelineHarness.Create(policy => policy with
+        using var harness = VoicePipelineHarness.Create(policy => policy.Update(new VoiceIntentPolicyValues
         {
             SpeakResponses = true,
             MaximumSpokenResponseLength = 40,
-        });
+        }));
 
         // A summary long enough that speaking it in full would run on past the user's attention.
         var longReply = new string('a', 200);
@@ -165,10 +167,10 @@ public sealed class VoiceAssistantLifecycleTests
     [Fact]
     public async Task TheLastResponseIsAvailableForRepeating()
     {
-        using var harness = VoicePipelineHarness.Create(policy => policy with
+        using var harness = VoicePipelineHarness.Create(policy => policy.Update(new VoiceIntentPolicyValues
         {
             SpeakResponses = false,
-        });
+        }));
 
         await harness.Assistant.ProcessTranscriptAsync("what time is it");
         var expected = harness.Assistant.LastResponse;
@@ -231,10 +233,10 @@ public sealed class VoiceAssistantLifecycleTests
     [Fact]
     public async Task AResponseEventCarriesTheResultTheUserWillSee()
     {
-        using var harness = VoicePipelineHarness.Create(policy => policy with
+        using var harness = VoicePipelineHarness.Create(policy => policy.Update(new VoiceIntentPolicyValues
         {
             SpeakResponses = false,
-        });
+        }));
 
         VoiceResponseEventArgs? published = null;
         harness.Assistant.ResponseProduced += (_, e) => published = e;
