@@ -8,12 +8,31 @@ Configuration is loaded in this order for this step:
 
 1. `appsettings.json`
 2. `appsettings.{Environment}.json`
-3. Environment variables
-4. A future secure secret provider, when implemented
+3. The person's own settings file
+4. Environment variables
+5. A future secure secret provider, when implemented
 
 Later sources override earlier sources. `Host.CreateDefaultBuilder()` supplies the standard JSON and environment-variable behavior; the application does not add duplicate JSON sources.
 
 The configuration files are copied to the application output with `CopyToOutputDirectory="PreserveNewest"`.
+
+## Person's own settings
+
+Changes made on the Settings page are written to a single file that belongs to the signed-in person, not to the application folder:
+
+```text
+%LOCALAPPDATA%\WindowsAIAssistant\user-settings.json
+```
+
+- The file is optional. On a first run it does not exist, which is not an error, and the shipped defaults in `appsettings.json` apply unchanged.
+- It is registered as a configuration source that overrides the shipped JSON files, so a saved choice wins over the default it replaced. Command-line arguments still win over it, because the host adds them last.
+- It is loaded with `reloadOnChange: false` and is re-read explicitly when a save completes, so the application never watches the file behind the person's back.
+- A key that the file omits keeps its shipped value. Saving a page therefore never clears a setting the page does not show.
+- The file holds preferences only. Transcripts, prompts, clipboard contents, documents, and credentials are never written to it.
+- Deleting the file resets the application to the shipped defaults.
+- Saving is atomic: the new content is written beside the old file and then moved into place, so an interrupted save cannot leave a half-written file.
+
+Precedence note: `AddUserSettings` is called while services are being registered, so its source is appended after the sources the host already added. A value set in `appsettings.json` is therefore overridden by the person's file, while a value passed on the command line still takes priority.
 
 ## Environment selection
 
@@ -44,9 +63,9 @@ Neither file contains credentials.
 | `UIOptions` | `UI` | Theme and launch preferences for future UI behavior |
 | `VoiceOptions` | `Voice` | Speech, confidence, confirmation, and response-length behaviour |
 
-All options are registered by `AddApplicationConfiguration` and validated on host startup. Static startup settings should be consumed with `IOptions<T>`. `IOptionsMonitor<T>` and `IOptionsSnapshot<T>` should be introduced only if their scoped or changing behavior is required.
+All options are registered by `AddApplicationConfiguration` and validated on host startup. Settings that cannot change during a session are consumed with `IOptions<T>`. Anything that must notice a change made while the application is open, such as a privacy permission, uses `IOptionsMonitor<T>`, because a snapshot is worked out once and then reused for the rest of the process.
 
-`VoiceOptions` is read by the App composition root, which maps it onto `VoiceIntentPolicy` so that the Application layer stays free of configuration types. The settings screen currently shows these values and edits them in memory only; changes made there do not yet reach a running session.
+`VoiceOptions` is read by the App composition root, which maps it onto `VoiceIntentPolicy` so that the Application layer stays free of configuration types. When a person saves the Settings page, the file is written, configuration is reloaded, and the voice policy is handed its new decisions as one whole set, so the running session continues with the choices that were just saved. Settings with no code behind them, currently launching at sign-in, notifications, and the wake phrase, are shown disabled and are never written, so a saved file never claims to hold a preference that nothing honours.
 
 ## Environment-variable overrides
 
@@ -118,7 +137,7 @@ Each spoken capability maps onto one of these: voice input needs `AllowMicrophon
 
 A voice command is refused unless the matching capability is granted, so enabling `Voice` alone does not grant anything. Application launching and web search are on by default because they only ever act on an allow-listed name or a query the user spoke aloud, and both are still gated behind spoken confirmation.
 
-The settings screen exposes these switches, but edits are in memory for now and are not written back to configuration.
+The settings screen exposes these switches, and saving writes them to the person's own settings file. They are read back through `IOptionsMonitor<PrivacyOptions>`, so turning a permission off takes effect in the running session without a restart.
 
 ## Secrets
 

@@ -8,6 +8,7 @@ using WindowsAIAssistant.Application.Clipboard.Commands.SetClipboardText;
 using WindowsAIAssistant.Application.Clipboard.Queries.GetClipboardText;
 using WindowsAIAssistant.Application.Common.Errors;
 using WindowsAIAssistant.Application.Files.Queries.SearchFiles;
+using WindowsAIAssistant.Application.Settings.Commands.SaveUserSettings;
 using WindowsAIAssistant.Application.Settings.Commands.UpdateSetting;
 using WindowsAIAssistant.Application.Settings.Queries.GetSetting;
 using WindowsAIAssistant.Application.System.Commands.LaunchApplication;
@@ -46,6 +47,7 @@ public static class DependencyInjection
         services.AddTransient<SetClipboardTextHandler>();
         services.AddTransient(typeof(GetSettingHandler<>));
         services.AddTransient(typeof(UpdateSettingHandler<>));
+        services.AddTransient<SaveUserSettingsHandler>();
 
         services.AddVoiceAssistant();
 

@@ -19,14 +19,22 @@ namespace WindowsAIAssistant.Infrastructure;
 
 public static class DependencyInjection
 {
+    /// <param name="services">The services to add the implementations to.</param>
+    /// <param name="configuration">The configuration to bind options from.</param>
+    /// <param name="userSettingsPath">
+    /// Where the person's own settings are kept. Defaults to their local application data.
+    /// Tests pass a path of their own so they never read or write the settings of whoever is
+    /// running them.
+    /// </param>
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        string? userSettingsPath = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
-
         services.AddApplicationConfiguration(configuration);
+        services.AddUserSettings(userSettingsPath);
         services.AddWindowsServices();
         services.AddWebSearchProviders();
         services.AddVoiceServices();

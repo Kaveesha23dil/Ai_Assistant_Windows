@@ -6,6 +6,7 @@ using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Infrastructure;
 using WindowsAIAssistant.Infrastructure.Configuration;
 using WindowsAIAssistant.Infrastructure.Configuration.Options;
+using WindowsAIAssistant.Application.Tests.Helpers;
 using WindowsAIAssistant.Infrastructure.Development;
 
 namespace WindowsAIAssistant.Application.Tests;
@@ -96,7 +97,7 @@ public sealed class ConfigurationBindingTests
         });
         var services = new ServiceCollection();
         services.AddApplication();
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, AbsentSettingsFile.FilePath);
 
         using var provider = services.BuildServiceProvider();
 
@@ -169,6 +170,11 @@ public sealed class ConfigurationBindingTests
 
     private static IConfiguration BuildConfiguration(IEnumerable<KeyValuePair<string, string?>> values)
     {
-        return new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+        // ConfigurationManager, not ConfigurationBuilder.Build(): the production composition
+        // registers a settings file on the configuration it is handed, which only works when
+        // the configuration can still take new sources.
+        var configuration = new ConfigurationManager();
+        configuration.AddInMemoryCollection(values);
+        return configuration;
     }
 }

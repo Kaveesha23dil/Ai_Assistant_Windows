@@ -6,6 +6,7 @@ using WindowsAIAssistant.Application.Clipboard.Queries.GetClipboardText;
 using WindowsAIAssistant.Application.Files.Queries.SearchFiles;
 using WindowsAIAssistant.Application.System.Queries.GetSystemInformation;
 using WindowsAIAssistant.Core.Enums;
+using WindowsAIAssistant.Application.Tests.Helpers;
 using WindowsAIAssistant.Infrastructure;
 namespace WindowsAIAssistant.Application.Tests;
 
@@ -65,10 +66,10 @@ public sealed class MockFlowTests
 
     private static ServiceProvider BuildProvider()
     {
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationManager();
         var services = new ServiceCollection();
         services.AddApplication();
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, AbsentSettingsFile.FilePath);
 
         // The production composition root talks to the real machine. These tests want the
         // deterministic development implementations, so they ask for them by name.

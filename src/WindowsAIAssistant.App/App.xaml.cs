@@ -8,6 +8,7 @@ using WindowsAIAssistant.App.Views;
 using WindowsAIAssistant.Application;
 using WindowsAIAssistant.Application.Common.Errors;
 using WindowsAIAssistant.Infrastructure;
+using WindowsAIAssistant.Infrastructure.Configuration;
 using WindowsAIAssistant.Infrastructure.Configuration.Options;
 using WindowsAIAssistant.Infrastructure.Logging;
 
@@ -79,6 +80,8 @@ public partial class App : Microsoft.UI.Xaml.Application
     {
         return Host.CreateDefaultBuilder()
             .UseContentRoot(AppContext.BaseDirectory)
+            .ConfigureAppConfiguration((_, configuration) =>
+                configuration.AddUserSettingsFile())
             .ConfigureLogging((context, logging) =>
                 logging.AddApplicationLogging(
                     context.Configuration,

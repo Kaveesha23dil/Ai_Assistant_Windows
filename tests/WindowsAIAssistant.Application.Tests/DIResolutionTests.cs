@@ -25,6 +25,7 @@ using WindowsAIAssistant.Core.Models.Voice;
 using WindowsAIAssistant.Infrastructure;
 using WindowsAIAssistant.Infrastructure.Development;
 using WindowsAIAssistant.Infrastructure.Voice;
+using WindowsAIAssistant.Application.Tests.Helpers;
 using WindowsAIAssistant.Infrastructure.Windows;
 
 namespace WindowsAIAssistant.Application.Tests;
@@ -34,10 +35,10 @@ public sealed class DIResolutionTests
     [Fact]
     public void AddApplicationAndInfrastructure_RegistersRequiredServices()
     {
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationManager();
         var services = new ServiceCollection();
         services.AddApplication();
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, AbsentSettingsFile.FilePath);
 
         using var provider = services.BuildServiceProvider();
 
@@ -70,10 +71,10 @@ public sealed class DIResolutionTests
     [Fact]
     public void AddApplicationAndInfrastructure_RegistersTheVoicePipeline()
     {
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationManager();
         var services = new ServiceCollection();
         services.AddApplication();
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, AbsentSettingsFile.FilePath);
 
         using var provider = services.BuildServiceProvider();
 
@@ -93,10 +94,10 @@ public sealed class DIResolutionTests
     [Fact]
     public void VoiceServices_AreSingletonsBecauseTheyOwnADevice()
     {
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationManager();
         var services = new ServiceCollection();
         services.AddApplication();
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, AbsentSettingsFile.FilePath);
 
         using var provider = services.BuildServiceProvider();
 
@@ -133,10 +134,10 @@ public sealed class DIResolutionTests
     [Fact]
     public void EveryVoiceIntentHasAnExecutorOrIsHandledDeliberately()
     {
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationManager();
         var services = new ServiceCollection();
         services.AddApplication();
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, AbsentSettingsFile.FilePath);
 
         using var provider = services.BuildServiceProvider();
         var registry = provider.GetRequiredService<IAssistantActionRegistry>();
@@ -161,10 +162,10 @@ public sealed class DIResolutionTests
     [Fact]
     public async Task AnIntentWithNoExecutorIsRefusedRatherThanIgnored()
     {
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationManager();
         var services = new ServiceCollection();
         services.AddApplication();
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, AbsentSettingsFile.FilePath);
 
         using var provider = services.BuildServiceProvider();
         var router = provider.GetRequiredService<ICommandRouter>();
@@ -185,10 +186,10 @@ public sealed class DIResolutionTests
     [Fact]
     public void AddDevelopmentServices_ReplacesTheRealMachineServices()
     {
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationManager();
         var services = new ServiceCollection();
         services.AddApplication();
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, AbsentSettingsFile.FilePath);
         services.AddDevelopmentServices();
 
         using var provider = services.BuildServiceProvider();
@@ -205,10 +206,10 @@ public sealed class DIResolutionTests
     [Fact]
     public void AddApplicationAndInfrastructure_UsesSingletonLifetimesForStateServices()
     {
-        var configuration = new ConfigurationBuilder().Build();
+        var configuration = new ConfigurationManager();
         var services = new ServiceCollection();
         services.AddApplication();
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, AbsentSettingsFile.FilePath);
 
         using var provider = services.BuildServiceProvider();
 

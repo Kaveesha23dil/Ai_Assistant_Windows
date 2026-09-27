@@ -1,4 +1,5 @@
 using WindowsAIAssistant.Application.Tests.Helpers;
+using WindowsAIAssistant.Application.Voice;
 using WindowsAIAssistant.Core.Enums;
 using WindowsAIAssistant.Core.Models.Voice;
 
@@ -79,12 +80,12 @@ public sealed class VoiceSafetyTests
     [Fact]
     public async Task ALowConfidenceMatchIsConfirmedRatherThanGuessed()
     {
-        using var harness = VoicePipelineHarness.Create(policy => policy with
+        using var harness = VoicePipelineHarness.Create(policy => policy.Update(new VoiceIntentPolicyValues
         {
             // Above the 0.95 the volume rules report, so the match counts as weak.
             MinimumCommandConfidence = 0.99,
             ConfirmLowConfidenceCommands = true,
-        });
+        }));
 
         harness.Volume.Volume = 50;
 
