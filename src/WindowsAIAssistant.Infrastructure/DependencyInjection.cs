@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Core.Abstractions.Clipboard;
 using WindowsAIAssistant.Core.Abstractions.Files;
@@ -9,7 +10,9 @@ using WindowsAIAssistant.Core.Abstractions.System;
 using WindowsAIAssistant.Core.Abstractions.Time;
 using WindowsAIAssistant.Core.Abstractions.Voice;
 using WindowsAIAssistant.Core.Abstractions.Web;
+using WindowsAIAssistant.Infrastructure.AI;
 using WindowsAIAssistant.Infrastructure.Configuration;
+using WindowsAIAssistant.Infrastructure.Configuration.Options;
 using WindowsAIAssistant.Infrastructure.Development;
 using WindowsAIAssistant.Infrastructure.Voice;
 using WindowsAIAssistant.Infrastructure.Web;
@@ -38,8 +41,7 @@ public static class DependencyInjection
         services.AddWindowsServices();
         services.AddWebSearchProviders();
         services.AddVoiceServices();
-
-        services.AddSingleton<IAIService, MockAIService>();
+        services.AddAIServices();
 
         // File search and settings storage are still the development implementations. The voice
         // layer calls them through the same abstractions, so swapping in the real services later
@@ -48,6 +50,43 @@ public static class DependencyInjection
         services.AddSingleton<ISettingsStorage, InMemorySettingsStorage>();
 
         return services;
+    }
+
+    /// <summary>
+    /// Registers the AI providers and the single path that reaches them.
+    /// <para>
+    /// Every provider is registered as <see cref="IAIProvider"/>, and the factory picks between
+    /// them by name. That is the whole extension mechanism: a new provider is one registration,
+    /// and nothing above Infrastructure changes to use it. The one place the OpenAI SDK is
+    /// referenced is this project's own package list, so no abstraction above can name a
+    /// provider type even by accident.
+    /// </para>
+    /// <para>
+    /// The provider, the key, and the configuration-backed defaults are all singletons because
+    /// they are read per request and hold nothing that has to be isolated between calls. The
+    /// client itself is built per request inside the provider, which is what keeps a key from
+    /// outliving the call that needed it.
+    /// </para>
+    /// <para>
+    /// The coordinator that turns a request into a provider call is registered by the
+    /// Application layer, which owns it: this project supplies the providers it chooses from and
+    /// the configuration it chooses by, and never reaches upward to build the policy.
+    /// </para>
+    /// </summary>
+    private static void AddAIServices(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddSingleton<IAIApiKeyProvider, EnvironmentApiKeyProvider>();
+        services.AddSingleton<IAIProvider, MockAIProvider>();
+        services.AddSingleton<IAIProvider, OpenAIProvider>();
+        services.AddSingleton<IAIProviderFactory, AIProviderFactory>();
+
+        // Registered after the Application layer's fallbacks, so the bound configuration is
+        // what the coordinator reads. A value saved in Settings therefore takes effect for the
+        // very next request.
+        services.AddSingleton<IAIRequestDefaults, ConfiguredAIRequestDefaults>();
+        services.AddSingleton<IAISystemPromptProvider, ConfiguredSystemPromptProvider>();
     }
 
     /// <summary>

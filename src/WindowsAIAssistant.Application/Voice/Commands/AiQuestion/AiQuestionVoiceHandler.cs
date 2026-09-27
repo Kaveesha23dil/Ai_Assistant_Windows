@@ -3,6 +3,7 @@ using WindowsAIAssistant.Application.Voice.Text;
 using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Core.Abstractions.Security;
 using WindowsAIAssistant.Core.Abstractions.Voice;
+using WindowsAIAssistant.Core.Common;
 using WindowsAIAssistant.Core.Enums;
 using WindowsAIAssistant.Core.Models.Voice;
 
@@ -68,7 +69,14 @@ public sealed class AiQuestionVoiceHandler : VoiceHandlerBase
             var response = await _ai.SendMessageAsync(question, cancellationToken).ConfigureAwait(false);
             if (!response.IsSuccessful || string.IsNullOrWhiteSpace(response.Content))
             {
-                return Unavailable(command, "I couldn't get an answer to that.");
+                // The service already turned the failure into a short, safe sentence and a
+                // stable code, so that sentence is spoken rather than a generic apology.
+                // Collapsing every failure into one message would leave a person who is simply
+                // missing an API key with no idea that is the reason.
+                return VoiceCommandResult.Failure(
+                    command,
+                    string.IsNullOrWhiteSpace(response.ErrorCode) ? ErrorCodes.VoiceActionFailed : response.ErrorCode,
+                    string.IsNullOrWhiteSpace(response.ErrorMessage) ? "I couldn't get an answer to that." : response.ErrorMessage);
             }
 
             // The reply is truncated to the spoken budget; the user interface receives the

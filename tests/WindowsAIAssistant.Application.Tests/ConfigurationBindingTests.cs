@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using WindowsAIAssistant.Application.AI.Commands.SendMessage;
+using WindowsAIAssistant.Application.AI.Services;
 using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Infrastructure;
 using WindowsAIAssistant.Infrastructure.Configuration;
@@ -101,7 +102,9 @@ public sealed class ConfigurationBindingTests
 
         using var provider = services.BuildServiceProvider();
 
-        Assert.IsType<MockAIService>(provider.GetRequiredService<IAIService>());
+        // The coordinator is what the application resolves, and it is the single path to every
+    // provider. The offline provider itself is registered separately, chosen by configuration.
+    Assert.IsType<AIService>(provider.GetRequiredService<IAIService>());
         Assert.NotNull(provider.GetRequiredService<SendMessageHandler>());
         Assert.Equal("test-model", provider.GetRequiredService<IOptions<AIOptions>>().Value.Model);
     }

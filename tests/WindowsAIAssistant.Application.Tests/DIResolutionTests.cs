@@ -49,10 +49,12 @@ public sealed class DIResolutionTests
         Assert.IsType<WindowsClipboardService>(provider.GetRequiredService<IClipboardService>());
         Assert.IsType<WindowsApplicationLauncherService>(provider.GetRequiredService<IApplicationLauncherService>());
 
-        // The AI and file search providers are still the development ones: no real provider
-        // has been built yet, and both sit behind their abstractions.
-        Assert.IsType<MockAIService>(provider.GetRequiredService<IAIService>());
-        Assert.IsType<MockFileSearchService>(provider.GetRequiredService<IFileSearchService>());
+    // AI now resolves to the coordinator, which is what every caller should be talking to. The
+    // offline provider is one of the candidates behind it rather than the service itself, and
+    // file search is still the development one: no real provider has been built yet.
+    Assert.IsType<AIService>(provider.GetRequiredService<IAIService>());
+    Assert.Contains(provider.GetServices<IAIProvider>(), candidate => candidate.ProviderType == AIProviderType.Mock);
+    Assert.IsType<MockFileSearchService>(provider.GetRequiredService<IFileSearchService>());
         Assert.IsType<InMemorySettingsStorage>(provider.GetRequiredService<ISettingsStorage>());
 
         Assert.NotNull(provider.GetRequiredService<IConversationService>());

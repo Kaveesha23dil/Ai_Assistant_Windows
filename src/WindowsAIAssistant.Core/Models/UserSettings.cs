@@ -23,6 +23,26 @@ public sealed class UserSettings
     public UiSettings UI { get; set; } = new();
 
     public FeatureSettings Features { get; set; } = new();
+
+    public AISettings AI { get; set; } = new();
+}
+
+/// <summary>
+/// The AI choices a person can change, matching the <c>AI</c> configuration section.
+/// <para>
+/// There is no credential here, and there never will be. The saved document is read back as
+/// configuration and copied into backups, so a key written into it would end up in places the
+/// person did not choose. The key stays in the environment variable named by
+/// <c>ApiKeyEnvironmentVariable</c>, and this document only says which one.
+/// </para>
+/// </summary>
+public sealed class AISettings
+{
+    public string Provider { get; set; } = "Mock";
+
+    public string Model { get; set; } = "mock-model";
+
+    public bool UseStreaming { get; set; } = true;
 }
 
 /// <summary>The privacy switches, matching <c>Privacy</c> configuration.</summary>

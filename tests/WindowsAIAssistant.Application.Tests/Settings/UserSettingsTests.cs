@@ -187,12 +187,102 @@ public sealed class UserSettingsTests : IDisposable
         var privacy = provider.GetRequiredService<IOptionsMonitor<PrivacyOptions>>().CurrentValue;
         var voice = provider.GetRequiredService<IOptionsMonitor<VoiceOptions>>().CurrentValue;
         var ui = provider.GetRequiredService<IOptions<UIOptions>>().Value;
+        var ai = provider.GetRequiredService<IOptionsMonitor<AIOptions>>().CurrentValue;
 
         Assert.True(privacy.AllowMicrophoneAccess);
         Assert.True(privacy.AllowVoiceProcessing);
         Assert.True(voice.Enabled);
         Assert.False(voice.ContinuousListening);
         Assert.Equal("Dark", ui.Theme);
+
+        // The provider, model, and streaming choice have to arrive through the same reload,
+        // because that is what makes changing them take effect without restarting.
+        Assert.Equal("OpenAI", ai.Provider);
+        Assert.Equal("test-model", ai.Model);
+        Assert.True(ai.UseStreaming);
+    }
+
+    [Fact]
+    public async Task AChangedModelReachesTheRunningApplicationWithoutARestart()
+    {
+        // A provider that is remembered only at startup would be a real problem: the person
+        // edits a model name, saves, and the old one is still answering.
+        var configuration = new ConfigurationManager();
+        var services = new ServiceCollection();
+        services.AddLogging();
+        configuration.AddUserSettingsFile(SettingsPath);
+        services.AddUserSettings(SettingsPath);
+        services.AddApplicationConfiguration(configuration);
+
+        var store = new JsonFileSettingsStore(NullLogger<JsonFileSettingsStore>.Instance, SettingsPath);
+        var settings = SampleSettings();
+        settings.AI.Model = "first-model";
+        await store.SaveAsync(settings);
+        ((IConfigurationRoot)configuration).Reload();
+
+        using var provider = services.BuildServiceProvider();
+        var monitor = provider.GetRequiredService<IOptionsMonitor<AIOptions>>();
+        Assert.Equal("first-model", monitor.CurrentValue.Model);
+
+        settings.AI.Model = "second-model";
+        await store.SaveAsync(settings);
+        ((IConfigurationRoot)configuration).Reload();
+
+        Assert.Equal("second-model", monitor.CurrentValue.Model);
+    }
+
+    [Theory]
+    [InlineData("Neon")]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task AProviderThisBuildCannotServeIsRefusedRatherThanSaved(string provider)
+    {
+        var store = CreateStore();
+        var handler = new SaveUserSettingsHandler(store, NullLogger<SaveUserSettingsHandler>.Instance);
+        var settings = SampleSettings();
+        settings.AI.Provider = provider;
+
+        var result = await handler.HandleAsync(settings);
+
+        // Saving a provider nothing can serve would leave the assistant unable to answer, with
+        // the person believing they had chosen something.
+        Assert.True(result.IsFailure);
+        Assert.False(File.Exists(SettingsPath));
+    }
+
+    [Theory]
+    [InlineData("OpenAI")]
+    [InlineData("openai")]
+    [InlineData("  OpenAI  ")]
+    public async Task AProviderThisBuildCanServeIsAccepted(string provider)
+    {
+        var store = CreateStore();
+        var handler = new SaveUserSettingsHandler(store, NullLogger<SaveUserSettingsHandler>.Instance);
+        var settings = SampleSettings();
+        settings.AI.Provider = provider;
+
+        var result = await handler.HandleAsync(settings);
+
+        // The name is matched without regard to case or padding, so a person is not turned away
+        // over a stray space when typing it in.
+        Assert.True(result.IsSuccess, result.ErrorMessage);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task ABlankModelIsRefusedRatherThanSaved(string model)
+    {
+        var store = CreateStore();
+        var handler = new SaveUserSettingsHandler(store, NullLogger<SaveUserSettingsHandler>.Instance);
+        var settings = SampleSettings();
+        settings.AI.Model = model;
+
+        var result = await handler.HandleAsync(settings);
+
+        // An empty model is a request that can only fail later, in the middle of a question.
+        Assert.True(result.IsFailure);
+        Assert.False(File.Exists(SettingsPath));
     }
 
     [Fact]
@@ -268,6 +358,12 @@ public sealed class UserSettingsTests : IDisposable
         UI = new UiSettings
         {
             Theme = "Dark",
+        },
+        AI = new AISettings
+        {
+            Provider = "OpenAI",
+            Model = "test-model",
+            UseStreaming = true,
         },
     };
 

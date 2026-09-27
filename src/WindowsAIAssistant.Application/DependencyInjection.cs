@@ -27,6 +27,7 @@ using WindowsAIAssistant.Application.Voice.Commands.Volume;
 using WindowsAIAssistant.Application.Voice.Commands.WebSearch;
 using WindowsAIAssistant.Application.Voice;
 using WindowsAIAssistant.Application.Voice.Services;
+using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Core.Abstractions.Navigation;
 using WindowsAIAssistant.Core.Abstractions.Voice;
 
@@ -41,7 +42,9 @@ public static class DependencyInjection
         services.AddLogging();
         services.AddSingleton<IErrorHandler, ErrorHandler>();
         services.AddSingleton<IConversationService, ConversationService>();
+        services.AddAIService();
         services.AddTransient<SendMessageHandler>();
+        services.AddTransient<StreamMessageHandler>();
         services.AddTransient<GetConversationHandler>();
         services.AddTransient<SearchFilesHandler>();
         services.AddTransient<GetSystemInformationHandler>();
@@ -53,6 +56,34 @@ public static class DependencyInjection
         services.AddTransient<SaveUserSettingsHandler>();
 
         services.AddVoiceAssistant();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the AI path that every caller shares.
+    /// <para>
+    /// The coordinator is a singleton because it holds no per-request state: one registration
+    /// means chat, voice, and every other caller demonstrably reach the same provider selection,
+    /// the same consent check, and the same error translation. Two of them would be a bug that
+    /// nothing would report.
+    /// </para>
+    /// <para>
+    /// The prompt and the request defaults are registered as fallbacks rather than required
+    /// services. A host that binds configuration replaces both, and this keeps the Application
+    /// layer constructible on its own, which is what lets the voice pipeline and the handlers
+    /// be built and tested without an Infrastructure project behind them.
+    /// </para>
+    /// </summary>
+    public static IServiceCollection AddAIService(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.TryAddSingleton<IAIRequestDefaults>(new StaticAIRequestDefaults());
+        services.TryAddSingleton<IAISystemPromptProvider>(
+            new StaticSystemPromptProvider(DefaultSystemPrompt.Text));
+        services.TryAddSingleton<AIConversationContextBuilder>();
+        services.TryAddSingleton<IAIService, AIService>();
 
         return services;
     }

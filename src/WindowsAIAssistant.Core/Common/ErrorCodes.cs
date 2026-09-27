@@ -13,6 +13,31 @@ namespace WindowsAIAssistant.Core.Common;
 public static class ErrorCodes
 {
     public const string AiRequestFailed = "AI_REQUEST_FAILED";
+
+    /// <summary>No credential is configured, so a cloud provider was never contacted.</summary>
+    public const string AiCredentialMissing = "AI_CREDENTIAL_MISSING";
+
+    /// <summary>The provider rejected the credential.</summary>
+    public const string AiAuthenticationFailed = "AI_AUTHENTICATION_FAILED";
+
+    /// <summary>The provider asked the application to slow down.</summary>
+    public const string AiRateLimited = "AI_RATE_LIMITED";
+
+    /// <summary>The request exceeded its time budget.</summary>
+    public const string AiTimedOut = "AI_TIMED_OUT";
+
+    /// <summary>The provider could not be reached.</summary>
+    public const string AiNetworkFailure = "AI_NETWORK_FAILURE";
+
+    /// <summary>The request was rejected as malformed by the provider.</summary>
+    public const string AiInvalidRequest = "AI_INVALID_REQUEST";
+
+    /// <summary>The configured provider name is not one this build can serve.</summary>
+    public const string AiProviderUnavailable = "AI_PROVIDER_UNAVAILABLE";
+
+    /// <summary>The person has not allowed the request to leave this machine.</summary>
+    public const string AiCloudConsentRequired = "AI_CLOUD_CONSENT_REQUIRED";
+
     public const string InvalidMessage = "INVALID_MESSAGE";
     public const string FileSearchFailed = "FILE_SEARCH_FAILED";
     public const string SystemInfoFailed = "SYSTEM_INFO_FAILED";
