@@ -49,6 +49,19 @@ public enum AssistantIntent
     /// <summary>Search the local file system through the existing file search service.</summary>
     FileSearch,
 
+    /// <summary>
+    /// Opens the document page on a file. Deliberately does not read the document: opening a
+    /// page is harmless, while reading a file and sending it to a provider is a decision that
+    /// has to be made deliberately.
+    /// </summary>
+    OpenDocument,
+
+    /// <summary>Summarizes a document and speaks the summary.</summary>
+    SummarizeDocument,
+
+    /// <summary>Asks a question about a document and speaks an answer taken from it.</summary>
+    AskDocumentQuestion,
+
     /// <summary>Read the text currently held on the clipboard.</summary>
     ReadClipboard,
 

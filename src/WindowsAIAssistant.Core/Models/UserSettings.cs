@@ -50,6 +50,13 @@ public sealed class PrivacySettings
 {
     public bool AllowCloudAI { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether document contents may be sent to a cloud
+    /// provider. Off by default, and separate from <see cref="AllowCloudAI"/>: a question a
+    /// person typed is not the same as a file they opened.
+    /// </summary>
+    public bool AllowDocumentCloudProcessing { get; set; }
+
     public bool AllowTelemetry { get; set; }
 
     public bool AllowClipboardProcessing { get; set; }

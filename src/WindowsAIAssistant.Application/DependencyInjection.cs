@@ -7,6 +7,10 @@ using WindowsAIAssistant.Application.AI.Services;
 using WindowsAIAssistant.Application.Clipboard.Commands.SetClipboardText;
 using WindowsAIAssistant.Application.Clipboard.Queries.GetClipboardText;
 using WindowsAIAssistant.Application.Common.Errors;
+using WindowsAIAssistant.Application.Documents;
+using WindowsAIAssistant.Application.Documents.Queries.AskDocumentQuestion;
+using WindowsAIAssistant.Application.Documents.Queries.StreamDocumentAnswer;
+using WindowsAIAssistant.Application.Documents.Queries.SummarizeDocument;
 using WindowsAIAssistant.Application.Files.Queries.SearchFiles;
 using WindowsAIAssistant.Application.Navigation;
 using WindowsAIAssistant.Application.Settings.Commands.SaveUserSettings;
@@ -17,6 +21,7 @@ using WindowsAIAssistant.Application.System.Queries.GetSystemInformation;
 using WindowsAIAssistant.Application.Voice.Commands.AiQuestion;
 using WindowsAIAssistant.Application.Voice.Commands.AssistantControl;
 using WindowsAIAssistant.Application.Voice.Commands.Clipboard;
+using WindowsAIAssistant.Application.Voice.Commands.Document;
 using WindowsAIAssistant.Application.Voice.Commands.FileSearch;
 using WindowsAIAssistant.Application.Voice.Commands.Navigation;
 using WindowsAIAssistant.Application.Voice.Commands.OpenApplication;
@@ -28,6 +33,7 @@ using WindowsAIAssistant.Application.Voice.Commands.WebSearch;
 using WindowsAIAssistant.Application.Voice;
 using WindowsAIAssistant.Application.Voice.Services;
 using WindowsAIAssistant.Core.Abstractions.AI;
+using WindowsAIAssistant.Core.Abstractions.Documents;
 using WindowsAIAssistant.Core.Abstractions.Navigation;
 using WindowsAIAssistant.Core.Abstractions.Voice;
 
@@ -55,7 +61,39 @@ public static class DependencyInjection
         services.AddTransient(typeof(UpdateSettingHandler<>));
         services.AddTransient<SaveUserSettingsHandler>();
 
+        services.AddDocuments();
+
         services.AddVoiceAssistant();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the document features.
+    /// <para>
+    /// The analysis service is registered here because it owns the policy: which passages of a
+    /// document are worth sending, how a long one is handled, and what an answer is allowed to
+    /// claim. Everything above it — the handlers, the voice path, the view models — reaches
+    /// documents only through it.
+    /// </para>
+    /// <para>
+    /// The ranker is a singleton because it holds nothing between calls and is asked to rank
+    /// once per keystroke of a question. The limits are a singleton value rather than an options
+    /// monitor so that they are fixed for the length of a request.
+    /// </para>
+    /// </summary>
+    public static IServiceCollection AddDocuments(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.TryAddSingleton<DocumentProcessingLimits>();
+        services.TryAddSingleton<DocumentCloudConsentPolicy>();
+        services.TryAddSingleton<IDocumentChunkRanker, DocumentChunkRanker>();
+        services.TryAddSingleton<IDocumentAnalysisService, DocumentAnalysisService>();
+
+    services.AddTransient<SummarizeDocumentHandler>();
+    services.AddTransient<AskDocumentQuestionHandler>();
+    services.AddTransient<StreamDocumentAnswerHandler>();
 
         return services;
     }
@@ -130,6 +168,7 @@ public static class DependencyInjection
         services.AddTransient<IAssistantActionExecutor, NavigateVoiceHandler>();
         services.AddTransient<IAssistantActionExecutor, WebSearchVoiceHandler>();
         services.AddTransient<IAssistantActionExecutor, FileSearchVoiceHandler>();
+        services.AddTransient<IAssistantActionExecutor, DocumentVoiceHandler>();
         services.AddTransient<IAssistantActionExecutor, SystemInformationVoiceHandler>();
         services.AddTransient<IAssistantActionExecutor, BatteryVoiceHandler>();
         services.AddTransient<IAssistantActionExecutor, TimeAndDateVoiceHandler>();

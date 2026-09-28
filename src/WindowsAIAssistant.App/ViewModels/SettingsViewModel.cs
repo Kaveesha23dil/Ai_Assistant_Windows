@@ -35,6 +35,14 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsCloudAiEnabled { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether documents may be sent to a cloud provider.
+    /// Deliberately a second switch rather than part of the cloud-AI one, and off regardless of
+    /// what the cloud-AI switch says.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsDocumentCloudProcessingEnabled { get; set; }
+
     [ObservableProperty]
     public partial bool IsLocalAiEnabled { get; set; }
 
@@ -178,6 +186,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         Privacy = new PrivacySettings
         {
             AllowCloudAI = IsCloudAiEnabled,
+            AllowDocumentCloudProcessing = IsDocumentCloudProcessingEnabled,
             AllowTelemetry = IsTelemetryEnabled,
             AllowClipboardProcessing = IsClipboardProcessingEnabled,
             AllowFileIndexing = IsFileIndexingEnabled,
@@ -249,6 +258,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         SelectedProviderIndex = IndexOfProvider(aiOptions.CurrentValue.Provider);
         IsLocalAiEnabled = featureOptions.CurrentValue.EnableLocalAI;
         IsCloudAiEnabled = privacyOptions.CurrentValue.AllowCloudAI;
+        IsDocumentCloudProcessingEnabled = privacyOptions.CurrentValue.AllowDocumentCloudProcessing;
         IsClipboardProcessingEnabled = privacyOptions.CurrentValue.AllowClipboardProcessing;
         IsFileIndexingEnabled = privacyOptions.CurrentValue.AllowFileIndexing;
         IsScreenAnalysisEnabled = privacyOptions.CurrentValue.AllowScreenAnalysis;

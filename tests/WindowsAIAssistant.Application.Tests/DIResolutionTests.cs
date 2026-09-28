@@ -6,6 +6,10 @@ using WindowsAIAssistant.Application.AI.Services;
 using WindowsAIAssistant.Application.Clipboard.Commands.SetClipboardText;
 using WindowsAIAssistant.Application.Clipboard.Queries.GetClipboardText;
 using WindowsAIAssistant.Application.Common.Errors;
+using WindowsAIAssistant.Application.Documents;
+using WindowsAIAssistant.Application.Documents.Queries.AskDocumentQuestion;
+using WindowsAIAssistant.Application.Documents.Queries.StreamDocumentAnswer;
+using WindowsAIAssistant.Application.Documents.Queries.SummarizeDocument;
 using WindowsAIAssistant.Application.Files.Queries.SearchFiles;
 using WindowsAIAssistant.Application.Settings.Commands.UpdateSetting;
 using WindowsAIAssistant.Application.Settings.Queries.GetSetting;
@@ -14,6 +18,7 @@ using WindowsAIAssistant.Application.System.Queries.GetSystemInformation;
 using WindowsAIAssistant.Application.Voice.Services;
 using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Core.Abstractions.Clipboard;
+using WindowsAIAssistant.Core.Abstractions.Documents;
 using WindowsAIAssistant.Core.Abstractions.Files;
 using WindowsAIAssistant.Core.Abstractions.Security;
 using WindowsAIAssistant.Core.Abstractions.Storage;
@@ -68,6 +73,33 @@ public sealed class DIResolutionTests
         Assert.NotNull(provider.GetRequiredService<SetClipboardTextHandler>());
         Assert.NotNull(provider.GetRequiredService<GetSettingHandler<string>>());
         Assert.NotNull(provider.GetRequiredService<UpdateSettingHandler<string>>());
+    }
+
+    [Fact]
+    public void AddApplicationAndInfrastructure_RegistersTheDocumentEntryPoints()
+    {
+        var configuration = new ConfigurationManager();
+        var services = new ServiceCollection();
+        services.AddApplication();
+        services.AddInfrastructure(configuration, AbsentSettingsFile.FilePath);
+
+        using var provider = services.BuildServiceProvider();
+
+        // All three ways of asking a document something resolve from the same service. The
+        // streaming one is a separate entry point rather than an optional extra, and a missing
+        // registration for it would only show up as an empty page when a person asked a
+        // question, which is exactly the case that looks like the application hanging.
+        Assert.NotNull(provider.GetRequiredService<SummarizeDocumentHandler>());
+        Assert.NotNull(provider.GetRequiredService<AskDocumentQuestionHandler>());
+        Assert.NotNull(provider.GetRequiredService<StreamDocumentAnswerHandler>());
+
+        // And the service itself is one instance behind all of them, so the limits and the
+        // consent decision cannot differ between the streaming and whole-answer paths.
+        Assert.Same(
+            provider.GetRequiredService<IDocumentAnalysisService>(),
+            provider.GetRequiredService<IDocumentAnalysisService>());
+        Assert.NotNull(provider.GetRequiredService<DocumentProcessingLimits>());
+        Assert.NotNull(provider.GetRequiredService<DocumentCloudConsentPolicy>());
     }
 
     [Fact]

@@ -91,6 +91,7 @@ public partial class App : Microsoft.UI.Xaml.Application
                 services.AddApplication();
                 services.AddInfrastructure(context.Configuration);
                 services.AddVoiceConfiguration();
+                services.AddDocumentConfiguration();
                 services.AddAppShell();
             })
             .Build();
