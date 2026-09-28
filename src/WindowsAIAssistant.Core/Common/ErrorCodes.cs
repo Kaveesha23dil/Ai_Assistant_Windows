@@ -43,6 +43,20 @@ public static class ErrorCodes
     public const string SystemInfoFailed = "SYSTEM_INFO_FAILED";
     public const string ApplicationLaunchFailed = "APPLICATION_LAUNCH_FAILED";
     public const string ClipboardAccessFailed = "CLIPBOARD_ACCESS_FAILED";
+
+    // Document intelligence. Every code here names a situation a person can act on. None of
+    // them describe a file type, a library, or a path: a message paired with these is read
+    // aloud by the voice path, so it has to be about the document and not about the machine.
+    public const string DocumentNotFound = "DOCUMENT_NOT_FOUND";
+    public const string DocumentAccessDenied = "DOCUMENT_ACCESS_DENIED";
+    public const string DocumentFormatUnsupported = "DOCUMENT_FORMAT_UNSUPPORTED";
+    public const string DocumentTooLarge = "DOCUMENT_TOO_LARGE";
+    public const string DocumentPasswordRequired = "DOCUMENT_PASSWORD_REQUIRED";
+    public const string DocumentExtractionFailed = "DOCUMENT_EXTRACTION_FAILED";
+    public const string DocumentEmpty = "DOCUMENT_EMPTY";
+    public const string DocumentOcrRequired = "DOCUMENT_OCR_REQUIRED";
+    public const string DocumentAiPermissionDenied = "DOCUMENT_AI_PERMISSION_DENIED";
+    public const string DocumentAnalysisFailed = "DOCUMENT_ANALYSIS_FAILED";
     public const string ConfigurationInvalid = "CONFIGURATION_INVALID";
     public const string ConversationNotFound = "CONVERSATION_NOT_FOUND";
     public const string NotFound = "NOT_FOUND";

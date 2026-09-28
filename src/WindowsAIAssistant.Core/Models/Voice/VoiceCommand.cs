@@ -40,6 +40,12 @@ public sealed record VoiceCommand
     /// </summary>
     public const string NavigationDestinationParameter = "destination";
 
+    /// <summary>
+    /// The file a document command is about. A full path, because there is no other way to say
+    /// which of several files on a disk somebody meant.
+    /// </summary>
+    public const string FileParameter = "file";
+
     public VoiceCommand(
         Guid id,
         string originalText,

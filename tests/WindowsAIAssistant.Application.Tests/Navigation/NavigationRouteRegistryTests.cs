@@ -70,7 +70,10 @@ public sealed class NavigationRouteRegistryTests
         // was shown from anywhere, so both directions are asserted over the whole table.
         var registry = Registry;
 
-        Assert.Equal(5, registry.Routes.Count);
+        // Counted against the enum rather than hard-coded, so that adding a destination has to
+        // add a page here too. A fixed number would let a route exist with no page and the loop
+        // below would pass without ever looking at it.
+        Assert.Equal(Enum.GetValues<NavigationRoute>().Length, registry.Routes.Count);
 
         foreach (var route in registry.Routes)
         {

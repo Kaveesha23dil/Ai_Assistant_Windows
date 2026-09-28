@@ -1,0 +1,124 @@
+<Page
+    x:Class="WindowsAIAssistant.App.Views.Pages.DocumentPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
+        <StackPanel
+            Spacing="16"
+            Style="{StaticResource AppPagePadding}"
+            MaxWidth="1120"
+            HorizontalAlignment="Center">
+
+            <StackPanel Spacing="4">
+                <TextBlock Style="{StaticResource AppPageTitleTextBlockStyle}" Text="{x:Bind ViewModel.HeaderTitle}" />
+                <TextBlock
+                    Style="{StaticResource AppSecondaryTextBlockStyle}"
+                    Text="{x:Bind ViewModel.Description}" />
+            </StackPanel>
+
+            <Border Style="{StaticResource AppSurfaceCardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock
+                        Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                        Text="Document" />
+                    <TextBox
+                        MinHeight="40"
+                        AutomationProperties.Name="Path to the document to open"
+                        HorizontalAlignment="Stretch"
+                        PlaceholderText="Full path to a .pdf, .docx, .pptx, .xlsx, or text file"
+                        Text="{x:Bind ViewModel.FilePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ComboBox
+                            MinWidth="160"
+                            AutomationProperties.Name="Summary detail"
+                            HorizontalAlignment="Left"
+                            ItemsSource="{x:Bind ViewModel.SummaryModeNames}"
+                            SelectedIndex="{x:Bind ViewModel.SummaryModeIndex, Mode=TwoWay}" />
+                        <Button
+                            AutomationProperties.Name="Summarize this document"
+                            Command="{x:Bind ViewModel.SummarizeCommand}"
+                            Content="Summarize" />
+                        <Button
+                            AutomationProperties.Name="Cancel"
+                            Command="{x:Bind ViewModel.CancelCommand}"
+                            Content="Cancel"
+                            Visibility="{x:Bind ViewModel.IsBusy}" />
+                    </StackPanel>
+                    <TextBlock
+                        Style="{StaticResource AppCaptionTextBlockStyle}"
+                        Text="{x:Bind ViewModel.StatusText}" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource AppSurfaceCardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock
+                        Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                        Text="Ask a question" />
+                    <TextBox
+                        MinHeight="44"
+                        AcceptsReturn="True"
+                        AutomationProperties.Name="Ask a question about this document"
+                        HorizontalAlignment="Stretch"
+                        PlaceholderText="{x:Bind ViewModel.QuestionPlaceholder, Mode=OneWay}"
+                        Text="{x:Bind ViewModel.Question, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button
+                            AutomationProperties.Name="Ask about this document"
+                            Command="{x:Bind ViewModel.AskCommand}"
+                            Content="Ask AI" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border
+                Style="{StaticResource AppSurfaceCardStyle}"
+                Visibility="{x:Bind ViewModel.HasError}">
+                <TextBlock
+                    Style="{StaticResource AppBodyTextBlockStyle}"
+                    Text="{x:Bind ViewModel.ErrorText}"
+                    TextWrapping="Wrap" />
+            </Border>
+
+            <Border
+                Style="{StaticResource AppSurfaceCardStyle}"
+                Visibility="{x:Bind ViewModel.HasAnswer}">
+                <StackPanel Spacing="8">
+                    <TextBlock
+                        Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                        Text="{x:Bind ViewModel.AnswerHeading}" />
+                    <TextBlock
+                        Style="{StaticResource AppBodyTextBlockStyle}"
+                        Text="{x:Bind ViewModel.Answer}"
+                        TextWrapping="Wrap" />
+                    <TextBlock
+                        Style="{StaticResource AppCaptionTextBlockStyle}"
+                        Text="From"
+                        Visibility="{x:Bind ViewModel.ShowReferences}" />
+                    <TextBlock
+                        Style="{StaticResource AppCaptionTextBlockStyle}"
+                        Text="{x:Bind ViewModel.ReferencesText}"
+                        TextWrapping="Wrap"
+                        Visibility="{x:Bind ViewModel.ShowReferences}" />
+                </StackPanel>
+            </Border>
+
+            <ItemsControl ItemsSource="{x:Bind ViewModel.Warnings}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border
+                            Padding="12"
+                            Style="{StaticResource AppSurfaceCardStyle}">
+                            <TextBlock
+                                Style="{StaticResource AppCaptionTextBlockStyle}"
+                                Text="{x:Bind}"
+                                TextWrapping="Wrap" />
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</Page>
