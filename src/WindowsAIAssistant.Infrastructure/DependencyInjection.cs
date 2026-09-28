@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Core.Abstractions.Clipboard;
+using WindowsAIAssistant.Core.Abstractions.Documents;
 using WindowsAIAssistant.Core.Abstractions.Files;
 using WindowsAIAssistant.Core.Abstractions.Security;
 using WindowsAIAssistant.Core.Abstractions.Storage;
@@ -13,7 +15,14 @@ using WindowsAIAssistant.Core.Abstractions.Web;
 using WindowsAIAssistant.Infrastructure.AI;
 using WindowsAIAssistant.Infrastructure.Configuration;
 using WindowsAIAssistant.Infrastructure.Configuration.Options;
+using WindowsAIAssistant.Infrastructure.Configuration.Validation;
 using WindowsAIAssistant.Infrastructure.Development;
+using WindowsAIAssistant.Infrastructure.Documents;
+using WindowsAIAssistant.Infrastructure.Documents.Excel;
+using WindowsAIAssistant.Infrastructure.Documents.Pdf;
+using WindowsAIAssistant.Infrastructure.Documents.PowerPoint;
+using WindowsAIAssistant.Infrastructure.Documents.Text;
+using WindowsAIAssistant.Infrastructure.Documents.Word;
 using WindowsAIAssistant.Infrastructure.Voice;
 using WindowsAIAssistant.Infrastructure.Web;
 using WindowsAIAssistant.Infrastructure.Windows;
@@ -42,6 +51,7 @@ public static class DependencyInjection
         services.AddWebSearchProviders();
         services.AddVoiceServices();
         services.AddAIServices();
+        services.AddDocumentServices(configuration);
 
         // File search and settings storage are still the development implementations. The voice
         // layer calls them through the same abstractions, so swapping in the real services later
@@ -50,6 +60,48 @@ public static class DependencyInjection
         services.AddSingleton<ISettingsStorage, InMemorySettingsStorage>();
 
         return services;
+    }
+
+    /// <summary>
+    /// Registers document reading.
+    /// <para>
+    /// This is the only place in the application that knows a document format exists. Every
+    /// extractor is registered as an <see cref="IDocumentExtractor"/>, and the factory picks one
+    /// by file type, so adding a format is a single registration here and nothing above this
+    /// layer changes.
+    /// </para>
+    /// <para>
+    /// The extractors are transient because each one opens the file it is given and holds it
+    /// only for the length of one call. Everything above them that is shared is a singleton, so
+    /// two documents read at once cannot interfere with each other.
+    /// </para>
+    /// </summary>
+    private static void AddDocumentServices(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        // Bound from the configuration this method was handed rather than looked up in the
+        // container, which is how every other options type here is bound. Looking it up would
+        // make document reading the only thing in the application that fails to resolve in a
+        // container assembled without configuration registered.
+        services.AddSingleton<IValidateOptions<DocumentOptions>, DocumentOptionsValidator>();
+        services.AddOptions<DocumentOptions>()
+            .Bind(configuration.GetSection(DocumentOptions.SectionName))
+            .ValidateOnStart();
+
+        services.AddSingleton<IDocumentTypeDetector, DocumentTypeDetector>();
+        services.AddSingleton<IDocumentExtractorFactory, DocumentExtractorFactory>();
+        services.AddSingleton<IDocumentReader, DocumentReader>();
+        services.AddSingleton<IDocumentChunker, DocumentChunker>();
+
+        services.AddTransient<IDocumentExtractor, PlainTextDocumentExtractor>();
+        services.AddTransient<IDocumentExtractor, WordDocumentExtractor>();
+        services.AddTransient<IDocumentExtractor, PowerPointDocumentExtractor>();
+        services.AddTransient<IDocumentExtractor, ExcelDocumentExtractor>();
+        services.AddTransient<IDocumentExtractor, PdfDocumentExtractor>();
     }
 
     /// <summary>

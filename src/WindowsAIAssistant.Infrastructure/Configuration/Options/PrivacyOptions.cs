@@ -15,6 +15,17 @@ public sealed class PrivacyOptions
 
     public bool AllowCloudAI { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether a document's contents may be sent to a cloud provider.
+    /// <para>
+    /// Off unless it is deliberately turned on, and separate from
+    /// <see cref="AllowCloudAI"/> on purpose: allowing a typed question to reach a cloud
+    /// provider is a smaller decision than allowing a whole document to, and one person's
+    /// answer to "may I use the cloud" should not silently answer the other question too.
+    /// </para>
+    /// </summary>
+    public bool AllowDocumentCloudProcessing { get; init; }
+
     public bool AllowTelemetry { get; init; }
 
     public bool AllowClipboardProcessing { get; init; }

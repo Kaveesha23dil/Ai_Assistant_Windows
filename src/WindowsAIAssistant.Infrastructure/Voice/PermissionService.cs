@@ -54,6 +54,13 @@ public sealed class PermissionService : IPermissionService
             PermissionCapability.ApplicationLaunch => options.AllowApplicationLaunch,
             PermissionCapability.WebSearch => options.AllowWebSearch,
             PermissionCapability.CloudAI => options.AllowCloudAI,
+
+            // Its own switch rather than a consequence of AllowCloudAI: a document is content
+            // the person did not type, and consenting to chat with a cloud provider is not
+            // consenting to post a contract to one.
+            PermissionCapability.DocumentCloudProcessing =>
+                options.AllowCloudAI && options.AllowDocumentCloudProcessing,
+
             PermissionCapability.VoiceHistory => options.StoreVoiceHistory,
 
             _ => false
@@ -89,6 +96,9 @@ public sealed class PermissionService : IPermissionService
 
         PermissionCapability.CloudAI =>
             "Cloud AI is disabled in Privacy settings.",
+
+        PermissionCapability.DocumentCloudProcessing =>
+            "Sending document contents to a cloud provider is disabled in Privacy settings.",
 
         PermissionCapability.VoiceHistory =>
             "Voice history is disabled in Privacy settings.",

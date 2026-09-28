@@ -39,8 +39,38 @@ internal static class IntentRuleSet
         .. SiteSearchRules(),
         WebSearchRules(),
         FileSearchRules(),
+        .. DocumentRules(),
         .. ApplicationRules(),
         AiQuestionRules()
+    ];
+
+    private static IReadOnlyList<IntentRule> DocumentRules() =>
+    [
+        new IntentRule(
+            AssistantIntent.OpenDocument,
+            [
+                @"^open (?:the )?document (?<file>.+)$",
+                @"^open (?:the )?file (?<file>.+)$"
+            ]),
+
+        // A spoken document command needs a path. The patterns say so in words rather than
+        // guessing: a document among several on a disk cannot be named any other way, and
+        // inventing a file name to analyze would be worse than asking for it.
+        new IntentRule(
+            AssistantIntent.SummarizeDocument,
+            [
+                @"^summarize (?:the )?document (?:at |from )?(?<file>.+)$",
+                @"^summarize (?:the )?file (?:at |from )?(?<file>.+)$",
+                @"^what(?:'s| is) (?:the )?document (?:at |from )?(?<file>.+?) (?:about|on)$"
+            ]),
+
+        new IntentRule(
+            AssistantIntent.AskDocumentQuestion,
+            [
+                @"^ask (?:the )?document (?:at |from )?(?<file>.+?) about (?<query>.+)$",
+                @"^what does (?:the )?document (?:at |from )?(?<file>.+?) say about (?<query>.+)$",
+                @"^(?:look|find) (?:in|inside) (?:the )?document (?:at |from )?(?<file>.+?) (?<query>.+)$"
+            ])
     ];
 
     private static IReadOnlyList<IntentRule> AssistantControlRules() =>

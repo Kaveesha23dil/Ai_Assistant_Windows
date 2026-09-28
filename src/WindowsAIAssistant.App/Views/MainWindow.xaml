@@ -93,6 +93,15 @@
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
             <NavigationViewItem
+                AutomationProperties.Name="Document"
+                Content="Document"
+                Tag="Document"
+                ToolTipService.ToolTip="Summarize a document and ask it questions">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="Document" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem
                 AutomationProperties.Name="Automations"
                 Content="Automations"
                 Tag="Automations"

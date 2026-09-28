@@ -34,5 +34,17 @@ public enum PermissionCapability
     CloudAI,
 
     /// <summary>Retain voice command history for later inspection.</summary>
-    VoiceHistory
+    VoiceHistory,
+
+    /// <summary>
+    /// Send the text of a document to a cloud AI provider.
+    /// <para>
+    /// Kept apart from <see cref="CloudAI"/> on purpose. Allowing an assistant to answer a
+    /// question is not the same decision as allowing it to read a file: a document is
+    /// something a person chose to keep, often by choosing where to keep it, and agreeing to
+    /// have a question answered says nothing about which files may be opened and sent
+    /// elsewhere.
+    /// </para>
+    /// </summary>
+    DocumentCloudProcessing
 }

@@ -6,6 +6,7 @@ using WindowsAIAssistant.App.Services;
 using WindowsAIAssistant.App.Views;
 using WindowsAIAssistant.App.Views.Pages;
 using WindowsAIAssistant.Application.Voice;
+using WindowsAIAssistant.Application.Documents;
 using WindowsAIAssistant.Core.Abstractions.Navigation;
 using WindowsAIAssistant.Infrastructure.Configuration.Options;
 
@@ -30,12 +31,14 @@ public static class DependencyInjection
         services.AddTransient<HomeViewModel>();
         services.AddTransient<ChatViewModel>();
         services.AddTransient<FilesViewModel>();
+        services.AddTransient<DocumentViewModel>();
         services.AddTransient<AutomationsViewModel>();
         services.AddTransient<SettingsViewModel>();
 
         services.AddTransient<HomePage>();
         services.AddTransient<ChatPage>();
         services.AddTransient<FilesPage>();
+        services.AddTransient<DocumentPage>();
         services.AddTransient<AutomationsPage>();
         services.AddTransient<SettingsPage>();
 
@@ -103,6 +106,39 @@ public static class DependencyInjection
 
             return policy;
         });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Maps the bound document configuration onto the Application layer's limits. Written here
+    /// for the same reason as the voice policy above: this is the only place in the solution
+    /// that sees both the options type and the value the application works to, and the
+    /// Application project deliberately cannot build one from the other.
+    /// </summary>
+    public static DocumentProcessingLimits CreateDocumentLimits(DocumentOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        return new DocumentProcessingLimits
+        {
+            MaximumCharactersPerRequest = options.MaximumCharactersPerRequest,
+            MaximumChunksPerRequest = options.MaximumChunksPerRequest,
+            MaximumCombinedSummaries = options.MaximumCombinedSummaries,
+            MaximumConcurrentChunkSummaries = options.MaximumConcurrentChunkSummaries,
+        };
+    }
+
+    /// <summary>
+    /// Registers the document limits from configuration, replacing the Application layer's
+    /// defaults. Read once, so a document being read keeps the limits it started with.
+    /// </summary>
+    public static IServiceCollection AddDocumentConfiguration(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddSingleton(provider =>
+            CreateDocumentLimits(provider.GetRequiredService<IOptions<DocumentOptions>>().Value));
 
         return services;
     }

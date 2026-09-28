@@ -24,4 +24,18 @@ public static class AIProviderTypes
         nameof(AIProviderType.Mock),
         nameof(AIProviderType.OpenAI),
     ];
+
+    /// <summary>
+    /// Gets a value indicating whether a provider runs on this machine, and so whether
+    /// anything sent to it stays on this machine.
+    /// <para>
+    /// This is the test behind the document cloud-processing permission, and it is deliberately
+    /// pessimistic. A provider this build does not recognize counts as remote, because being
+    /// wrong in that direction refuses a request that could have been allowed, while being
+    /// wrong the other way would send a document off the machine having asked permission to
+    /// keep it.
+    /// </para>
+    /// </summary>
+    public static bool IsLocal(AIProviderType provider) => provider is
+        AIProviderType.Local or AIProviderType.Mock;
 }

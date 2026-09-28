@@ -27,6 +27,14 @@
       provider type even by accident. Everything above talks to IAIProvider.
     -->
     <PackageReference Include="OpenAI" />
+    <!--
+      Document parsing libraries, referenced here for the same reason as the OpenAI SDK: this
+      project owns every format-specific detail, so nothing above it can acquire a
+      DocumentFormat.OpenXml or PdfPig type by accident and start opening packages itself.
+      Both are stable, MIT/Apache-licensed, and entirely managed.
+    -->
+    <PackageReference Include="DocumentFormat.OpenXml" />
+    <PackageReference Include="PdfPig" />
   </ItemGroup>
 
   <ItemGroup>

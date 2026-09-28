@@ -163,6 +163,23 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel Spacing="2">
+                                <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="Send documents to cloud providers" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Lets the text of a document you open be sent to a cloud provider to summarize it or answer questions about it. Off by default, and also needs Cloud AI above. Local and offline providers ignore both." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                AutomationProperties.Name="Send documents to cloud providers"
+                                IsOn="{x:Bind ViewModel.IsDocumentCloudProcessingEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
                                 <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="Local AI" />
                                 <TextBlock
                                     Style="{StaticResource AppCaptionTextBlockStyle}"

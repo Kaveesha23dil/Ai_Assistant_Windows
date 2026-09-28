@@ -26,6 +26,13 @@ public enum NavigationRoute
     /// <summary>The file search page.</summary>
     Files,
 
+    /// <summary>
+    /// One document being read, summarized, or asked about. A destination of its own rather
+    /// than part of <see cref="Files"/> because the work happens against a single file that the
+    /// person chose, which is a different kind of task from finding files by name.
+    /// </summary>
+    Document,
+
     /// <summary>The saved automation page.</summary>
     Automations,
 
