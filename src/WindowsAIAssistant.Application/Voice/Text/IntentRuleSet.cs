@@ -41,6 +41,7 @@ internal static class IntentRuleSet
         FileSearchRules(),
         .. DocumentRules(),
         .. KnowledgeRules(),
+        .. ScreenVisionRules(),
         .. ApplicationRules(),
         AiQuestionRules()
     ];
@@ -328,6 +329,86 @@ internal static class IntentRuleSet
             @"^screenshot$",
             @"^capture (?:my |the )?(?:screen|display)$"
         ]);
+
+    /// <summary>
+    /// Phrasings that ask the assistant to look at the screen.
+    /// <para>
+    /// The order inside this list is the whole point of it, and it is the opposite of the order
+    /// a generic "question" rule would want. The specific, no-model phrasings come first so
+    /// that "what does it say" is recognized as the local text request rather than being caught
+    /// by a broader "what is on my screen" pattern and sent to a model. Someone who has turned
+    /// off every cloud permission should still be able to ask their screen a question by voice,
+    /// and a rule table ordered the other way would quietly break that.
+    /// </para>
+    /// <para>
+    /// The trailing question group is greedy and last in the alternation so that "what does this
+    /// error mean" resolves to the error intent while "what is that button" carries its words
+    /// through as the question.
+    /// </para>
+    /// </summary>
+    private static IReadOnlyList<IntentRule> ScreenVisionRules() =>
+    [
+        // The only screen intent that writes anything to a disk, and the only one that touches
+        // neither a recogniser nor a model. Its phrasings say "save" rather than "take" on
+        // purpose: "take a screenshot" is an older intent that has its own capture path, and two
+        // intents answered by almost the same words is how one of them quietly stops being used.
+        new IntentRule(
+            AssistantIntent.SaveScreenshot,
+            [
+                @"^save (?:a |my |the )?screenshot(?: (?:of|on) (?:my |the )?(?:screen|display))?$",
+                @"^save (?:my |the )?(?:screen|display)$"
+            ]),
+
+        // Local, no model, works with the network off. First, and never routed to a provider.
+        new IntentRule(
+            AssistantIntent.ReadScreenText,
+            [
+                @"^read (?:the |my )?(?:text on |text from )?(?:my |the )?screen$",
+                @"^what does (?:it|this|the screen|my screen) say$",
+                @"^what'?s written on (?:my |the )?screen$",
+                @"^read (?:the )?text on (?:my |the )?(?:screen|display)$"
+            ]),
+
+        new IntentRule(
+            AssistantIntent.ExplainScreenError,
+            [
+                @"^what does (?:this|that|the) error mean$",
+                @"^explain (?:this|that|the) (?:error|warning|message|dialog)$",
+                @"^why is (?:this|that) (?:error|failing|not working)$",
+                @"^help me understand (?:this|that) (?:error|warning|message)$",
+                @"^what'?s (?:this|that) error mean$"
+            ]),
+
+        new IntentRule(
+            AssistantIntent.AnalyzeScreenRegion,
+            [
+                @"^(?:analy[sz]e|look at|explain|what'?s in) (?:this|that) (?:part|section|area|region) of (?:the |my )?screen$",
+                @"^analy[sz]e (?:this|that) region$"
+            ]),
+
+        // Carries the person's own words through as the question, so "what does this chart say"
+        // is answered as a question about what is visible rather than as a bare description.
+        new IntentRule(
+            AssistantIntent.AskAboutScreen,
+            [
+                @"^(?:what|why|how|when|where|who|is|are|does|do|did|can|should) (?<query>.+) (?:on|in|about) (?:my |the )?screen$",
+                @"^(?:look at|tell me about|analy[sz]e|explain) (?:what'?s |whats )?(?:on|in) (?:my |the )?screen (?<query>.+)$",
+                @"^ask about (?:my |the )?screen (?<query>.+)$"
+            ]),
+
+        new IntentRule(
+            AssistantIntent.DescribeScreen,
+            [
+                @"^what'?s on (?:my |the )?screen$",
+                @"^what is on (?:my |the )?screen$",
+                @"^describe (?:my |the )?screen$",
+                @"^look at (?:my |the )?screen$",
+                @"^(?:read|take) (?:a )?look at (?:my |the )?screen$",
+                @"^analy[sz]e (?:my |the )?screen$",
+                @"^tell me what'?s on (?:my |the )?screen$",
+                @"^screen$"
+            ])
+    ];
 
     private static IReadOnlyList<IntentRule> ClipboardRules() =>
     [

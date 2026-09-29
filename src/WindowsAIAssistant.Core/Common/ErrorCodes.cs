@@ -62,10 +62,9 @@ public static class ErrorCodes
     // rather than merged into one failure, because the action differs for each: reindex, turn on
     // a permission, add a document, or change the embedding model.
     public const string KnowledgeOperationFailed = "KNOWLEDGE_OPERATION_FAILED";
-public const string KnowledgeBaseNotFound = "KNOWLEDGE_BASE_NOT_FOUND";
-public const string KnowledgeBaseEmpty = "KNOWLEDGE_BASE_EMPTY";
-/// <summary>The name is already taken by another base, so the base was not created or renamed.</summary>
-public const string KnowledgeBaseNameTaken = "KNOWLEDGE_BASE_NAME_TAKEN";
+    public const string KnowledgeBaseNotFound = "KNOWLEDGE_BASE_NOT_FOUND";
+    public const string KnowledgeBaseEmpty = "KNOWLEDGE_BASE_EMPTY";
+    public const string KnowledgeBaseNameTaken = "KNOWLEDGE_BASE_NAME_TAKEN";
     public const string KnowledgeBaseFull = "KNOWLEDGE_BASE_FULL";
     public const string KnowledgeDocumentAlreadyIndexed = "KNOWLEDGE_DOCUMENT_ALREADY_INDEXED";
     public const string KnowledgeDocumentNotFound = "KNOWLEDGE_DOCUMENT_NOT_FOUND";
@@ -89,6 +88,79 @@ public const string KnowledgeBaseNameTaken = "KNOWLEDGE_BASE_NAME_TAKEN";
     /// writes. The document needs reindexing.
     /// </summary>
     public const string KnowledgeVectorCorrupted = "KNOWLEDGE_VECTOR_CORRUPTED";
+
+    // Screen vision. Split by stage so the person is told what failed, not just that something
+    // did: nothing was read, nothing was understood, or nothing was sent. Each names a situation
+    // a person can act on, and none of them describe a Windows API, a model, or a file path.
+    /// <summary>The Windows capture path is not available on this machine.</summary>
+    public const string ScreenCaptureUnsupported = "SCREEN_CAPTURE_UNSUPPORTED";
+
+    /// <summary>The capture itself failed: the target went away, or no frame arrived.</summary>
+    public const string ScreenCaptureFailed = "SCREEN_CAPTURE_FAILED";
+
+    /// <summary>
+    /// The person dismissed the capture picker. Not a failure: nothing is wrong and nobody is
+    /// shown an error, because choosing not to look is a normal thing to do.
+    /// </summary>
+    public const string ScreenCaptureCancelled = "SCREEN_CAPTURE_CANCELLED";
+
+    /// <summary>The frame arrived blank, which usually means the content is protected.</summary>
+    public const string ScreenCaptureEmpty = "SCREEN_CAPTURE_EMPTY";
+
+    /// <summary>Windows refused to hand over the frame because its content is protected.</summary>
+    public const string ScreenProtectedContent = "SCREEN_PROTECTED_CONTENT";
+
+    /// <summary>The frame could not be encoded as an image.</summary>
+    public const string ScreenImageEncodeFailed = "SCREEN_IMAGE_ENCODE_FAILED";
+
+    /// <summary>The image is larger than this build will send to a model.</summary>
+    public const string ScreenImageTooLarge = "SCREEN_IMAGE_TOO_LARGE";
+
+    /// <summary>The image could not be read at all.</summary>
+    public const string ScreenImageInvalid = "SCREEN_IMAGE_INVALID";
+
+    /// <summary>No rectangle was chosen, so there is nothing to crop.</summary>
+    public const string ScreenRegionEmpty = "SCREEN_REGION_EMPTY";
+
+    /// <summary>The rectangle cannot be applied to the frame it was drawn on.</summary>
+    public const string ScreenRegionInvalid = "SCREEN_REGION_INVALID";
+
+    /// <summary>The rectangle lies entirely outside the captured frame.</summary>
+    public const string ScreenRegionOutsideFrame = "SCREEN_REGION_OUTSIDE_FRAME";
+
+    // Text recognition. "Unavailable" and "failed" are separate because they are separate
+    // decisions: a machine with no recogniser is working as designed, while a recogniser that
+    // was present and then errored is something to look at.
+    /// <summary>No text engine is installed or usable on this machine.</summary>
+    public const string OcrUnavailable = "OCR_UNAVAILABLE";
+
+    /// <summary>A text engine was available and then failed.</summary>
+    public const string OcrFailed = "OCR_FAILED";
+
+    /// <summary>The engine ran but read nothing, which is not the same as having failed.</summary>
+    public const string OcrNoTextFound = "OCR_NO_TEXT_FOUND";
+
+    /// <summary>Reading text is turned off, so the image was not read.</summary>
+    public const string OcrPermissionDenied = "OCR_PERMISSION_DENIED";
+
+    // Visual analysis. The consent codes matter most: they are what a caller branches on to tell
+    // "you have not allowed this" apart from "this did not work", and they are checked before
+    // any network call is made rather than reported afterwards.
+    /// <summary>The configured model cannot accept an image, only text.</summary>
+    public const string VisionModelNoImageSupport = "VISION_MODEL_NO_IMAGE_SUPPORT";
+
+    /// <summary>Looking at the screen is turned off, so the image was not read or sent.</summary>
+    public const string VisionAnalysisPermissionDenied = "VISION_ANALYSIS_PERMISSION_DENIED";
+
+    /// <summary>Sending screen content to a cloud provider is turned off.</summary>
+    public const string VisionCloudPermissionDenied = "VISION_CLOUD_PERMISSION_DENIED";
+
+    /// <summary>No provider is configured that can look at an image.</summary>
+    public const string VisionProviderUnavailable = "VISION_PROVIDER_UNAVAILABLE";
+
+    /// <summary>The provider was asked and did not answer.</summary>
+    public const string VisionAnalysisFailed = "VISION_ANALYSIS_FAILED";
+
     public const string ConfigurationInvalid = "CONFIGURATION_INVALID";
     public const string ConversationNotFound = "CONVERSATION_NOT_FOUND";
     public const string NotFound = "NOT_FOUND";

@@ -85,5 +85,40 @@ public enum PermissionCapability
     /// yes.
     /// </para>
     /// </summary>
-    CloudKnowledgeProcessing
+    CloudKnowledgeProcessing,
+
+    /// <summary>
+    /// Read the text out of a screenshot on this machine.
+    /// <para>
+    /// A local act, like <see cref="KnowledgeBase"/>: recognition happens in a Windows component
+    /// and nothing is sent anywhere. It is still its own switch because a person can reasonably
+    /// want their screen described and not want everything they type transcribed and held in
+    /// memory, and the two are separate decisions.
+    /// </para>
+    /// </summary>
+    ScreenOcr,
+
+    /// <summary>
+    /// Send a screenshot itself to a cloud provider, as opposed to text read from it.
+    /// <para>
+    /// The most consequential switch in this list, and separate from
+    /// <see cref="ScreenAnalysis"/> for a reason that is easy to miss. Turning on screen analysis
+    /// says "I am willing to be shown a description of my screen"; turning on cloud screen
+    /// analysis says "I am willing for a picture of my screen to leave this machine". The first
+    /// can be satisfied by a local model, and if it were the only one, enabling analysis would
+    /// silently mean uploading a picture of whatever happens to be on screen — including the
+    /// window of the password manager that was open at the time.
+    /// </para>
+    /// </summary>
+    CloudScreenAnalysis,
+
+    /// <summary>
+    /// Retain a screenshot after the request that took it is finished.
+    /// <para>
+    /// Off by default, and about the file rather than the capture. Taking a screenshot to answer
+    /// a question needs no file; the only reason to write one is so the person can look at it
+    /// again or keep it, which is a separate decision taken at a separate moment.
+    /// </para>
+    /// </summary>
+    ScreenshotHistory
 }

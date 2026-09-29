@@ -50,6 +50,22 @@ public sealed class PermissionService : IPermissionService
             // Analyzing a capture sends screen content off the machine, so it is a separate
             // and stricter consent than simply taking the screenshot.
             PermissionCapability.ScreenAnalysis => options.AllowScreenAnalysis,
+
+            // Local recognition. Not gated on AllowCloudAI, because the whole point of it is
+            // that reading the text off a screen works with nothing leaving the machine.
+            PermissionCapability.ScreenOcr => options.AllowScreenOcr,
+
+            // The most consequential combination in the switch statement. Both switches have to
+            // be on before a picture of somebody's screen is allowed to leave the machine, and
+            // neither being on means the visual path falls back to local recognition rather than
+            // quietly uploading.
+            PermissionCapability.CloudScreenAnalysis =>
+                options.AllowCloudAI && options.AllowCloudScreenAnalysis,
+
+            // About the file rather than the capture. Off means nothing is written to disk, and
+            // an in-memory screenshot is unaffected by this either way.
+            PermissionCapability.ScreenshotHistory => options.StoreScreenshotHistory,
+
             PermissionCapability.SystemControl => options.AllowSystemControl,
             PermissionCapability.ApplicationLaunch => options.AllowApplicationLaunch,
             PermissionCapability.WebSearch => options.AllowWebSearch,
@@ -102,6 +118,15 @@ public sealed class PermissionService : IPermissionService
 
         PermissionCapability.ScreenAnalysis =>
             "Screen analysis is disabled in Privacy settings.",
+
+        PermissionCapability.ScreenOcr =>
+            "Reading text from your screen is disabled in Privacy settings.",
+
+        PermissionCapability.CloudScreenAnalysis =>
+            "Sending your screen to a cloud provider is disabled in Privacy settings.",
+
+        PermissionCapability.ScreenshotHistory =>
+            "Saving screenshots is disabled in Privacy settings.",
 
         PermissionCapability.SystemControl =>
             "System control is disabled in Privacy settings.",
