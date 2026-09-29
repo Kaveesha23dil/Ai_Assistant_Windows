@@ -33,6 +33,14 @@ public enum NavigationRoute
     /// </summary>
     Document,
 
+    /// <summary>
+    /// The personal knowledge base: a list of indexed documents, and a place to ask questions
+    /// across all of them. A destination of its own rather than part of <see cref="Files"/>,
+    /// because the work is not finding a file by name but keeping documents indexed so a question
+    /// can be answered from all of them at once.
+    /// </summary>
+    Knowledge,
+
     /// <summary>The saved automation page.</summary>
     Automations,
 

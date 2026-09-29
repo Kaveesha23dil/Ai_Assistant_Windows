@@ -35,6 +35,13 @@
     -->
     <PackageReference Include="DocumentFormat.OpenXml" />
     <PackageReference Include="PdfPig" />
+    <!--
+      The knowledge base is a local SQLite file. Referenced here rather than in Application so
+      that no layer above Infrastructure can acquire a connection, a command, or a SQL string:
+      everything above it goes through the knowledge repositories, and the one place that knows
+      there is a database at all is the one that owns its schema.
+    -->
+    <PackageReference Include="Microsoft.Data.Sqlite" />
   </ItemGroup>
 
   <ItemGroup>

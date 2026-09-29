@@ -61,6 +61,24 @@ public sealed class PermissionService : IPermissionService
             PermissionCapability.DocumentCloudProcessing =>
                 options.AllowCloudAI && options.AllowDocumentCloudProcessing,
 
+            // Knowledge indexing is local, so it is not gated on AllowCloudAI. Reading, splitting,
+            // and storing text on this machine reaches nobody else, and making it depend on a
+            // cloud switch would mean a person who never wanted the cloud could not build a
+            // local index.
+            PermissionCapability.KnowledgeBase => options.AllowKnowledgeBase,
+
+            // Two switches, and neither is enough on its own. Turned on, this means every passage
+            // of every indexed document is posted to a third party as a vector — so it requires
+            // the cloud switch as well as the one specific to embeddings.
+            PermissionCapability.CloudEmbedding =>
+                options.AllowCloudAI && options.AllowCloudEmbedding,
+
+            // Required even when the embeddings were made locally, because this is the step that
+            // puts retrieved passages in front of a model. Where the vectors went and where the
+            // answer is computed are separate questions and both have to be answered yes.
+            PermissionCapability.CloudKnowledgeProcessing =>
+                options.AllowCloudAI && options.AllowCloudKnowledgeProcessing,
+
             PermissionCapability.VoiceHistory => options.StoreVoiceHistory,
 
             _ => false
@@ -99,6 +117,15 @@ public sealed class PermissionService : IPermissionService
 
         PermissionCapability.DocumentCloudProcessing =>
             "Sending document contents to a cloud provider is disabled in Privacy settings.",
+
+        PermissionCapability.KnowledgeBase =>
+            "Building a knowledge base from your documents is disabled in Privacy settings.",
+
+        PermissionCapability.CloudEmbedding =>
+            "Sending document text to a cloud service for embeddings is disabled in Privacy settings.",
+
+        PermissionCapability.CloudKnowledgeProcessing =>
+            "Answering from your documents in the cloud is disabled in Privacy settings.",
 
         PermissionCapability.VoiceHistory =>
             "Voice history is disabled in Privacy settings.",

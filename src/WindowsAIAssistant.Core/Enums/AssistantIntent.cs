@@ -62,6 +62,19 @@ public enum AssistantIntent
     /// <summary>Asks a question about a document and speaks an answer taken from it.</summary>
     AskDocumentQuestion,
 
+    /// <summary>
+    /// Asks a question to be answered across everything in the knowledge base.
+    /// <para>
+    /// Its own intent rather than a variant of <see cref="AIQuestion"/> or
+    /// <see cref="AskDocumentQuestion"/>, because the three send different amounts of a person's
+    /// documents to a provider. A general question reaches a model on its own; a document
+    /// question reaches it with one file; this reaches it with whichever indexed passages the
+    /// search found. A phrase that explicitly says "my documents" or "my knowledge base" is the
+    /// one place that difference is visible to somebody, so it is decided here and nowhere else.
+    /// </para>
+    /// </summary>
+    KnowledgeQuestion,
+
     /// <summary>Read the text currently held on the clipboard.</summary>
     ReadClipboard,
 

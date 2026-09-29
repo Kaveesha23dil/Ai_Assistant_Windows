@@ -4,4 +4,15 @@
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!--
+      The abstractions only: IEmbeddingGenerator<string, Embedding<float>> and Embedding<float>.
+      Referenced in Core so that the embedding seam is the community shape rather than a
+      private one, which is what lets a future local provider (ONNX, a downloaded model) or the
+      OpenAI SDK's own generator be dropped in without any caller changing. It carries no
+      provider, no transport, and no storage, so it cannot become a dependency of its own.
+    -->
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
+  </ItemGroup>
+
 </Project>

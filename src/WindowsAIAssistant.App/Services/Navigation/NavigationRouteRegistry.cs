@@ -147,6 +147,7 @@ public sealed class NavigationRouteRegistry
         new NavigationRegistration(NavigationRoute.Chat, typeof(ChatPage)),
         new NavigationRegistration(NavigationRoute.Files, typeof(FilesPage)),
         new NavigationRegistration(NavigationRoute.Document, typeof(DocumentPage)),
+        new NavigationRegistration(NavigationRoute.Knowledge, typeof(KnowledgePage)),
         new NavigationRegistration(NavigationRoute.Automations, typeof(AutomationsPage)),
         new NavigationRegistration(NavigationRoute.Settings, typeof(SettingsPage))
     ];

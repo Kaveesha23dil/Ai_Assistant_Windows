@@ -52,6 +52,30 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsFileIndexingEnabled { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the assistant may keep a local index of the
+    /// person's own documents. On by default, because the index never leaves the machine.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsKnowledgeBaseEnabled { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether document text may be sent to a cloud service to
+    /// be turned into an embedding. Off by default, and independent of the cloud-AI switch: a
+    /// provider that is allowed to answer a question is not thereby allowed to read a whole file.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsCloudEmbeddingEnabled { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether passages retrieved from the knowledge base may be
+    /// sent to a cloud model to be answered. Off by default, and required even when the
+    /// embeddings themselves were made on this machine, because this is the step that reaches the
+    /// model.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsCloudKnowledgeAnswersEnabled { get; set; }
+
     [ObservableProperty]
     public partial bool IsScreenAnalysisEnabled { get; set; }
 
@@ -190,6 +214,9 @@ public sealed partial class SettingsViewModel : ObservableObject
             AllowTelemetry = IsTelemetryEnabled,
             AllowClipboardProcessing = IsClipboardProcessingEnabled,
             AllowFileIndexing = IsFileIndexingEnabled,
+            AllowKnowledgeBase = IsKnowledgeBaseEnabled,
+            AllowCloudEmbedding = IsCloudEmbeddingEnabled,
+            AllowCloudKnowledgeProcessing = IsCloudKnowledgeAnswersEnabled,
             AllowScreenAnalysis = IsScreenAnalysisEnabled,
             StoreConversationHistory = IsConversationHistoryEnabled,
             AllowMicrophoneAccess = IsMicrophoneAccessEnabled,
@@ -261,6 +288,9 @@ public sealed partial class SettingsViewModel : ObservableObject
         IsDocumentCloudProcessingEnabled = privacyOptions.CurrentValue.AllowDocumentCloudProcessing;
         IsClipboardProcessingEnabled = privacyOptions.CurrentValue.AllowClipboardProcessing;
         IsFileIndexingEnabled = privacyOptions.CurrentValue.AllowFileIndexing;
+        IsKnowledgeBaseEnabled = privacyOptions.CurrentValue.AllowKnowledgeBase;
+        IsCloudEmbeddingEnabled = privacyOptions.CurrentValue.AllowCloudEmbedding;
+        IsCloudKnowledgeAnswersEnabled = privacyOptions.CurrentValue.AllowCloudKnowledgeProcessing;
         IsScreenAnalysisEnabled = privacyOptions.CurrentValue.AllowScreenAnalysis;
         IsConversationHistoryEnabled = privacyOptions.CurrentValue.StoreConversationHistory;
         IsTelemetryEnabled = privacyOptions.CurrentValue.AllowTelemetry;
@@ -341,6 +371,31 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public string PrivacyNotice => "These capabilities are permission controlled. Clipboard, file indexing, screen analysis, cloud AI and telemetry stay off until you turn them on here and the matching feature step is implemented.";
 
+    /// <summary>
+    /// Gets the note under the knowledge switches, saying where the index lives and what would
+    /// have to be allowed for any of it to be sent anywhere.
+    /// </summary>
+    public string KnowledgeNotice =>
+        "Your documents are read on this machine and the index is stored here with the rest of the app's data. "
+        + "Turning off the knowledge base stops indexing and searching. Sending document text to a cloud service to embed it, "
+        + "or sending retrieved passages to a cloud model to answer a question, are two separate decisions and both are off.";
+
+    /// <summary>
+    /// Gets a value indicating whether the cloud-embedding switch can be turned on at all.
+    /// <para>
+    /// Only when cloud AI is on as well, because the permission service grants cloud embedding
+    /// as the conjunction of the two. Leaving the switch live while the other is off would let
+    /// somebody turn it on, save, and be told it had taken effect while nothing was reading it.
+    /// </para>
+    /// </summary>
+    public bool IsCloudEmbeddingAvailable => IsCloudAiEnabled;
+
+    /// <summary>
+    /// Gets a value indicating whether the cloud knowledge-answer switch can be turned on. Same
+    /// reason as the embedding one.
+    /// </summary>
+    public bool IsCloudKnowledgeAnswersAvailable => IsCloudAiEnabled;
+
     public string VoiceNotice =>
         "The microphone is closed by default and only opens while you ask a question. Recognition runs on this device; cloud speech is off unless you allow it.";
 
@@ -372,6 +427,14 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public string NotificationsNotice =>
         "Nothing raises a notification yet, so this setting is not saved.";
+
+    partial void OnIsCloudAiEnabledChanged(bool value)
+    {
+        // The two cloud knowledge switches are only meaningful with cloud AI on, so the
+        // availability is recomputed when the switch they depend on moves.
+        OnPropertyChanged(nameof(IsCloudEmbeddingAvailable));
+        OnPropertyChanged(nameof(IsCloudKnowledgeAnswersAvailable));
+    }
 
     partial void OnSelectedThemeIndexChanged(int value) => OnPropertyChanged(nameof(Theme));
 
