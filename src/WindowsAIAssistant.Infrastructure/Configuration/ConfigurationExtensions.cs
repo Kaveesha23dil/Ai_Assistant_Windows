@@ -82,6 +82,7 @@ public static class ConfigurationExtensions
         services.AddSingleton<IValidateOptions<ApplicationOptions>, ApplicationOptionsValidator>();
         services.AddSingleton<IValidateOptions<AIOptions>, AIOptionsValidator>();
         services.AddSingleton<IValidateOptions<VoiceOptions>, VoiceOptionsValidator>();
+        services.AddSingleton<IValidateOptions<VisionOptions>, VisionOptionsValidator>();
 
         // Knowledge and retrieval numbers. Validated at start-up because each one is a limit
         // something else depends on: a batch size of zero fails inside a paid request, a database
@@ -114,6 +115,9 @@ public static class ConfigurationExtensions
             .ValidateOnStart();
         services.AddOptions<VoiceOptions>()
             .Bind(configuration.GetSection(VoiceOptions.SectionName))
+            .ValidateOnStart();
+        services.AddOptions<VisionOptions>()
+            .Bind(configuration.GetSection(VisionOptions.SectionName))
             .ValidateOnStart();
         services.AddOptions<UIOptions>()
             .Bind(configuration.GetSection(UIOptions.SectionName))

@@ -89,6 +89,43 @@ public sealed class PrivacyOptions
     public bool AllowScreenCapture { get; init; }
 
     /// <summary>
+    /// Gets a value indicating whether text may be read out of a screenshot on this machine.
+    /// <para>
+    /// Off by default and separate from every other screen switch, because it is a different
+    /// act from the one before it: a screenshot is a picture, and reading the words out of that
+    /// picture is a step further. It is local work, so it is deliberately not gated on
+    /// <see cref="AllowCloudAI"/>: someone who never wants anything leaving the machine can
+    /// still ask what their screen says.
+    /// </para>
+    /// </summary>
+    public bool AllowScreenOcr { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether a screenshot may be sent to a cloud model to be
+    /// described.
+    /// <para>
+    /// The most consequential switch in the file, and off by default. Turning it on means
+    /// whatever is on the screen at the moment somebody asks leaves the machine; a password
+    /// manager, a patient record, a colleague's chat window, and a bank balance are all
+    /// screenshots. It is separate from <see cref="AllowCloudAI"/> for the same reason
+    /// document processing is: consenting to send what you type is a smaller decision than
+    /// consenting to send what you are looking at.
+    /// </para>
+    /// </summary>
+    public bool AllowCloudScreenAnalysis { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether screenshots may be written to disk.
+    /// <para>
+    /// Off by default. A saved screenshot is a file that outlives the request, is picked up by
+    /// backup software, and appears in the person's library as something they did not remember
+    /// creating. Nothing is written without this, and when it is on it still only happens when
+    /// somebody asks for a file in that moment.
+    /// </para>
+    /// </summary>
+    public bool StoreScreenshotHistory { get; init; }
+
+    /// <summary>
     /// Gets a value indicating whether the assistant may change system-level state such as
     /// output volume or mute. Off by default because the effect is immediate and global.
     /// </summary>

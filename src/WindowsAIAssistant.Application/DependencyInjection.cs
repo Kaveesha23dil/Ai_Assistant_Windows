@@ -32,16 +32,19 @@ using WindowsAIAssistant.Application.Voice.Commands.Knowledge;
 using WindowsAIAssistant.Application.Voice.Commands.Navigation;
 using WindowsAIAssistant.Application.Voice.Commands.OpenApplication;
 using WindowsAIAssistant.Application.Voice.Commands.OpenFolder;
+using WindowsAIAssistant.Application.Voice.Commands.Screen;
 using WindowsAIAssistant.Application.Voice.Commands.Screenshot;
 using WindowsAIAssistant.Application.Voice.Commands.SystemInformation;
 using WindowsAIAssistant.Application.Voice.Commands.Volume;
 using WindowsAIAssistant.Application.Voice.Commands.WebSearch;
 using WindowsAIAssistant.Application.Voice;
 using WindowsAIAssistant.Application.Voice.Services;
+using WindowsAIAssistant.Application.Vision;
 using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Core.Abstractions.Documents;
 using WindowsAIAssistant.Core.Abstractions.Knowledge;
 using WindowsAIAssistant.Core.Abstractions.Navigation;
+using WindowsAIAssistant.Core.Abstractions.Vision;
 using WindowsAIAssistant.Core.Abstractions.Voice;
 
 namespace WindowsAIAssistant.Application;
@@ -72,7 +75,38 @@ public static class DependencyInjection
 
         services.AddKnowledge();
 
+        services.AddVision();
+
         services.AddVoiceAssistant();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the screen-vision features.
+    /// <para>
+    /// The analysis service is a singleton for the same reason the knowledge indexing service is:
+    /// it owns the one slot where a raw frame lives while a request is in flight, and that slot is
+    /// only meaningful if every caller shares it. A second instance would mean a second frame
+    /// buffer, which is precisely the accumulation this feature is built to avoid.
+    /// </para>
+    /// <para>
+    /// The consent policy is a singleton so that there is one place in the application where the
+    /// answer to "may a screenshot be sent" is decided. The capture, OCR, preprocessing, and
+    /// provider implementations are registered by Infrastructure with <c>TryAdd</c> semantics, so
+    /// the Application layer stays constructible with no platform behind it and every test can
+    /// supply a fake that returns three different frames in a row.
+    /// </para>
+    /// </summary>
+    public static IServiceCollection AddVision(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.TryAddSingleton<IScreenContextService, ScreenContextService>();
+        services.TryAddSingleton<ScreenConsentPolicy>();
+        services.TryAddSingleton<IScreenAnalysisService, ScreenAnalysisService>();
+
+        services.AddTransient<IAssistantActionExecutor, ScreenVoiceHandler>();
 
         return services;
     }

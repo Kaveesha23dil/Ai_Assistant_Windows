@@ -8,7 +8,9 @@ using WindowsAIAssistant.App.Views.Pages;
 using WindowsAIAssistant.Application.Voice;
 using WindowsAIAssistant.Application.Documents;
 using WindowsAIAssistant.Application.Knowledge;
+using WindowsAIAssistant.App.Vision.Ocr;
 using WindowsAIAssistant.Core.Abstractions.Navigation;
+using WindowsAIAssistant.Core.Abstractions.Vision;
 using WindowsAIAssistant.Infrastructure.Configuration.Options;
 
 namespace WindowsAIAssistant.App;
@@ -109,6 +111,32 @@ public static class DependencyInjection
 
             return policy;
         });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the two pieces of the screen feature that only this project can supply.
+    /// <para>
+    /// The capture host is the window and the thread the Windows capture picker belongs to. The
+    /// newer text recogniser is here because the Windows AI text APIs arrive with the application
+    /// SDK that this project already references, and the feature deliberately does not add that
+    /// dependency to the layer underneath, which has no use for it.
+    /// </para>
+    /// <para>
+    /// Called after <c>AddInfrastructure</c>, so both text engines are registered by the time
+    /// the resolver is built. It does not matter that Infrastructure registered two and this adds
+    /// a third: the resolver keys them by engine rather than by position, so a machine with the
+    /// newer recogniser uses it and a machine without it is not left with nothing.
+    /// </para>
+    /// </summary>
+    public static IServiceCollection AddScreenVisionHosting(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddSingleton<WindowCaptureHost>();
+        services.AddSingleton<IScreenCaptureHost>(sp => sp.GetRequiredService<WindowCaptureHost>());
+        services.AddSingleton<IOcrProvider, WindowsAiOcrProvider>();
 
         return services;
     }
