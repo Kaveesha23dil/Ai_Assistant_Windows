@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using WindowsAIAssistant.App.Controls;
+using WindowsAIAssistant.App.Services;
 using WindowsAIAssistant.App.Services.Navigation;
 using WindowsAIAssistant.App.ViewModels;
 using Windows.Graphics;
@@ -40,25 +41,35 @@ public sealed partial class MainWindow : Window
     private readonly INavigationService _navigation;
     private readonly ILogger<MainWindow> _logger;
     private readonly DispatcherQueue _dispatcher;
+    private readonly WindowCaptureHost _captureHost;
     private bool _isSelectionSynchronizing;
     private bool _backHandled;
 
     public MainWindow(
         MainViewModel viewModel,
         INavigationService navigation,
+        WindowCaptureHost captureHost,
         ILogger<MainWindow> logger)
     {
         ArgumentNullException.ThrowIfNull(viewModel);
         ArgumentNullException.ThrowIfNull(navigation);
+        ArgumentNullException.ThrowIfNull(captureHost);
         ArgumentNullException.ThrowIfNull(logger);
 
         ViewModel = viewModel;
         _navigation = navigation;
+        _captureHost = captureHost;
         _logger = logger;
         _dispatcher = DispatcherQueue.GetForCurrentThread();
 
         InitializeComponent();
         NavView.DataContext = viewModel;
+
+        // The window exists as soon as it is constructed, which is the earliest the capture
+        // picker can be given a parent. Publishing it here rather than on load means a capture
+        // requested while the shell is still appearing is refused as too early rather than
+        // opening a picker with nowhere to belong.
+        PublishAsCaptureHost();
 
         ConfigureTitleBar();
         ApplyStartupTheme();
@@ -87,6 +98,10 @@ public sealed partial class MainWindow : Window
     {
         NavView.Loaded -= OnShellLoaded;
 
+        // Republished now that the window is on screen, because a handle taken before the window
+        // was activated has been through a state in which Windows may not honour it as a parent.
+        PublishAsCaptureHost();
+
         _dispatcher.TryEnqueue(DispatcherQueuePriority.Low, () =>
         {
             if (ContentFrame.Content is not null)
@@ -96,6 +111,26 @@ public sealed partial class MainWindow : Window
 
             _navigation.Navigate(ViewModel.InitialRoute);
         });
+    }
+
+    /// <summary>
+    /// Publishes this window as the parent for the Windows capture picker.
+    /// <para>
+    /// Best effort and quiet about failure. A machine on which the handle cannot be read is a
+    /// machine where capturing will fail later with a sentence explaining it, and refusing to
+    /// open a window over that would be a worse outcome than a feature that does not start.
+    /// </para>
+    /// </summary>
+    private void PublishAsCaptureHost()
+    {
+        try
+        {
+            _captureHost.Attach(WindowNative.GetWindowHandle(this), _dispatcher);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogWarning(exception, "The window could not be published for screen capture.");
+        }
     }
 
     private void ApplyStartupTheme()

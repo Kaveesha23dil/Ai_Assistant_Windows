@@ -26,6 +26,36 @@ public sealed class PrivacyOptions
     /// </summary>
     public bool AllowDocumentCloudProcessing { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether documents may be indexed into a local knowledge base so
+    /// questions can be answered across all of them. On by default: reading, splitting, and
+    /// storing text on this machine sends nothing anywhere.
+    /// </summary>
+    public bool AllowKnowledgeBase { get; init; } = true;
+
+    /// <summary>
+    /// Gets a value indicating whether document text may be sent to a cloud service to be turned
+    /// into an embedding.
+    /// <para>
+    /// Off by default, and deliberately not implied by either other cloud permission. This is the
+    /// step that posts every passage of every indexed document to a third party as a vector: a
+    /// step somebody consenting to cloud chat, or to sending a document to be analyzed, has not
+    /// agreed to. A vector is a lossy summary of the text behind it, and a party holding a few
+    /// hundred of somebody's knows a great deal about their documents.
+    /// </para>
+    /// </summary>
+    public bool AllowCloudEmbedding { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether text retrieved from the knowledge base may be sent to a
+    /// cloud AI provider to be answered.
+    /// <para>
+    /// Off by default, and required even when the embeddings were made on this machine, because
+    /// this is the step that reaches the model rather than the step that indexed the document.
+    /// </para>
+    /// </summary>
+    public bool AllowCloudKnowledgeProcessing { get; init; }
+
     public bool AllowTelemetry { get; init; }
 
     public bool AllowClipboardProcessing { get; init; }
@@ -57,6 +87,43 @@ public sealed class PrivacyOptions
 
     /// <summary>Gets a value indicating whether screenshot capture is permitted.</summary>
     public bool AllowScreenCapture { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether text may be read out of a screenshot on this machine.
+    /// <para>
+    /// Off by default and separate from every other screen switch, because it is a different
+    /// act from the one before it: a screenshot is a picture, and reading the words out of that
+    /// picture is a step further. It is local work, so it is deliberately not gated on
+    /// <see cref="AllowCloudAI"/>: someone who never wants anything leaving the machine can
+    /// still ask what their screen says.
+    /// </para>
+    /// </summary>
+    public bool AllowScreenOcr { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether a screenshot may be sent to a cloud model to be
+    /// described.
+    /// <para>
+    /// The most consequential switch in the file, and off by default. Turning it on means
+    /// whatever is on the screen at the moment somebody asks leaves the machine; a password
+    /// manager, a patient record, a colleague's chat window, and a bank balance are all
+    /// screenshots. It is separate from <see cref="AllowCloudAI"/> for the same reason
+    /// document processing is: consenting to send what you type is a smaller decision than
+    /// consenting to send what you are looking at.
+    /// </para>
+    /// </summary>
+    public bool AllowCloudScreenAnalysis { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether screenshots may be written to disk.
+    /// <para>
+    /// Off by default. A saved screenshot is a file that outlives the request, is picked up by
+    /// backup software, and appears in the person's library as something they did not remember
+    /// creating. Nothing is written without this, and when it is on it still only happens when
+    /// somebody asks for a file in that moment.
+    /// </para>
+    /// </summary>
+    public bool StoreScreenshotHistory { get; init; }
 
     /// <summary>
     /// Gets a value indicating whether the assistant may change system-level state such as

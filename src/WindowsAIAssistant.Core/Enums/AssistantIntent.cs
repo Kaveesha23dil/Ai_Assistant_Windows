@@ -62,6 +62,19 @@ public enum AssistantIntent
     /// <summary>Asks a question about a document and speaks an answer taken from it.</summary>
     AskDocumentQuestion,
 
+    /// <summary>
+    /// Asks a question to be answered across everything in the knowledge base.
+    /// <para>
+    /// Its own intent rather than a variant of <see cref="AIQuestion"/> or
+    /// <see cref="AskDocumentQuestion"/>, because the three send different amounts of a person's
+    /// documents to a provider. A general question reaches a model on its own; a document
+    /// question reaches it with one file; this reaches it with whichever indexed passages the
+    /// search found. A phrase that explicitly says "my documents" or "my knowledge base" is the
+    /// one place that difference is visible to somebody, so it is decided here and nowhere else.
+    /// </para>
+    /// </summary>
+    KnowledgeQuestion,
+
     /// <summary>Read the text currently held on the clipboard.</summary>
     ReadClipboard,
 
@@ -123,5 +136,37 @@ public enum AssistantIntent
     RepeatResponse,
 
     /// <summary>Confirm a command that was previously held back for confirmation.</summary>
-    ConfirmCommand
+    ConfirmCommand,
+
+    /// <summary>
+    /// Take a screenshot and describe what is on it.
+    /// <para>
+    /// Its own intent rather than a variant of <see cref="AIQuestion"/>, because "what's on my
+    /// screen" and "what do you know about X" reach different systems, need different permissions,
+    /// and are answered by different providers. Folding the first into the second would let a
+    /// general question quietly acquire a screenshot.
+    /// </para>
+    /// </summary>
+    DescribeScreen,
+
+    /// <summary>
+    /// Read the visible text out of a screenshot, on this machine.
+    /// <para>
+    /// The one screen intent that never involves a model. It is here so that "what does it say"
+    /// works with the network off, which is a privacy property rather than a convenience.
+    /// </para>
+    /// </summary>
+    ReadScreenText,
+
+    /// <summary>Answer a question about what is on the screen.</summary>
+    AskAboutScreen,
+
+    /// <summary>Explain an error message, dialog, or warning that is visible.</summary>
+    ExplainScreenError,
+
+    /// <summary>Look at a region someone selected rather than a whole screen or window.</summary>
+    AnalyzeScreenRegion,
+
+    /// <summary>Take a screenshot and save it to a file the person chooses.</summary>
+    SaveScreenshot
 }

@@ -50,6 +50,22 @@ public sealed class PermissionService : IPermissionService
             // Analyzing a capture sends screen content off the machine, so it is a separate
             // and stricter consent than simply taking the screenshot.
             PermissionCapability.ScreenAnalysis => options.AllowScreenAnalysis,
+
+            // Local recognition. Not gated on AllowCloudAI, because the whole point of it is
+            // that reading the text off a screen works with nothing leaving the machine.
+            PermissionCapability.ScreenOcr => options.AllowScreenOcr,
+
+            // The most consequential combination in the switch statement. Both switches have to
+            // be on before a picture of somebody's screen is allowed to leave the machine, and
+            // neither being on means the visual path falls back to local recognition rather than
+            // quietly uploading.
+            PermissionCapability.CloudScreenAnalysis =>
+                options.AllowCloudAI && options.AllowCloudScreenAnalysis,
+
+            // About the file rather than the capture. Off means nothing is written to disk, and
+            // an in-memory screenshot is unaffected by this either way.
+            PermissionCapability.ScreenshotHistory => options.StoreScreenshotHistory,
+
             PermissionCapability.SystemControl => options.AllowSystemControl,
             PermissionCapability.ApplicationLaunch => options.AllowApplicationLaunch,
             PermissionCapability.WebSearch => options.AllowWebSearch,
@@ -60,6 +76,24 @@ public sealed class PermissionService : IPermissionService
             // consenting to post a contract to one.
             PermissionCapability.DocumentCloudProcessing =>
                 options.AllowCloudAI && options.AllowDocumentCloudProcessing,
+
+            // Knowledge indexing is local, so it is not gated on AllowCloudAI. Reading, splitting,
+            // and storing text on this machine reaches nobody else, and making it depend on a
+            // cloud switch would mean a person who never wanted the cloud could not build a
+            // local index.
+            PermissionCapability.KnowledgeBase => options.AllowKnowledgeBase,
+
+            // Two switches, and neither is enough on its own. Turned on, this means every passage
+            // of every indexed document is posted to a third party as a vector — so it requires
+            // the cloud switch as well as the one specific to embeddings.
+            PermissionCapability.CloudEmbedding =>
+                options.AllowCloudAI && options.AllowCloudEmbedding,
+
+            // Required even when the embeddings were made locally, because this is the step that
+            // puts retrieved passages in front of a model. Where the vectors went and where the
+            // answer is computed are separate questions and both have to be answered yes.
+            PermissionCapability.CloudKnowledgeProcessing =>
+                options.AllowCloudAI && options.AllowCloudKnowledgeProcessing,
 
             PermissionCapability.VoiceHistory => options.StoreVoiceHistory,
 
@@ -85,6 +119,15 @@ public sealed class PermissionService : IPermissionService
         PermissionCapability.ScreenAnalysis =>
             "Screen analysis is disabled in Privacy settings.",
 
+        PermissionCapability.ScreenOcr =>
+            "Reading text from your screen is disabled in Privacy settings.",
+
+        PermissionCapability.CloudScreenAnalysis =>
+            "Sending your screen to a cloud provider is disabled in Privacy settings.",
+
+        PermissionCapability.ScreenshotHistory =>
+            "Saving screenshots is disabled in Privacy settings.",
+
         PermissionCapability.SystemControl =>
             "System control is disabled in Privacy settings.",
 
@@ -99,6 +142,15 @@ public sealed class PermissionService : IPermissionService
 
         PermissionCapability.DocumentCloudProcessing =>
             "Sending document contents to a cloud provider is disabled in Privacy settings.",
+
+        PermissionCapability.KnowledgeBase =>
+            "Building a knowledge base from your documents is disabled in Privacy settings.",
+
+        PermissionCapability.CloudEmbedding =>
+            "Sending document text to a cloud service for embeddings is disabled in Privacy settings.",
+
+        PermissionCapability.CloudKnowledgeProcessing =>
+            "Answering from your documents in the cloud is disabled in Privacy settings.",
 
         PermissionCapability.VoiceHistory =>
             "Voice history is disabled in Privacy settings.",

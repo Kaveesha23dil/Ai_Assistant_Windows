@@ -6,8 +6,8 @@ namespace WindowsAIAssistant.Core.Common;
 /// <typeparam name="T">The type of the value produced by the operation.</typeparam>
 public sealed class Result<T> : Result
 {
-    private Result(bool isSuccess, string? errorMessage, T? value)
-        : base(isSuccess, errorMessage)
+    private Result(bool isSuccess, string? errorMessage, T? value, string? errorCode = null)
+        : base(isSuccess, errorMessage, errorCode)
     {
         Value = value;
     }
@@ -20,4 +20,8 @@ public sealed class Result<T> : Result
 
     /// <summary>Creates a failed result with the specified error message.</summary>
     public new static Result<T> Failure(string errorMessage) => new(false, errorMessage, default);
+
+    /// <summary>Creates a failed result with a stable code and the message to show.</summary>
+    public new static Result<T> Failure(string errorCode, string errorMessage) =>
+        new(false, errorMessage, default, errorCode);
 }

@@ -57,6 +57,26 @@ public sealed class PrivacySettings
     /// </summary>
     public bool AllowDocumentCloudProcessing { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the assistant may keep a local index of documents
+    /// so questions can be answered across all of them. On by default, and local work only.
+    /// </summary>
+    public bool AllowKnowledgeBase { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether document text may be sent to a cloud service to
+    /// be turned into an embedding. Off by default, and independent of both other cloud
+    /// permissions: answering a question is not the same decision as embedding a document.
+    /// </summary>
+    public bool AllowCloudEmbedding { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether text retrieved from the knowledge base may be
+    /// sent to a cloud AI provider to be answered. Off by default, and required even when the
+    /// embeddings were made on this machine, because this is the step that reaches the model.
+    /// </summary>
+    public bool AllowCloudKnowledgeProcessing { get; set; }
+
     public bool AllowTelemetry { get; set; }
 
     public bool AllowClipboardProcessing { get; set; }
