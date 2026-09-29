@@ -265,6 +265,57 @@
                             <TextBlock
                                 VerticalAlignment="Center"
                                 Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="Knowledge base" />
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                AutomationProperties.Name="Knowledge base"
+                                IsOn="{x:Bind ViewModel.IsKnowledgeBaseEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="Send document text to cloud embedding" />
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                AutomationProperties.Name="Send document text to cloud embedding"
+                                IsEnabled="{x:Bind ViewModel.IsCloudEmbeddingAvailable}"
+                                IsOn="{x:Bind ViewModel.IsCloudEmbeddingEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                Text="Send retrieved passages to a cloud model" />
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                AutomationProperties.Name="Send retrieved passages to a cloud model"
+                                IsEnabled="{x:Bind ViewModel.IsCloudKnowledgeAnswersAvailable}"
+                                IsOn="{x:Bind ViewModel.IsCloudKnowledgeAnswersEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <TextBlock
+                            Style="{StaticResource AppCaptionTextBlockStyle}"
+                            Text="{x:Bind ViewModel.KnowledgeNotice}"
+                            TextWrapping="Wrap" />
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{StaticResource AppCardTitleTextBlockStyle}"
                                 Text="Screen analysis" />
                             <ToggleSwitch
                                 Grid.Column="1"

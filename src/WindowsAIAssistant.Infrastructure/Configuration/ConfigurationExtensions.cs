@@ -83,6 +83,14 @@ public static class ConfigurationExtensions
         services.AddSingleton<IValidateOptions<AIOptions>, AIOptionsValidator>();
         services.AddSingleton<IValidateOptions<VoiceOptions>, VoiceOptionsValidator>();
 
+        // Knowledge and retrieval numbers. Validated at start-up because each one is a limit
+        // something else depends on: a batch size of zero fails inside a paid request, a database
+        // path in configuration would let a settings file choose where the application writes, and
+        // weights that do not add up produce a ranking that expresses no opinion at all.
+        services.AddSingleton<IValidateOptions<EmbeddingOptions>, EmbeddingOptionsValidator>();
+        services.AddSingleton<IValidateOptions<KnowledgeBaseOptions>, KnowledgeBaseOptionsValidator>();
+        services.AddSingleton<IValidateOptions<RagOptions>, RagOptionsValidator>();
+
         services.AddOptions<ApplicationOptions>()
             .Bind(configuration.GetSection(ApplicationOptions.SectionName))
             .ValidateOnStart();
@@ -94,6 +102,15 @@ public static class ConfigurationExtensions
             .ValidateOnStart();
         services.AddOptions<PrivacyOptions>()
             .Bind(configuration.GetSection(PrivacyOptions.SectionName))
+            .ValidateOnStart();
+        services.AddOptions<EmbeddingOptions>()
+            .Bind(configuration.GetSection(EmbeddingOptions.SectionName))
+            .ValidateOnStart();
+        services.AddOptions<KnowledgeBaseOptions>()
+            .Bind(configuration.GetSection(KnowledgeBaseOptions.SectionName))
+            .ValidateOnStart();
+        services.AddOptions<RagOptions>()
+            .Bind(configuration.GetSection(RagOptions.SectionName))
             .ValidateOnStart();
         services.AddOptions<VoiceOptions>()
             .Bind(configuration.GetSection(VoiceOptions.SectionName))

@@ -40,6 +40,7 @@ internal static class IntentRuleSet
         WebSearchRules(),
         FileSearchRules(),
         .. DocumentRules(),
+        .. KnowledgeRules(),
         .. ApplicationRules(),
         AiQuestionRules()
     ];
@@ -71,6 +72,36 @@ internal static class IntentRuleSet
                 @"^what does (?:the )?document (?:at |from )?(?<file>.+?) say about (?<query>.+)$",
                 @"^(?:look|find) (?:in|inside) (?:the )?document (?:at |from )?(?<file>.+?) (?<query>.+)$"
             ])
+    ];
+
+    /// <summary>
+    /// Questions answered from the person's own documents.
+    /// <para>
+    /// Placed before the general AI rules, which is the only thing that makes this work: "what
+    /// does my contract say about notice" matches the broad "what ... is" pattern underneath, and
+    /// whichever rule comes first is the one that is heard. Someone who says "my documents" has
+    /// asked where something is written down, and answering that from a model's memory rather than
+    /// from the document in front of them would be the worse answer in every case.
+    /// </para>
+    /// <para>
+    /// Every pattern requires the words that name the source. Nothing here fires on a bare
+    /// "search", because whether that means the web, the disk, or the index is a distinction a
+    /// person makes with their voice, and guessing it would search somewhere they did not ask
+    /// for.
+    /// </para>
+    /// </summary>
+    private static IReadOnlyList<IntentRule> KnowledgeRules() =>
+    [
+        new IntentRule(
+            AssistantIntent.KnowledgeQuestion,
+            [
+                @"^what (?:does|do) (?:my|the) (?<source>documents?|knowledge base|notes|files?) (?<query>.+)$",
+                @"^what (?:does|do) (?:my|the) (?<source>documents?|knowledge base|notes|files?) say about (?<query>.+)$",
+                @"^(?:ask|search|look) (?:in|through|my) (?<source>documents?|knowledge base|notes) (?:for|about|regarding) (?<query>.+)$",
+                @"^(?:find|look (?:up|for)) (?:in|from) (?:my|the) (?<source>documents?|knowledge base|notes) (?<query>.+)$",
+                @"^check (?:my|the) (?<source>documents?|knowledge base|notes) (?:for|about) (?<query>.+)$"
+            ],
+            confidence: 0.85)
     ];
 
     private static IReadOnlyList<IntentRule> AssistantControlRules() =>

@@ -26,6 +26,36 @@ public sealed class PrivacyOptions
     /// </summary>
     public bool AllowDocumentCloudProcessing { get; init; }
 
+    /// <summary>
+    /// Gets a value indicating whether documents may be indexed into a local knowledge base so
+    /// questions can be answered across all of them. On by default: reading, splitting, and
+    /// storing text on this machine sends nothing anywhere.
+    /// </summary>
+    public bool AllowKnowledgeBase { get; init; } = true;
+
+    /// <summary>
+    /// Gets a value indicating whether document text may be sent to a cloud service to be turned
+    /// into an embedding.
+    /// <para>
+    /// Off by default, and deliberately not implied by either other cloud permission. This is the
+    /// step that posts every passage of every indexed document to a third party as a vector: a
+    /// step somebody consenting to cloud chat, or to sending a document to be analyzed, has not
+    /// agreed to. A vector is a lossy summary of the text behind it, and a party holding a few
+    /// hundred of somebody's knows a great deal about their documents.
+    /// </para>
+    /// </summary>
+    public bool AllowCloudEmbedding { get; init; }
+
+    /// <summary>
+    /// Gets a value indicating whether text retrieved from the knowledge base may be sent to a
+    /// cloud AI provider to be answered.
+    /// <para>
+    /// Off by default, and required even when the embeddings were made on this machine, because
+    /// this is the step that reaches the model rather than the step that indexed the document.
+    /// </para>
+    /// </summary>
+    public bool AllowCloudKnowledgeProcessing { get; init; }
+
     public bool AllowTelemetry { get; init; }
 
     public bool AllowClipboardProcessing { get; init; }

@@ -5,7 +5,9 @@ using Microsoft.Extensions.Options;
 using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Core.Abstractions.Clipboard;
 using WindowsAIAssistant.Core.Abstractions.Documents;
+using WindowsAIAssistant.Core.Abstractions.Embeddings;
 using WindowsAIAssistant.Core.Abstractions.Files;
+using WindowsAIAssistant.Core.Abstractions.Knowledge;
 using WindowsAIAssistant.Core.Abstractions.Security;
 using WindowsAIAssistant.Core.Abstractions.Storage;
 using WindowsAIAssistant.Core.Abstractions.System;
@@ -23,6 +25,8 @@ using WindowsAIAssistant.Infrastructure.Documents.Pdf;
 using WindowsAIAssistant.Infrastructure.Documents.PowerPoint;
 using WindowsAIAssistant.Infrastructure.Documents.Text;
 using WindowsAIAssistant.Infrastructure.Documents.Word;
+using WindowsAIAssistant.Infrastructure.Embeddings;
+using WindowsAIAssistant.Infrastructure.Knowledge;
 using WindowsAIAssistant.Infrastructure.Voice;
 using WindowsAIAssistant.Infrastructure.Web;
 using WindowsAIAssistant.Infrastructure.Windows;
@@ -52,6 +56,8 @@ public static class DependencyInjection
         services.AddVoiceServices();
         services.AddAIServices();
         services.AddDocumentServices(configuration);
+        services.AddEmbeddingServices();
+        services.AddKnowledgeServices();
 
         // File search and settings storage are still the development implementations. The voice
         // layer calls them through the same abstractions, so swapping in the real services later
@@ -139,6 +145,60 @@ public static class DependencyInjection
         // very next request.
         services.AddSingleton<IAIRequestDefaults, ConfiguredAIRequestDefaults>();
         services.AddSingleton<IAISystemPromptProvider, ConfiguredSystemPromptProvider>();
+    }
+
+    /// <summary>
+    /// Registers the embedding providers and the one path that reaches them.
+    /// <para>
+    /// Every provider is registered as <see cref="IEmbeddingProvider"/> and the factory picks one
+    /// by name, so a provider added later is one line. The service that owns batching,
+    /// truncation, and the consent check is registered here rather than by the Application layer
+    /// because it is this project's job: it holds the option values and the providers.
+    /// </para>
+    /// </summary>
+    private static void AddEmbeddingServices(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddSingleton<IEmbeddingProvider, MockEmbeddingProvider>();
+        services.AddSingleton<IEmbeddingProvider, OpenAIEmbeddingProvider>();
+        services.AddSingleton<IEmbeddingProviderFactory, EmbeddingProviderFactory>();
+        services.AddSingleton<IEmbeddingService, EmbeddingService>();
+
+        return;
+    }
+
+    /// <summary>
+    /// Registers the knowledge index.
+    /// <para>
+    /// The database is a singleton because it owns one file and one schema version, and every
+    /// repository reaching it must agree about where that file is. The repositories are
+    /// singletons too: each opens a connection per call and holds nothing between calls, so there
+    /// is no state to isolate and nothing to lose by sharing one instance.
+    /// </para>
+    /// <para>
+    /// The vector serializer is a singleton for the same reason, and the search service is a
+    /// singleton because it holds the options it reads per question rather than per scan.
+    /// </para>
+    /// <para>
+    /// The retrieval and indexing limits the Application layer works to are mapped from
+    /// configuration by the composition root rather than here, because this project sits below
+    /// Application and cannot see those records. See <c>AddKnowledgeConfiguration</c>.
+    /// </para>
+    /// </summary>
+    private static void AddKnowledgeServices(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddSingleton<KnowledgeDatabase>();
+        services.AddSingleton<IVectorSerializer, Float32VectorSerializer>();
+
+        services.AddSingleton<IKnowledgeBaseRepository, SqliteKnowledgeBaseRepository>();
+        services.AddSingleton<IKnowledgeDocumentRepository, SqliteKnowledgeDocumentRepository>();
+        services.AddSingleton<IKnowledgeChunkRepository, SqliteKnowledgeChunkRepository>();
+        services.AddSingleton<IVectorSearchService, SqliteVectorSearchService>();
+
+        return;
     }
 
     /// <summary>

@@ -28,6 +28,7 @@ public static class NavigationRouteExtensions
         NavigationRoute.Home => "Home",
         NavigationRoute.Chat => "Chat",
         NavigationRoute.Files => "Files",
+        NavigationRoute.Knowledge => "Knowledge",
         NavigationRoute.Automations => "Automations",
         NavigationRoute.Settings => "Settings",
         _ => "Home"
@@ -83,6 +84,13 @@ public static class NavigationRouteExtensions
             case "routine":
             case "routines":
                 route = NavigationRoute.Automations;
+                return true;
+
+            case "knowledge":
+            case "knowledge base":
+            case "my documents":
+            case "indexed documents":
+                route = NavigationRoute.Knowledge;
                 return true;
 
             // "Assistant settings" and "app settings" are the ways a person distinguishes this

@@ -1,0 +1,242 @@
+<Page
+    x:Class="WindowsAIAssistant.App.Views.Pages.KnowledgePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:dto="using:WindowsAIAssistant.Application.DTOs">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
+        <StackPanel
+            Spacing="16"
+            Style="{StaticResource AppPagePadding}"
+            MaxWidth="1120"
+            HorizontalAlignment="Center">
+
+            <StackPanel Spacing="4">
+                <TextBlock Style="{StaticResource AppPageTitleTextBlockStyle}" Text="Knowledge" />
+                <TextBlock
+                    Style="{StaticResource AppSecondaryTextBlockStyle}"
+                    Text="{x:Bind ViewModel.HeaderSubtitle}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+
+            <Border Style="{StaticResource AppSurfaceCardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock
+                        Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                        Text="Ask your documents" />
+                    <TextBox
+                        MinHeight="44"
+                        AcceptsReturn="True"
+                        AutomationProperties.Name="Ask a question about your documents"
+                        HorizontalAlignment="Stretch"
+                        PlaceholderText="What does my contract say about notice?"
+                        Text="{x:Bind ViewModel.Question, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button
+                            AutomationProperties.Name="Ask your documents"
+                            Command="{x:Bind ViewModel.AskCommand}"
+                            Content="Ask" />
+                        <Button
+                            AutomationProperties.Name="Show the passages that match, without writing an answer"
+                            Command="{x:Bind ViewModel.SearchCommand}"
+                            Content="Show matching passages" />
+                        <Button
+                            AutomationProperties.Name="Cancel"
+                            Command="{x:Bind ViewModel.CancelCommand}"
+                            Content="Cancel" />
+                        <ProgressRing
+                            Width="18"
+                            Height="18"
+                            AutomationProperties.Name="Working"
+                            IsActive="{x:Bind ViewModel.IsBusy}"
+                            Visibility="{x:Bind ViewModel.IsBusy}" />
+                    </StackPanel>
+                    <TextBlock
+                        Style="{StaticResource AppCaptionTextBlockStyle}"
+                        Text="{x:Bind ViewModel.StatusText}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border
+                Style="{StaticResource AppSurfaceCardStyle}"
+                Visibility="{x:Bind ViewModel.HasError}">
+                <TextBlock
+                    Style="{StaticResource AppBodyTextBlockStyle}"
+                    Text="{x:Bind ViewModel.ErrorText}"
+                    TextWrapping="Wrap" />
+            </Border>
+
+            <Border
+                Style="{StaticResource AppSurfaceCardStyle}"
+                Visibility="{x:Bind ViewModel.HasAnswer}">
+                <StackPanel Spacing="8">
+                    <TextBlock
+                        Style="{StaticResource AppBodyTextBlockStyle}"
+                        Text="{x:Bind ViewModel.Answer}"
+                        TextWrapping="Wrap" />
+
+                    <TextBlock
+                        Style="{StaticResource AppCaptionTextBlockStyle}"
+                        Text="Matched by wording only, because embeddings were not available. Check the place before relying on it."
+                        TextWrapping="Wrap"
+                        Visibility="{x:Bind ViewModel.ShowsKeywordOnlyNotice}" />
+
+                    <TextBlock
+                        Style="{StaticResource AppCaptionTextBlockStyle}"
+                        Text="Some passages were left out to fit the answer, so this covers part of the base rather than all of it."
+                        TextWrapping="Wrap"
+                        Visibility="{x:Bind ViewModel.ShowsTruncationNotice}" />
+
+                    <TextBlock
+                        Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                        Text="From"
+                        Visibility="{x:Bind ViewModel.HasSources}" />
+
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.Sources}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="dto:KnowledgeSourceDto">
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="{x:Bind Citation}"
+                                    TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <Border
+                Style="{StaticResource AppSurfaceCardStyle}"
+                Visibility="{x:Bind ViewModel.HasMatches}">
+                <StackPanel Spacing="8">
+                    <TextBlock
+                        Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                        Text="Matching passages" />
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.Matches}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="dto:KnowledgeSearchResultDto">
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        Style="{StaticResource AppCaptionTextBlockStyle}"
+                                        Text="{x:Bind Citation}"
+                                        TextWrapping="Wrap" />
+                                    <TextBlock
+                                        Style="{StaticResource AppBodyTextBlockStyle}"
+                                        Text="{x:Bind Text}"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource AppSurfaceCardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock
+                        Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                        Text="Documents" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBox
+                            MinWidth="200"
+                            AutomationProperties.Name="Knowledge base name"
+                            PlaceholderText="Base name (empty creates the default)"
+                            Text="{x:Bind ViewModel.NewBaseName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button
+                            AutomationProperties.Name="Create a knowledge base with this name"
+                            Command="{x:Bind ViewModel.CreateBaseCommand}"
+                            Content="Create base" />
+                        <Button
+                            AutomationProperties.Name="Rename the selected knowledge base to this name"
+                            Command="{x:Bind ViewModel.RenameBaseCommand}"
+                            Content="Rename base" />
+                        <Button
+                            AutomationProperties.Name="Remove the selected knowledge base and its index, leaving the files alone"
+                            Command="{x:Bind ViewModel.DeleteBaseCommand}"
+                            Content="Remove base" />
+                    </StackPanel>
+
+                    <ComboBox
+                        MinWidth="240"
+                        HorizontalAlignment="Left"
+                        AutomationProperties.Name="Knowledge base"
+                        DisplayMemberPath="Name"
+                        ItemsSource="{x:Bind ViewModel.Bases}"
+                        SelectedItem="{x:Bind ViewModel.SelectedBase, Mode=TwoWay}" />
+
+                    <TextBlock
+                        Style="{StaticResource AppBodyTextBlockStyle}"
+                        Text="{x:Bind ViewModel.EmptyText}"
+                        TextWrapping="Wrap"
+                        Visibility="{x:Bind ViewModel.ShowsEmptyText}" />
+
+                    <ItemsControl ItemsSource="{x:Bind ViewModel.Documents}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="dto:KnowledgeDocumentDto">
+                                <StackPanel Spacing="2">
+                                    <TextBlock
+                                        Style="{StaticResource AppBodyTextBlockStyle}"
+                                        Text="{x:Bind FileName}" />
+                                    <TextBlock
+                                        Style="{StaticResource AppCaptionTextBlockStyle}"
+                                        Text="{x:Bind StatusMessage}"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <ComboBox
+                            MinWidth="240"
+                            HorizontalAlignment="Left"
+                            AutomationProperties.Name="Document"
+                            DisplayMemberPath="FileName"
+                            ItemsSource="{x:Bind ViewModel.Documents}"
+                            SelectedItem="{x:Bind ViewModel.SelectedDocument, Mode=TwoWay}" />
+                        <Button
+                            AutomationProperties.Name="Reindex the selected document from its file"
+                            Command="{x:Bind ViewModel.ReindexCommand}"
+                            Content="Reindex" />
+                        <Button
+                            AutomationProperties.Name="Remove the selected document from the base, leaving the file alone"
+                            Command="{x:Bind ViewModel.RemoveDocumentCommand}"
+                            Content="Remove from base" />
+                    </StackPanel>
+
+                    <TextBlock
+                        Style="{StaticResource AppCaptionTextBlockStyle}"
+                        Text="{x:Bind ViewModel.SelectedDocumentStatusText}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource AppSurfaceCardStyle}">
+                <StackPanel Spacing="12">
+                    <TextBlock
+                        Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                        Text="Add documents" />
+                    <TextBox
+                        MinHeight="40"
+                        AutomationProperties.Name="Files to index, separated by semicolons"
+                        HorizontalAlignment="Stretch"
+                        PlaceholderText="Full path to a .pdf, .docx, .pptx, .xlsx, or text file; separate several with ;"
+                        Text="{x:Bind ViewModel.FilesToIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button
+                            AutomationProperties.Name="Index these files into the selected base"
+                            Command="{x:Bind ViewModel.AddDocumentsCommand}"
+                            Content="Index files" />
+                    </StackPanel>
+                    <TextBlock
+                        Style="{StaticResource AppCaptionTextBlockStyle}"
+                        Text="Indexing a file reads it and stores passages on this machine. It never moves or changes the file, and nothing is sent to a provider unless you have allowed that in settings."
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

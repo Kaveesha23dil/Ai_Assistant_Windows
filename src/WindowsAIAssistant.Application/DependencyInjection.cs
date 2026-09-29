@@ -12,6 +12,11 @@ using WindowsAIAssistant.Application.Documents.Queries.AskDocumentQuestion;
 using WindowsAIAssistant.Application.Documents.Queries.StreamDocumentAnswer;
 using WindowsAIAssistant.Application.Documents.Queries.SummarizeDocument;
 using WindowsAIAssistant.Application.Files.Queries.SearchFiles;
+using WindowsAIAssistant.Application.Knowledge;
+using WindowsAIAssistant.Application.Knowledge.Commands.ManageKnowledgeBase;
+using WindowsAIAssistant.Application.Knowledge.Commands.ManageKnowledgeDocuments;
+using WindowsAIAssistant.Application.Knowledge.Queries.AskKnowledgeQuestion;
+using WindowsAIAssistant.Application.Knowledge.Queries.GetKnowledgeOverview;
 using WindowsAIAssistant.Application.Navigation;
 using WindowsAIAssistant.Application.Settings.Commands.SaveUserSettings;
 using WindowsAIAssistant.Application.Settings.Commands.UpdateSetting;
@@ -23,6 +28,7 @@ using WindowsAIAssistant.Application.Voice.Commands.AssistantControl;
 using WindowsAIAssistant.Application.Voice.Commands.Clipboard;
 using WindowsAIAssistant.Application.Voice.Commands.Document;
 using WindowsAIAssistant.Application.Voice.Commands.FileSearch;
+using WindowsAIAssistant.Application.Voice.Commands.Knowledge;
 using WindowsAIAssistant.Application.Voice.Commands.Navigation;
 using WindowsAIAssistant.Application.Voice.Commands.OpenApplication;
 using WindowsAIAssistant.Application.Voice.Commands.OpenFolder;
@@ -34,6 +40,7 @@ using WindowsAIAssistant.Application.Voice;
 using WindowsAIAssistant.Application.Voice.Services;
 using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Core.Abstractions.Documents;
+using WindowsAIAssistant.Core.Abstractions.Knowledge;
 using WindowsAIAssistant.Core.Abstractions.Navigation;
 using WindowsAIAssistant.Core.Abstractions.Voice;
 
@@ -63,7 +70,48 @@ public static class DependencyInjection
 
         services.AddDocuments();
 
+        services.AddKnowledge();
+
         services.AddVoiceAssistant();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the knowledge features.
+    /// <para>
+    /// The two records are registered here with their own defaults so that the layer stays
+    /// constructible without a host, exactly as the document limits and the voice policy are.
+    /// A composition root that has Infrastructure in front of it maps its bound configuration over
+    /// them afterwards, and its registrations win because it comes second — the same precedence
+    /// the configured AI request defaults rely on.
+    /// </para>
+    /// <para>
+    /// The ranker and the retriever are singletons because they hold nothing between questions,
+    /// and the context builder is stateless. The indexing service is a singleton too, but for a
+    /// different reason: it owns the in-flight set that stops the same file being indexed twice at
+    /// once, and that set is only useful if every caller shares one of them.
+    /// </para>
+    /// </summary>
+    public static IServiceCollection AddKnowledge(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.TryAddSingleton(new KnowledgeProcessingLimits());
+        services.TryAddSingleton(new RagRetrievalPolicy());
+        services.TryAddSingleton<IHybridSearchRanker, HybridSearchRanker>();
+        services.TryAddSingleton<IRagRetriever, RagRetriever>();
+        services.TryAddSingleton<IRagContextBuilder, RagContextBuilder>();
+        services.TryAddSingleton<IRagService, RagService>();
+        services.TryAddSingleton<IKnowledgeIndexingService, KnowledgeIndexingService>();
+
+        // Transient, like every other handler here: they hold no state between requests, and
+        // making them singletons would put a half-read list of documents into a shared object
+        // that the voice path and the page are both looking at.
+        services.AddTransient<GetKnowledgeOverviewHandler>();
+        services.AddTransient<ManageKnowledgeBaseHandler>();
+        services.AddTransient<ManageKnowledgeDocumentsHandler>();
+        services.AddTransient<AskKnowledgeQuestionHandler>();
 
         return services;
     }
@@ -169,6 +217,12 @@ public static class DependencyInjection
         services.AddTransient<IAssistantActionExecutor, WebSearchVoiceHandler>();
         services.AddTransient<IAssistantActionExecutor, FileSearchVoiceHandler>();
         services.AddTransient<IAssistantActionExecutor, DocumentVoiceHandler>();
+
+        // Before the AI question handler on purpose. The registry resolves by intent, so order
+        // here does not decide which one runs, but the two are registered adjacently because
+        // they are the two answers a question can get, and reading them together is how a change
+        // to one is checked against the other.
+        services.AddTransient<IAssistantActionExecutor, KnowledgeVoiceHandler>();
         services.AddTransient<IAssistantActionExecutor, SystemInformationVoiceHandler>();
         services.AddTransient<IAssistantActionExecutor, BatteryVoiceHandler>();
         services.AddTransient<IAssistantActionExecutor, TimeAndDateVoiceHandler>();

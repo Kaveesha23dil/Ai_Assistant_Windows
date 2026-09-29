@@ -57,6 +57,38 @@ public static class ErrorCodes
     public const string DocumentOcrRequired = "DOCUMENT_OCR_REQUIRED";
     public const string DocumentAiPermissionDenied = "DOCUMENT_AI_PERMISSION_DENIED";
     public const string DocumentAnalysisFailed = "DOCUMENT_ANALYSIS_FAILED";
+
+    // Knowledge base. These are the situations a person can do something about, kept apart
+    // rather than merged into one failure, because the action differs for each: reindex, turn on
+    // a permission, add a document, or change the embedding model.
+    public const string KnowledgeOperationFailed = "KNOWLEDGE_OPERATION_FAILED";
+public const string KnowledgeBaseNotFound = "KNOWLEDGE_BASE_NOT_FOUND";
+public const string KnowledgeBaseEmpty = "KNOWLEDGE_BASE_EMPTY";
+/// <summary>The name is already taken by another base, so the base was not created or renamed.</summary>
+public const string KnowledgeBaseNameTaken = "KNOWLEDGE_BASE_NAME_TAKEN";
+    public const string KnowledgeBaseFull = "KNOWLEDGE_BASE_FULL";
+    public const string KnowledgeDocumentAlreadyIndexed = "KNOWLEDGE_DOCUMENT_ALREADY_INDEXED";
+    public const string KnowledgeDocumentNotFound = "KNOWLEDGE_DOCUMENT_NOT_FOUND";
+    public const string KnowledgeDocumentIndexing = "KNOWLEDGE_DOCUMENT_INDEXING";
+    public const string KnowledgeDocumentOutdated = "KNOWLEDGE_DOCUMENT_OUTDATED";
+    public const string KnowledgeDocumentReindexRequired = "KNOWLEDGE_DOCUMENT_REINDEX_REQUIRED";
+    public const string KnowledgeSourceNotFound = "KNOWLEDGE_SOURCE_NOT_FOUND";
+    public const string KnowledgeEmbeddingPermissionDenied = "KNOWLEDGE_EMBEDDING_PERMISSION_DENIED";
+    public const string KnowledgeAiPermissionDenied = "KNOWLEDGE_AI_PERMISSION_DENIED";
+    public const string KnowledgeEmbeddingFailed = "KNOWLEDGE_EMBEDDING_FAILED";
+    public const string KnowledgeEmbeddingUnavailable = "KNOWLEDGE_EMBEDDING_UNAVAILABLE";
+    public const string KnowledgeEmbeddingSpaceMismatch = "KNOWLEDGE_EMBEDDING_SPACE_MISMATCH";
+    public const string KnowledgeEmbeddingInvalid = "KNOWLEDGE_EMBEDDING_INVALID";
+    public const string KnowledgeContextEmpty = "KNOWLEDGE_CONTEXT_EMPTY";
+    public const string KnowledgeAnswerFailed = "KNOWLEDGE_ANSWER_FAILED";
+    public const string KnowledgeTooManyChunks = "KNOWLEDGE_TOO_MANY_CHUNKS";
+    public const string KnowledgeStorageUnavailable = "KNOWLEDGE_STORAGE_UNAVAILABLE";
+
+    /// <summary>
+    /// A stored vector could not be read: it is truncated, or it is not in the format this build
+    /// writes. The document needs reindexing.
+    /// </summary>
+    public const string KnowledgeVectorCorrupted = "KNOWLEDGE_VECTOR_CORRUPTED";
     public const string ConfigurationInvalid = "CONFIGURATION_INVALID";
     public const string ConversationNotFound = "CONVERSATION_NOT_FOUND";
     public const string NotFound = "NOT_FOUND";

@@ -7,6 +7,7 @@ using WindowsAIAssistant.App.Views;
 using WindowsAIAssistant.App.Views.Pages;
 using WindowsAIAssistant.Application.Voice;
 using WindowsAIAssistant.Application.Documents;
+using WindowsAIAssistant.Application.Knowledge;
 using WindowsAIAssistant.Core.Abstractions.Navigation;
 using WindowsAIAssistant.Infrastructure.Configuration.Options;
 
@@ -32,6 +33,7 @@ public static class DependencyInjection
         services.AddTransient<ChatViewModel>();
         services.AddTransient<FilesViewModel>();
         services.AddTransient<DocumentViewModel>();
+        services.AddTransient<KnowledgeViewModel>();
         services.AddTransient<AutomationsViewModel>();
         services.AddTransient<SettingsViewModel>();
 
@@ -39,6 +41,7 @@ public static class DependencyInjection
         services.AddTransient<ChatPage>();
         services.AddTransient<FilesPage>();
         services.AddTransient<DocumentPage>();
+        services.AddTransient<KnowledgePage>();
         services.AddTransient<AutomationsPage>();
         services.AddTransient<SettingsPage>();
 
@@ -139,6 +142,75 @@ public static class DependencyInjection
 
         services.AddSingleton(provider =>
             CreateDocumentLimits(provider.GetRequiredService<IOptions<DocumentOptions>>().Value));
+
+        return services;
+    }
+
+    /// <summary>
+    /// Maps the bound knowledge configuration onto the Application layer's own values, for the
+    /// same reason as the document limits above: this is the only place that sees both the
+    /// options type and the record the application works to, and the Application project cannot
+    /// reference Infrastructure to build one from the other.
+    /// </summary>
+    public static KnowledgeProcessingLimits CreateKnowledgeLimits(KnowledgeBaseOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        return new KnowledgeProcessingLimits
+        {
+            Enabled = options.Enabled,
+            DatabaseFileName = options.DatabaseFileName,
+            MaximumDocuments = options.MaximumDocuments,
+            MaximumChunksPerDocument = options.MaximumChunksPerDocument,
+            DefaultRetrievalCount = options.DefaultRetrievalCount,
+            MaximumRetrievalCount = options.MaximumRetrievalCount,
+            MaximumScannedChunks = options.MaximumScannedChunks,
+        };
+    }
+
+    /// <summary>
+    /// Maps the bound retrieval configuration onto the Application layer's ranking policy.
+    /// <para>
+    /// The candidate multiplier is not configuration. It is a property of the ranking — how far
+    /// ahead of the quota the store is asked to look, so the threshold and the redundancy pass
+    /// have something to remove — and a person with a reason to disagree would be disagreeing
+    /// about their own relevance judgement rather than about their hardware. The default is kept.
+    /// </para>
+    /// </summary>
+    public static RagRetrievalPolicy CreateRagPolicy(RagOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        return new RagRetrievalPolicy
+        {
+            Enabled = options.Enabled,
+            TopK = options.TopK,
+            MaximumContextCharacters = options.MaximumContextCharacters,
+            MinimumSimilarity = options.MinimumSimilarity,
+            UseHybridSearch = options.UseHybridSearch,
+            VectorWeight = options.VectorWeight,
+            LexicalWeight = options.LexicalWeight,
+            SectionTitleWeight = options.SectionTitleWeight,
+            FileNameWeight = options.FileNameWeight,
+            MaximumChunksPerDocument = options.MaximumChunksPerDocument,
+            MaximumRedundancyRatio = options.MaximumRedundancyRatio,
+        };
+    }
+
+    /// <summary>
+    /// Registers the knowledge and retrieval values from configuration, replacing the defaults
+    /// the Application layer registered. Read once, so a question being assembled keeps the
+    /// ranking it started with and a document being indexed keeps the limits it started with.
+    /// </summary>
+    public static IServiceCollection AddKnowledgeConfiguration(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddSingleton(provider =>
+            CreateKnowledgeLimits(provider.GetRequiredService<IOptions<KnowledgeBaseOptions>>().Value));
+
+        services.AddSingleton(provider =>
+            CreateRagPolicy(provider.GetRequiredService<IOptions<RagOptions>>().Value));
 
         return services;
     }
