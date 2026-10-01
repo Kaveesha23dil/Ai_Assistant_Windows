@@ -1,0 +1,257 @@
+<Page
+    x:Class="WindowsAIAssistant.App.Views.Pages.AgentWorkspacePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:agents="using:WindowsAIAssistant.Core.Models.Agents"
+    xmlns:vm="using:WindowsAIAssistant.App.ViewModels">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
+        <StackPanel
+                Padding="0,0,0,24"
+                Spacing="20"
+                Style="{StaticResource AppPagePadding}"
+                MaxWidth="1120"
+                HorizontalAlignment="Center">
+
+            <StackPanel Spacing="4">
+                <TextBlock
+                    Style="{StaticResource AppPageTitleTextBlockStyle}"
+                    Text="Agent workspace" />
+                <TextBlock
+                    Style="{StaticResource AppSecondaryTextBlockStyle}"
+                    Text="Ask for something and watch it planned, step by step. Anything that would change a file asks first." />
+                <TextBlock
+                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                    Text="{x:Bind ViewModel.AvailabilitySummary, Mode=OneWay}" />
+            </StackPanel>
+
+            <StackPanel Spacing="12">
+                <TextBlock
+                    Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                    Text="Try a demonstration" />
+                <TextBlock
+                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                    Text="Each one runs for real against this machine. None of them plays back a recorded answer." />
+                <ItemsControl ItemsSource="{x:Bind ViewModel.Demonstrations}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <ItemsWrapGrid Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AgentDemoViewModel">
+                            <Border
+                                Width="336"
+                                Margin="0,0,16,16"
+                                Padding="20"
+                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{StaticResource AppCardCornerRadius}"
+                                Opacity="{x:Bind CardOpacity}">
+                                <StackPanel Spacing="8">
+                                    <TextBlock
+                                        Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                        Text="{x:Bind Title}" />
+                                    <TextBlock
+                                        Style="{StaticResource AppCaptionTextBlockStyle}"
+                                        Text="{x:Bind Why}"
+                                        TextWrapping="Wrap" />
+                                    <TextBlock
+                                        Style="{StaticResource AppCaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                        Text="{x:Bind ExpectedTools}"
+                                        TextWrapping="Wrap" />
+                                    <TextBlock
+                                        Style="{StaticResource AppCaptionTextBlockStyle}"
+                                        Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                        Text="{x:Bind UnavailableReason}"
+                                        TextWrapping="Wrap"
+                                        Visibility="{x:Bind UnavailableReasonVisibility}" />
+                                    <Button
+                                        Margin="0,4,0,0"
+                                        HorizontalAlignment="Left"
+                                        AutomationProperties.Name="{x:Bind Title}"
+                                        Command="{x:Bind Run}"
+                                        Content="Run"
+                                        IsEnabled="{x:Bind IsAvailable}"
+                                        Style="{StaticResource AccentButtonStyle}" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+                <TextBlock
+                    Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                    Text="Ask for something" />
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                    <TextBox
+                        Grid.Column="0"
+                        AutomationProperties.Name="Your request"
+                        PlaceholderText="What is 17 times 23?"
+                        Text="{x:Bind ViewModel.Draft, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button
+                        Grid.Column="1"
+                        VerticalAlignment="Stretch"
+                        AutomationProperties.Name="Run"
+                        Command="{x:Bind ViewModel.RunCommand}"
+                        Content="Run"
+                        Style="{StaticResource AccentButtonStyle}" />
+                </Grid>
+                <TextBlock
+                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                    Text="{x:Bind ViewModel.StatusLine}" />
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+                <TextBlock
+                    Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                    Text="Plan" />
+                <TextBlock
+                    Style="{StaticResource AppSecondaryTextBlockStyle}"
+                    Text="{x:Bind ViewModel.PlanSummary}" />
+                <ItemsControl ItemsSource="{x:Bind ViewModel.Steps}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AgentStepViewModel">
+                            <Grid Padding="0,6" ColumnDefinitions="32,*,Auto" ColumnSpacing="12">
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="{x:Bind Order}" />
+                                <StackPanel Grid.Column="1" Spacing="2">
+                                    <TextBlock
+                                        Style="{StaticResource AppBodyTextBlockStyle}"
+                                        Text="{x:Bind ToolName}" />
+                                    <TextBlock
+                                        Style="{StaticResource AppCaptionTextBlockStyle}"
+                                        Text="{x:Bind Detail}"
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+                                <TextBlock
+                                    Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="{x:Bind Status}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- The approval sits inside the run rather than over it, so the step being asked
+                 about is still on screen while it is being answered. -->
+            <Border
+                Padding="20"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource AccentControlBorderBrush}"
+                BorderThickness="2"
+                CornerRadius="{StaticResource AppCardCornerRadius}"
+                Visibility="{x:Bind ViewModel.ApprovalVisibility, Mode=OneWay}">
+                <StackPanel Spacing="12">
+                    <TextBlock
+                        Style="{StaticResource AppCardTitleTextBlockStyle}"
+                        Text="{x:Bind ViewModel.PendingApproval.Action, Mode=OneWay}" />
+                    <TextBlock
+                        Style="{StaticResource AppSecondaryTextBlockStyle}"
+                        Text="{x:Bind ViewModel.PendingApproval.Description, Mode=OneWay}"
+                        TextWrapping="Wrap" />
+                    <TextBox
+                        AutomationProperties.Name="Change the details instead"
+                        PlaceholderText="Or change the details before it goes ahead"
+                        Text="{x:Bind ViewModel.Modification, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button
+                            AutomationProperties.Name="Approve"
+                            Command="{x:Bind ViewModel.ApproveCommand}"
+                            Content="Go ahead"
+                            Style="{StaticResource AccentButtonStyle}" />
+                        <Button
+                            AutomationProperties.Name="Refuse"
+                            Command="{x:Bind ViewModel.RejectCommand}"
+                            Content="No, don't" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <StackPanel Spacing="8">
+                <TextBlock
+                    Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                    Text="Answer" />
+                <Border
+                    Style="{StaticResource AppSurfaceCardStyle}"
+                    Visibility="{x:Bind ViewModel.ResponseVisibility, Mode=OneWay}">
+                    <TextBlock
+                        Padding="16"
+                        Style="{StaticResource AppSecondaryTextBlockStyle}"
+                        Text="{x:Bind ViewModel.Response}"
+                        TextWrapping="Wrap" />
+                </Border>
+                <Button
+                    HorizontalAlignment="Left"
+                    AutomationProperties.Name="Stop the run"
+                    Command="{x:Bind ViewModel.StopCommand}"
+                    Content="Stop" />
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+                <TextBlock
+                    Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                    Text="What this machine can do" />
+                <ItemsControl ItemsSource="{x:Bind ViewModel.Capabilities}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AgentCapabilityViewModel">
+                            <Grid Padding="0,6" ColumnDefinitions="24,240,*" ColumnSpacing="12">
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="{x:Bind Mark}" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    Style="{StaticResource AppBodyTextBlockStyle}"
+                                    Text="{x:Bind Title}" />
+                                <TextBlock
+                                    Grid.Column="2"
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="{x:Bind Description}"
+                                    TextWrapping="Wrap" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <StackPanel Spacing="8">
+                <TextBlock
+                    Style="{StaticResource AppMutedHeadingTextBlockStyle}"
+                    Text="Recent runs" />
+                <TextBlock
+                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                    Text="What ran, how long, and what came of it — not what it read." />
+                <ItemsControl ItemsSource="{x:Bind ViewModel.Timeline}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="agents:AgentActivity">
+                            <Grid Padding="0,6" ColumnDefinitions="80,*,140" ColumnSpacing="12">
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="{x:Bind StartedAt}" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    Style="{StaticResource AppBodyTextBlockStyle}"
+                                    Text="{x:Bind Goal}" />
+                                <TextBlock
+                                    Grid.Column="2"
+                                    HorizontalAlignment="Right"
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="{x:Bind Status}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using WindowsAIAssistant.Core.Enums;
 
@@ -143,8 +144,18 @@ public static class AgentMemoryRules
         "refresh token",
     ];
 
-    /// <summary>Reports whether a value may be remembered, and says why when it may not.</summary>
-    public static bool IsAllowed(string? value, out string? refusal)
+    /// <summary>
+    /// Reports whether a value may be remembered, and says why when it may not.
+    /// <para>
+    /// The attribute states the part of the contract callers rely on: a <see langword="false"/>
+    /// result always carries a reason to show somebody. Without it every caller has to either
+    /// invent a fallback message or pass a nullable string into a method that wants a real one,
+    /// and the version that survives is usually the one that invents a bland message like
+    /// "invalid value" — which tells a person who was about to be asked for a password that the
+    /// problem was their typing.
+    /// </para>
+    /// </summary>
+    public static bool IsAllowed(string? value, [NotNullWhen(false)] out string? refusal)
     {
         if (string.IsNullOrWhiteSpace(value))
         {

@@ -144,6 +144,17 @@ public sealed class PrivacyOptions
     public bool AllowWebSearch { get; init; } = true;
 
     /// <summary>
+    /// Gets a value indicating whether the assistant may create a new file on this computer.
+    /// <para>
+    /// On by default, and separate from <see cref="AllowFileIndexing"/>. Indexing reads a disk and
+    /// this adds to one, and a person who is content for their documents to be searched is not
+    /// thereby agreeing that files may be written. Nothing outside the user's own known folders
+    /// is written, and every write goes through an approval that names the file first.
+    /// </para>
+    /// </summary>
+    public bool AllowFileWrite { get; init; } = true;
+
+    /// <summary>
     /// Gets a value indicating whether voice command history is retained in memory.
     /// The retained entries hold the intent and outcome only, never the transcript.
     /// </summary>

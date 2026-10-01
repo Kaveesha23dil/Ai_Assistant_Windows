@@ -38,14 +38,12 @@ public sealed class AgentExecutor : IAgentExecutor
     private readonly IAgentApprovalGate _approvals;
     private readonly IPermissionService _permissions;
     private readonly ILogger<AgentExecutor> _logger;
-    private readonly TimeProvider _clock;
 
     public AgentExecutor(
         IToolRegistry tools,
         IAgentApprovalGate approvals,
         IPermissionService permissions,
-        ILogger<AgentExecutor> logger,
-        TimeProvider? clock = null)
+        ILogger<AgentExecutor> logger)
     {
         ArgumentNullException.ThrowIfNull(tools);
         ArgumentNullException.ThrowIfNull(approvals);
@@ -56,7 +54,6 @@ public sealed class AgentExecutor : IAgentExecutor
         _approvals = approvals;
         _permissions = permissions;
         _logger = logger;
-        _clock = clock ?? TimeProvider.System;
     }
 
     /// <summary>Raised as each step starts and finishes, for a timeline.</summary>
@@ -135,6 +132,11 @@ public sealed class AgentExecutor : IAgentExecutor
             conversationId: null);
 
         var steps = new List<AgentStep>(plan.Steps.Count);
+
+        // Announced before the first step rather than folded into it, so an interface can draw
+        // the whole plan and watch it run. Without this the first thing a person sees is step
+        // one, and the plan they approved a moment earlier is a thing they have to remember.
+        Raise(AgentProgress.PlanReady(plan.Id, plan, plan.Steps.Count));
 
         foreach (var step in plan.Steps)
         {
@@ -239,6 +241,16 @@ public sealed class AgentExecutor : IAgentExecutor
                 // The step is rewritten before it runs, so the tool receives the change as part
                 // of its parameters rather than as a note it would have to guess the meaning of.
                 pending = ApplyModification(pending, tool, decision.Modification);
+
+                // A modification the tool could not interpret must end the run, not be discarded.
+                // Continuing here would write a file with the name the person said no to, or
+                // leave the subject the person changed in place — while the timeline showed the
+                // run as proceeding. A person who corrected the agent and was then ignored has
+                // been given worse information than one who was refused.
+                if (pending.Status == AgentStepStatus.Failed)
+                {
+                    return pending;
+                }
             }
         }
 
@@ -247,7 +259,12 @@ public sealed class AgentExecutor : IAgentExecutor
             step.Description,
             plan.OriginalRequest,
             pending.Parameters,
-            plan.Source);
+            plan.Source)
+        {
+            // The one channel between steps. Gathered here and nowhere else, so a tool cannot read
+            // an earlier result by any other route, and a planner cannot put one there.
+            PriorContext = context.BuildContextText() is { Length: > 0 } prior ? prior : null,
+        };
 
         ToolResult result;
 

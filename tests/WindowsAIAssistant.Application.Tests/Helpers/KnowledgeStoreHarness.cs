@@ -114,7 +114,15 @@ internal sealed class KnowledgeStoreHarness : IDisposable
     public void Dispose()
     {
         _database.Dispose();
-        SqliteConnection.ClearAllPools();
+
+        // The database clears its own pool on the way out. This is a second, belt-and-braces
+        // clear for the harness alone, and it is scoped to this file for the same reason the
+        // production one is: a process-wide clear would take the pooled connections out from
+        // under the other knowledge tests running in parallel, which fails them at random.
+        using (var connection = new SqliteConnection($"Data Source={_path}"))
+        {
+            SqliteConnection.ClearPool(connection);
+        }
 
         try
         {

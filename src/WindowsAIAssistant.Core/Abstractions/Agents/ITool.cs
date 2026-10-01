@@ -6,13 +6,6 @@ namespace WindowsAIAssistant.Core.Abstractions.Agents;
 /// <summary>
 /// One capability the agent can reach on the user's behalf.
 /// <para>
-/// The defaults for <see cref="RequiredPermission"/>, <see cref="DescribeActions"/>, and
-/// <see cref="TryApplyModification"/> together describe a tool that only reads: no consent
-/// switch, no action to approve, and nothing to modify. That is right for most tools, and it is
-/// the safe direction to be wrong in — a tool that writes a file and forgets to say so is
-/// invisible to the gate, so anything that changes something has to opt in to being asked about.
-/// </para>
-/// <para>
 /// A tool is the whole of what the agent can actually do, and it is deliberately small: a name
 /// the planner may use, a sentence describing what it is for, and one method that runs it. A
 /// tool does not know about plans, steps, approval, or the other tools, and it cannot reach any
@@ -24,6 +17,16 @@ namespace WindowsAIAssistant.Core.Abstractions.Agents;
 /// than by throwing. It must not execute a command line, run code produced by a model, or reach
 /// a document, a screen, or a network without going through the service that owns that
 /// decision.
+/// </para>
+/// <para>
+/// <see cref="DescribeActions"/> has no default, and that is the most important thing on this
+/// interface. A default of "no actions" is the shape of a read-only tool, so it is the shape a
+/// tool that forgets to declare itself is given too — and a tool that writes a file without
+/// declaring an action is not refused at the gate, it is allowed through it, silently, on the
+/// strength of an omission. Making the member required turns that mistake into a compile error
+/// instead of a property of the design nobody is left to check. A read-only tool writes
+/// <c>DescribeActions</c> returning nothing, and that line is then a decision on the record
+/// rather than an absence of one.
 /// </para>
 /// </summary>
 public interface ITool
@@ -75,8 +78,13 @@ public interface ITool
     /// say what it will do: it is not given the chance to describe itself after the fact, and it
     /// cannot run and then report.
     /// </para>
+    /// <para>
+    /// No default implementation, deliberately — see the remarks on <see cref="ITool"/>. There is
+    /// no tool that only reads and is not allowed to say so, and no tool that changes something
+    /// and can avoid saying so either.
+    /// </para>
     /// </summary>
-    IReadOnlyList<AgentAction> DescribeActions(AgentStep step) => [];
+    IReadOnlyList<AgentAction> DescribeActions(AgentStep step);
 
     /// <summary>
     /// Folds a person's modification into a step, when the tool understands it.

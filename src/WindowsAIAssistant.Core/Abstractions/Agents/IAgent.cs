@@ -46,6 +46,12 @@ public interface IAgent
     /// <summary>
     /// Answers an approval the run is waiting on. The agent does not know what a person pressed;
     /// it is told, and the run continues or stops accordingly.
+    /// <para>
+    /// Returns whether the answer was taken, and it is worth having. An approval can be answered
+    /// twice — the prompt is still on screen when the run times out, and a late press lands after
+    /// the step has moved on — and a caller told only "done" would clear the prompt and leave a
+    /// person believing their answer counted when the run had already given up waiting.
+    /// </para>
     /// </summary>
-    Task RespondToApprovalAsync(AgentApprovalDecision decision);
+    Task<bool> RespondToApprovalAsync(AgentApprovalDecision decision);
 }

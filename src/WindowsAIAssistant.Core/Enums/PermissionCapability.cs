@@ -15,6 +15,19 @@ public enum PermissionCapability
     /// <summary>Search the local file system on the user's behalf.</summary>
     FileSearch,
 
+    /// <summary>
+    /// Write a new file to the local file system on the user's behalf.
+    /// <para>
+    /// Kept apart from <see cref="FileSearch"/> on purpose. Reading the disk and writing to it are
+    /// different decisions: a person who is happy for their documents to be searched is not
+    /// thereby agreeing that the assistant may add files to it, and a prompt whose switch says
+    /// "search" while the step writes a file is a prompt that does not describe what it is
+    /// approving. This one starts off, because a disk the assistant cannot write to is a disk
+    /// where a generated report has nowhere to go.
+    /// </para>
+    /// </summary>
+    FileWrite,
+
     /// <summary>Capture the screen to an image file.</summary>
     ScreenCapture,
 

@@ -64,6 +64,21 @@ public sealed record AgentRequestContext
     public static AgentRequestContext QuickAction(string request) =>
         new(request, AgentRequestSource.QuickAction);
 
+    /// <summary>
+    /// Creates a request from a named quick action, carrying the action's own prompt.
+    /// <para>
+    /// The action is not kept, only its prompt. An action is a thing the interface offers; what
+    /// reaches the planner is a request, and a planner that could see which button was pressed
+    /// would be able to branch on it, which is the first step towards a shortcut that is not the
+    /// same work.
+    /// </para>
+    /// </summary>
+    public static AgentRequestContext QuickAction(AgentQuickAction action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        return new AgentRequestContext(action.Prompt, AgentRequestSource.QuickAction);
+    }
+
     /// <summary>Returns this request attached to a conversation.</summary>
     public AgentRequestContext WithConversation(Guid conversationId) =>
         this with { ConversationId = conversationId };

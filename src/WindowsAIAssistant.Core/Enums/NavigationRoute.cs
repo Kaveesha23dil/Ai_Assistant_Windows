@@ -45,6 +45,19 @@ public enum NavigationRoute
     Automations,
 
     /// <summary>
+    /// The agent workspace: a typed request, the plan it produced, the tools as they run, the
+    /// approvals, and the capability list with the reason anything is switched off.
+    /// <para>
+    /// A destination of its own rather than part of <see cref="Chat"/>, because the two answer
+    /// different questions. Chat is a conversation with an answer at the end of it; the workspace
+    /// is about what the assistant did to get there — which tool it reached for, what it decided
+    /// was safe, and what it chose to remember. A showcase needs all three of those visible at
+    /// once, and hiding them behind a scroll in a chat log would defeat the point of showing them.
+    /// </para>
+    /// </summary>
+    Agent,
+
+    /// <summary>
     /// This application's own settings page. It is deliberately distinct from the Windows
     /// Settings application, which the assistant opens through a separate intent.
     /// </summary>

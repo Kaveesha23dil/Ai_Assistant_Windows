@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddTransient<DocumentViewModel>();
         services.AddTransient<KnowledgeViewModel>();
         services.AddTransient<AutomationsViewModel>();
+    services.AddSingleton<AgentWorkspaceViewModel>();
         services.AddTransient<SettingsViewModel>();
 
         services.AddTransient<HomePage>();
@@ -45,6 +46,7 @@ public static class DependencyInjection
         services.AddTransient<DocumentPage>();
         services.AddTransient<KnowledgePage>();
         services.AddTransient<AutomationsPage>();
+    services.AddTransient<AgentWorkspacePage>();
         services.AddTransient<SettingsPage>();
 
         return services;

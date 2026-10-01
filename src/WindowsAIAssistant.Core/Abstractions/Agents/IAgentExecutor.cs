@@ -45,6 +45,17 @@ public interface IAgentExecutor
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Raised as each step starts, is held at an approval, and finishes.
+    /// <para>
+    /// On the executor rather than only on the agent, so a caller that drives the executor
+    /// directly — a test, or a page that wants to show a plan it built itself — sees the same
+    /// stream a caller going through <see cref="IAgent"/> does. Two progress paths would be two
+    /// timelines, and one of them would be the one nobody tested.
+    /// </para>
+    /// </summary>
+    event EventHandler<AgentProgress>? ProgressChanged;
+
+    /// <summary>
     /// Raises the approval a step needs and waits for an answer.
     /// <para>
     /// A step that changes nothing never reaches this. A step that changes something always does,

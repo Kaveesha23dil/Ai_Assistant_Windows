@@ -27,7 +27,7 @@ public sealed record AgentExecutionResult
         AgentPlanStatus status,
         TimeSpan duration,
         IReadOnlyList<string> sources,
-        IReadOnlyDictionary<string, string> data)
+        IReadOnlyDictionary<string, string>? data)
     {
         RunId = runId;
         Plan = plan;
@@ -36,8 +36,16 @@ public sealed record AgentExecutionResult
         Status = status;
         Duration = duration;
         Sources = sources;
-        Data = data;
+        Data = data ?? EmptyData;
     }
+
+    /// <summary>
+    /// Stands in for an absent metadata map. Empty rather than <see langword="null"/> because
+    /// every reader of <see cref="Data"/> would otherwise have to handle a state that a caller
+    /// passing nothing already describes.
+    /// </summary>
+    private static IReadOnlyDictionary<string, string> EmptyData { get; } =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Gets the identifier of the run, shared with the plan and the activity record.</summary>
     public Guid RunId { get; }
@@ -96,7 +104,7 @@ public sealed record AgentExecutionResult
         string finalResponse,
         TimeSpan duration,
         IReadOnlyList<string> sources,
-        IReadOnlyDictionary<string, string> data) =>
+        IReadOnlyDictionary<string, string>? data = null) =>
         new(runId, plan, steps, finalResponse, AgentPlanStatus.Completed, duration, sources, data);
 
     /// <summary>Creates the result of a run that stopped early.</summary>
@@ -108,13 +116,13 @@ public sealed record AgentExecutionResult
         AgentPlanStatus status,
         TimeSpan duration,
         IReadOnlyList<string> sources,
-        IReadOnlyDictionary<string, string> data,
+        IReadOnlyDictionary<string, string>? data = null,
         string? errorCode = null) =>
         new(runId, plan, steps, finalResponse, status, duration, sources, data)
         {
             Data = errorCode is null
-                ? data
-                : new Dictionary<string, string>(data, StringComparer.OrdinalIgnoreCase)
+                ? (data ?? EmptyData)
+                : new Dictionary<string, string>(data ?? EmptyData, StringComparer.OrdinalIgnoreCase)
                 {
                     ["errorCode"] = errorCode,
                 },

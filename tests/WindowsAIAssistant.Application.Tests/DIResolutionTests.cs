@@ -16,6 +16,7 @@ using WindowsAIAssistant.Application.Settings.Queries.GetSetting;
 using WindowsAIAssistant.Application.System.Commands.LaunchApplication;
 using WindowsAIAssistant.Application.System.Queries.GetSystemInformation;
 using WindowsAIAssistant.Application.Voice.Services;
+using WindowsAIAssistant.Core.Abstractions.Agents;
 using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Core.Abstractions.Clipboard;
 using WindowsAIAssistant.Core.Abstractions.Documents;
@@ -250,5 +251,48 @@ public sealed class DIResolutionTests
         Assert.Same(provider.GetRequiredService<IAIService>(), provider.GetRequiredService<IAIService>());
         Assert.Same(provider.GetRequiredService<IClipboardService>(), provider.GetRequiredService<IClipboardService>());
         Assert.Same(provider.GetRequiredService<ISettingsStorage>(), provider.GetRequiredService<ISettingsStorage>());
+    }
+
+    [Fact]
+    public void AddApplicationAndInfrastructure_ResolvesTheAgentGraph()
+    {
+        var configuration = new ConfigurationManager();
+        var services = new ServiceCollection();
+        services.AddApplication();
+        services.AddInfrastructure(configuration, AbsentSettingsFile.FilePath);
+
+        using var provider = services.BuildServiceProvider();
+
+        // Resolved rather than merely registered: the point of this case is that a tool's
+        // dependencies are all in the container, which a registration test cannot show.
+        Assert.NotNull(provider.GetRequiredService<IAgent>());
+        Assert.NotNull(provider.GetRequiredService<IAgentPlanner>());
+        Assert.NotNull(provider.GetRequiredService<IAgentExecutor>());
+        Assert.NotNull(provider.GetRequiredService<IAgentApprovalGate>());
+        Assert.NotNull(provider.GetRequiredService<IAgentCapabilityReporter>());
+        Assert.NotNull(provider.GetRequiredService<IAgentMemoryService>());
+        Assert.NotNull(provider.GetRequiredService<IAgentActivityStore>());
+        Assert.NotNull(provider.GetRequiredService<IAgentMemoryStore>());
+
+        // Every tool the demonstrations promise has to be registered, or a showcase card
+        // describes a capability this machine does not have.
+        Assert.Equal(8, provider.GetRequiredService<IToolRegistry>().Tools.Count);
+    }
+
+    [Fact]
+    public void AddApplicationAndInfrastructure_GivesTheAgentOneRegistry()
+    {
+        var configuration = new ConfigurationManager();
+        var services = new ServiceCollection();
+        services.AddApplication();
+        services.AddInfrastructure(configuration, AbsentSettingsFile.FilePath);
+
+        using var provider = services.BuildServiceProvider();
+
+        // A singleton: the executor, the planner, and the capability reporter must all be
+        // judging availability against the same set of tools, or the workspace advertises
+        // something the run will refuse.
+        Assert.Same(provider.GetRequiredService<IToolRegistry>(), provider.GetRequiredService<IToolRegistry>());
+        Assert.Same(provider.GetRequiredService<IAgent>(), provider.GetRequiredService<IAgent>());
     }
 }

@@ -58,6 +58,41 @@ public sealed record ToolRequest
     public AgentRequestSource Source { get; }
 
     /// <summary>
+    /// Gets what earlier steps of the same run produced, gathered into one block of text; or
+    /// <see langword="null"/> when this is the first step.
+    /// <para>
+    /// This is the only channel between steps, and it is deliberately a field of its own rather
+    /// than an entry in <see cref="Parameters"/>. A planner cannot fill it — it has not run yet,
+    /// so there is nothing for it to fill it with — and only the executor sets it, from results
+    /// that already happened. Keeping it separate is what makes that true: a parameter named
+    /// "context" arriving from a model would be indistinguishable from one the executor gathered,
+    /// and the difference between those two decides what a person was about to send to a
+    /// provider.
+    /// </para>
+    /// <para>
+    /// The text is only ever what a step already returned, never the screen, never a document
+    /// on disk, and never the original request. A tool that wants to reason over this material
+    /// is reasoning over material the run has already decided to expose.
+    /// </para>
+    /// </summary>
+    public string? PriorContext { get; init; }
+
+    /// <summary>
+    /// Gets the material to reason over: what earlier steps produced if there is any, otherwise
+    /// a "context" or "content" parameter if one was supplied.
+    /// <para>
+    /// The parameter is the fallback and not the primary source. A planner can legitimately
+    /// hand over context it was given in the request, but it cannot be the route by which one
+    /// step sees another's output, because it never runs to find that out.
+    /// </para>
+    /// </summary>
+    public string? GetMaterial() =>
+        !string.IsNullOrWhiteSpace(PriorContext)
+            ? PriorContext
+            : GetParameter("context")
+              ?? GetParameter("content");
+
+    /// <summary>
     /// Reads a parameter, or returns <see langword="null"/> when it was not supplied. An empty
     /// string counts as absent: a planner that emitted <c>"query": ""</c> meant to supply
     /// nothing, and treating that as a value would send an empty search to a retriever.

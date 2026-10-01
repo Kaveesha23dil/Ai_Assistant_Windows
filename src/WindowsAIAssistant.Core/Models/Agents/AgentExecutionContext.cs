@@ -143,17 +143,34 @@ public sealed record AgentExecutionContext
     /// found. Kept in Core so the report and summary tools present their material identically,
     /// and so the privacy rule — never the screen, never a document, only what a step produced —
     /// is written down once.
+    /// <para>
+    /// Each block is prefixed with the tool that produced it when more than one tool contributed,
+    /// so a model can attribute an answer to where it came from. With a single contributor the
+    /// prefix is left off, because a tool that writes its material to a file would otherwise
+    /// write the agent's own bookkeeping into the document.
+    /// </para>
     /// </summary>
     public string BuildContextText(int maximumCharacters = 8000)
     {
+        var contributing = _results.Values
+            .OrderBy(ReadOrder)
+            .Where(result => result.HasContent)
+            .ToArray();
+
+        // With one contributor there is nothing to attribute, so the text is passed on as it
+        // came. That matters for the tools that write what they are given to a file: a report
+        // built from one search would otherwise open with a line reading "[KnowledgeSearchTool]"
+        // that belongs to the agent's own plumbing rather than to anything the reader asked for.
+        var label = contributing.Length > 1;
+
         var builder = new StringBuilder();
         var used = 0;
 
-        foreach (var result in _results.Values.OrderBy(ReadOrder))
+        foreach (var result in contributing)
         {
-            if (!result.HasContent || used >= maximumCharacters)
+            if (used >= maximumCharacters)
             {
-                continue;
+                break;
             }
 
             var room = maximumCharacters - used;
@@ -161,7 +178,11 @@ public sealed record AgentExecutionContext
                 ? result.Content[..room]
                 : result.Content;
 
-            builder.AppendLine($"[{result.ToolName}]");
+            if (label)
+            {
+                builder.AppendLine($"[{result.ToolName}]");
+            }
+
             builder.AppendLine(text);
             builder.AppendLine();
             used += text.Length;

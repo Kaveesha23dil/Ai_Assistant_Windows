@@ -45,6 +45,13 @@ public sealed class PermissionService : IPermissionService
 
             PermissionCapability.Clipboard => options.AllowClipboardProcessing,
             PermissionCapability.FileSearch => options.AllowFileIndexing,
+
+            // Writing is its own switch rather than a consequence of indexing. A person who is
+            // happy for the disk to be read is not thereby happy for it to be written to, and the
+            // approval prompt that asks before saving a report has to be backed by a setting that
+            // means the same thing.
+            PermissionCapability.FileWrite => options.AllowFileWrite,
+
             PermissionCapability.ScreenCapture => options.AllowScreenCapture,
 
             // Analyzing a capture sends screen content off the machine, so it is a separate
@@ -112,6 +119,9 @@ public sealed class PermissionService : IPermissionService
 
         PermissionCapability.FileSearch =>
             "File search is disabled in Privacy settings.",
+
+        PermissionCapability.FileWrite =>
+            "Writing files is disabled in Privacy settings.",
 
         PermissionCapability.ScreenCapture =>
             "Screen capture is disabled in Privacy settings.",

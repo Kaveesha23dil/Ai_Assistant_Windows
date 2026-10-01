@@ -222,6 +222,17 @@ public static class ErrorCodes
     /// <summary>The agent was stopped part-way through.</summary>
     public const string AgentCancelled = "AGENT_CANCELLED";
 
+    /// <summary>
+    /// A run was asked for while another was already in progress.
+    /// <para>
+    /// A refusal rather than a queue, because a run holds a lock rather than a place in a line.
+    /// Two runs at once would interleave their tool calls, their progress, and their approvals
+    /// into something neither caller could describe — and a caller that queued silently would
+    /// have no way to say "that will take a moment" instead, which is the more useful answer.
+    /// </para>
+    /// </summary>
+    public const string AgentBusy = "AGENT_BUSY";
+
     /// <summary>The memory store could not be read or written.</summary>
     public const string AgentMemoryUnavailable = "AGENT_MEMORY_UNAVAILABLE";
 

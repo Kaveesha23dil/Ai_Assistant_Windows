@@ -67,7 +67,7 @@ public sealed record AgentStep
     public string ToolName { get; init; }
 
     /// <summary>Gets what the step is for, phrased for a person reading the timeline.</summary>
-    public string Description { get; }
+    public string Description { get; init; }
 
     /// <summary>
     /// Gets why the planner chose this step. Kept because "search the knowledge base, then
@@ -77,7 +77,7 @@ public sealed record AgentStep
     public string? Reason { get; }
 
     /// <summary>Gets the named values handed to the tool.</summary>
-    public IReadOnlyDictionary<string, string> Parameters { get; }
+    public IReadOnlyDictionary<string, string> Parameters { get; init; }
 
     /// <summary>Gets what has happened to this step so far.</summary>
     public AgentStepStatus Status { get; init; } = AgentStepStatus.Pending;

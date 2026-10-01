@@ -4,6 +4,8 @@ using Microsoft.Extensions.Logging;
 using WindowsAIAssistant.Application.AI.Commands.SendMessage;
 using WindowsAIAssistant.Application.AI.Queries.GetConversation;
 using WindowsAIAssistant.Application.AI.Services;
+using WindowsAIAssistant.Application.Agents;
+using WindowsAIAssistant.Application.Agents.Tools;
 using WindowsAIAssistant.Application.Clipboard.Commands.SetClipboardText;
 using WindowsAIAssistant.Application.Clipboard.Queries.GetClipboardText;
 using WindowsAIAssistant.Application.Common.Errors;
@@ -40,6 +42,7 @@ using WindowsAIAssistant.Application.Voice.Commands.WebSearch;
 using WindowsAIAssistant.Application.Voice;
 using WindowsAIAssistant.Application.Voice.Services;
 using WindowsAIAssistant.Application.Vision;
+using WindowsAIAssistant.Core.Abstractions.Agents;
 using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Core.Abstractions.Documents;
 using WindowsAIAssistant.Core.Abstractions.Knowledge;
@@ -78,6 +81,68 @@ public static class DependencyInjection
         services.AddVision();
 
         services.AddVoiceAssistant();
+
+        services.AddAgents();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the agent: its tools, its planner, its executor, and the services around it.
+    /// <para>
+    /// The tools are registered here rather than in Infrastructure because each one is a thin
+    /// adapter over a service this layer already owns — the retriever, the document reader, the
+    /// screen analyser. Putting them here keeps every tool next to the thing it wraps, and the
+    /// <c>IToolRegistry</c> that decides which of them may be called is registered in
+    /// Infrastructure, because that is the one component a model's output must never reach
+    /// without passing through.
+    /// </para>
+    /// <para>
+    /// The order of the tool registrations is the order the planner is shown them in, and it runs
+    /// from the tools that always work to the ones that need a switch turned on. A demonstration
+    /// is therefore most likely to work when a person tries the first card rather than the last.
+    /// </para>
+    /// <para>
+    /// The planner and the executor are singletons: the planner holds no per-request state, and
+    /// the executor holds only the approval gate, which must be shared with the interface that
+    /// displays the prompts. The service is a singleton because it owns the run lock, and two
+    /// instances would be two locks and two runs that could interleave.
+    /// </para>
+    /// </summary>
+    public static IServiceCollection AddAgents(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddTransient<ITool, CalculationTool>();
+        services.AddTransient<ITool, SystemInformationTool>();
+        services.AddTransient<ITool, FileSearchTool>();
+        services.AddTransient<ITool, KnowledgeSearchTool>();
+        services.AddTransient<ITool, AnswerCompositionTool>();
+        services.AddTransient<ITool, DocumentAnalysisTool>();
+        services.AddTransient<ITool, ScreenAnalysisTool>();
+        services.AddTransient<ITool, ReportGenerationTool>();
+
+        services.TryAddSingleton<IAgentMemoryStore, InMemoryAgentMemoryStore>();
+        services.TryAddSingleton<IAgentActivityStore, InMemoryAgentActivityStore>();
+
+        // Read by the presentation factory below, and replaced by a host that binds configuration.
+        services.TryAddSingleton<IAgentPresentationSettings, DefaultAgentPresentationSettings>();
+
+        // The presentation is a singleton because the workspace reads it from several places and
+        // it holds no per-request state. Built through the settings abstraction rather than from a
+        // configuration value directly, so this layer stays constructible with no host.
+        services.TryAddSingleton<IAgentPresentation>(provider =>
+            new AgentPresentation(provider.GetRequiredService<IAgentPresentationSettings>().Mode));
+
+        // The memory service enforces what may be remembered; the store has no opinion. Only the
+        // first is consulted on the way in, so a store that would happily hold a password still
+        // never gets offered one.
+        services.TryAddSingleton<IAgentMemoryService, AgentMemoryService>();
+        services.TryAddSingleton<IAgentApprovalGate, AgentApprovalGate>();
+        services.TryAddSingleton<IAgentCapabilityReporter, AgentCapabilityReporter>();
+        services.TryAddSingleton<IAgentPlanner, AgentPlanner>();
+        services.TryAddSingleton<IAgentExecutor, AgentExecutor>();
+        services.TryAddSingleton<IAgent, AgentService>();
 
         return services;
     }

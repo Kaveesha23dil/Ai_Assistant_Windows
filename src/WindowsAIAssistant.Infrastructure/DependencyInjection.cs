@@ -3,12 +3,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using WindowsAIAssistant.Core.Abstractions.Agents;
 using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Core.Abstractions.Clipboard;
 using WindowsAIAssistant.Core.Abstractions.Documents;
 using WindowsAIAssistant.Core.Abstractions.Embeddings;
 using WindowsAIAssistant.Core.Abstractions.Files;
 using WindowsAIAssistant.Core.Abstractions.Knowledge;
+using WindowsAIAssistant.Core.Abstractions.Reports;
 using WindowsAIAssistant.Core.Abstractions.Security;
 using WindowsAIAssistant.Core.Abstractions.Storage;
 using WindowsAIAssistant.Core.Abstractions.System;
@@ -16,7 +18,10 @@ using WindowsAIAssistant.Core.Abstractions.Time;
 using WindowsAIAssistant.Core.Abstractions.Vision;
 using WindowsAIAssistant.Core.Abstractions.Voice;
 using WindowsAIAssistant.Core.Abstractions.Web;
+using WindowsAIAssistant.Core.Enums;
 using WindowsAIAssistant.Infrastructure.AI;
+using WindowsAIAssistant.Infrastructure.Agents;
+using WindowsAIAssistant.Infrastructure.Agents.Configuration;
 using WindowsAIAssistant.Infrastructure.Configuration;
 using WindowsAIAssistant.Infrastructure.Configuration.Options;
 using WindowsAIAssistant.Infrastructure.Configuration.Validation;
@@ -29,6 +34,7 @@ using WindowsAIAssistant.Infrastructure.Documents.Text;
 using WindowsAIAssistant.Infrastructure.Documents.Word;
 using WindowsAIAssistant.Infrastructure.Embeddings;
 using WindowsAIAssistant.Infrastructure.Knowledge;
+using WindowsAIAssistant.Infrastructure.Reports;
 using WindowsAIAssistant.Infrastructure.Vision;
 using WindowsAIAssistant.Infrastructure.Vision.Capture;
 using WindowsAIAssistant.Infrastructure.Vision.Ocr;
@@ -67,6 +73,10 @@ public static class DependencyInjection
         services.AddEmbeddingServices();
         services.AddKnowledgeServices();
         services.AddVisionServices();
+
+        // After the Application layer's agent registrations, because the stores it registers as
+        // fallbacks are the ones this displaces.
+        services.AddAgentStore(configuration);
 
         // File search and settings storage are still the development implementations. The voice
         // layer calls them through the same abstractions, so swapping in the real services later
@@ -346,6 +356,82 @@ public static class DependencyInjection
         services.AddSingleton<IVisionProvider, OpenAIVisionProvider>();
         services.AddSingleton<IVisionProviderResolver, VisionProviderResolver>();
 
+        // The registry is the one component that stands between a plan and a tool call, so it is
+        // registered here rather than in the application layer: it takes the tool instances
+        // themselves, and it is the boundary a model's invented tool name cannot cross.
+        //
+        // TryAdd, so a host that has already chosen its own registry keeps it. A test that
+        // supplies a registry of two tools is exercising the executor's real behaviour, and
+        // would be quietly testing a different agent if the production registry were forced
+        // back over the top of it.
+        services.TryAddSingleton<IToolRegistry, ToolRegistry>();
+
+        // Report writers. One registration per format rather than a factory that switches, so
+        // that "which formats can this build write" is answered by the registrations themselves
+        // and the report tool never needs a branch. Two writers serve the text formats between
+        // them; the interface is per-format so the tool can hold a dictionary of them.
+        //
+        // All singleton: a writer holds no state between reports, and making them shared means
+        // the set of available formats is fixed once the container is built.
+        services.AddSingleton<IReportWriter>(provider =>
+            new TextReportWriter(ReportFormat.Markdown));
+        services.AddSingleton<IReportWriter>(provider =>
+            new TextReportWriter(ReportFormat.Text));
+        services.AddSingleton<IReportWriter, WordReportWriter>();
+        services.AddSingleton<IReportWriter, PdfReportWriter>();
+
         return;
+    }
+
+    /// <summary>
+    /// Registers the agent's own store and the presentation the workspace reads.
+    /// <para>
+    /// The Application layer registered the session-only stores as fallbacks with
+    /// <c>TryAdd</c>, so these registrations have to displace them rather than join them. They
+    /// use <see cref="ServiceCollectionDescriptorExtensions.RemoveAll{TService}"/> and then re-add:
+    /// <c>TryAdd</c> here would do nothing at all, because the fallback is already there, and the
+    /// result would be an agent that silently kept nothing while the configuration said it was
+    /// writing to SQLite.
+    /// </para>
+    /// <para>
+    /// Both stores are chosen from the same option and are the only two implementations of each
+    /// interface in the container, so which one is in use can be read off the container rather
+    /// than inferred from behaviour. Both keep the same contract and are subject to the same
+    /// privacy rules upstream, because those rules live in the memory service and not here.
+    /// </para>
+    /// </summary>
+    private static void AddAgentStore(this IServiceCollection services, IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        // Bound by hand rather than with Bind, so a blank or unrecognised value in the section
+        // reads as "not set" instead of throwing from inside the options system.
+        services.AddOptions<AgentOptions>()
+            .Configure(options => AgentOptionsBinder.Bind(
+                options,
+                configuration.GetSection(AgentOptions.SectionName)));
+
+        // Registered before the Application layer's default so this one wins. The
+        // RemoveAll/AddSingleton dance below is only needed for the stores because those are
+        // resolved by interface from several places; the presentation is resolved from one, and
+        // taking the last registration is enough.
+        services.RemoveAll<IAgentPresentationSettings>();
+        services.AddSingleton<IAgentPresentationSettings, ConfiguredAgentPresentationSettings>();
+
+        services.AddSingleton<AgentDatabase>();
+
+        if (AgentOptionsBinder.ReadPersistence(configuration) != AgentPersistenceMode.SessionOnly)
+        {
+            services.RemoveAll<IAgentMemoryStore>();
+            services.RemoveAll<IAgentActivityStore>();
+
+            services.AddSingleton<IAgentMemoryStore, SqliteAgentMemoryStore>();
+            services.AddSingleton<IAgentActivityStore, SqliteAgentActivityStore>();
+        }
+
+        // In the session-only case the Application layer's fallbacks stand: they are already the
+        // in-memory stores, and registering them a second time would make the same implementation
+        // resolvable twice.
     }
 }

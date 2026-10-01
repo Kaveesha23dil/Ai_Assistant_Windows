@@ -28,8 +28,10 @@ public static class NavigationRouteExtensions
         NavigationRoute.Home => "Home",
         NavigationRoute.Chat => "Chat",
         NavigationRoute.Files => "Files",
+        NavigationRoute.Document => "Document",
         NavigationRoute.Knowledge => "Knowledge",
         NavigationRoute.Automations => "Automations",
+        NavigationRoute.Agent => "Agent",
         NavigationRoute.Settings => "Settings",
         _ => "Home"
     };
@@ -86,11 +88,38 @@ public static class NavigationRouteExtensions
                 route = NavigationRoute.Automations;
                 return true;
 
+            // The singular only. "documents" already means the Files page, which is where a
+            // person goes to find a document; this page is the one that opens one and questions
+            // it, and a phrase naming that is unambiguous. Leaving the bare plural out is what
+            // keeps the two destinations from trading places.
+            case "document":
+            case "read a document":
+            case "summarize a document":
+            case "ask a document":
+            case "document assistant":
+            case "documents page":
+                route = NavigationRoute.Document;
+                return true;
+
             case "knowledge":
             case "knowledge base":
             case "my documents":
             case "indexed documents":
                 route = NavigationRoute.Knowledge;
+                return true;
+
+            // "Agent" and "workspace" are both accepted because both are words a person reaches
+            // for. The demonstrations are named here too, so a spoken "run the report
+            // demonstration" lands in the same place a clicked card does rather than in the
+            // generic chat page.
+            case "agent":
+            case "workspace":
+            case "assistant":
+            case "agent workspace":
+            case "tool":
+            case "tools":
+            case "automation workspace":
+                route = NavigationRoute.Agent;
                 return true;
 
             // "Assistant settings" and "app settings" are the ways a person distinguishes this
