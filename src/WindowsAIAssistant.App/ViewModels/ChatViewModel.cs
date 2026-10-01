@@ -2,11 +2,16 @@ using System.Collections.ObjectModel;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using WindowsAIAssistant.Application.Agents;
 using WindowsAIAssistant.Application.AI.Commands.SendMessage;
 using WindowsAIAssistant.Application.AI.Services;
+using WindowsAIAssistant.Core.Abstractions.Agents;
 using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Core.Abstractions.Voice;
+using WindowsAIAssistant.Core.Common;
 using WindowsAIAssistant.Core.Enums;
+using WindowsAIAssistant.Core.Models;
+using WindowsAIAssistant.Core.Models.Agents;
 
 namespace WindowsAIAssistant.App.ViewModels;
 
@@ -33,6 +38,11 @@ public sealed partial class ChatViewModel : VoiceInteractionViewModel
     private readonly IAIRequestDefaults _defaults;
 
     /// <summary>
+    /// The engine behind the opt-in path, used only when somebody asks for the agent by name.
+    /// </summary>
+    private readonly IAgent _agent;
+
+    /// <summary>
     /// Set when an answer is being written. It cancels the request when the person presses
     /// stop, and a new request replaces it rather than joining it, so two answers can never
     /// interleave into the same transcript.
@@ -54,18 +64,21 @@ public sealed partial class ChatViewModel : VoiceInteractionViewModel
         StreamMessageHandler streamMessages,
         SendMessageHandler sendMessages,
         IConversationService conversations,
-        IAIRequestDefaults defaults)
+        IAIRequestDefaults defaults,
+        IAgent agent)
         : base(voice)
     {
         ArgumentNullException.ThrowIfNull(streamMessages);
         ArgumentNullException.ThrowIfNull(sendMessages);
         ArgumentNullException.ThrowIfNull(conversations);
         ArgumentNullException.ThrowIfNull(defaults);
+        ArgumentNullException.ThrowIfNull(agent);
 
         _streamMessages = streamMessages;
         _sendMessages = sendMessages;
         _conversations = conversations;
         _defaults = defaults;
+        _agent = agent;
 
         // Started here rather than awaited from a command so a person who types immediately is
         // not refused: the commands wait for this instead.
@@ -170,7 +183,11 @@ public sealed partial class ChatViewModel : VoiceInteractionViewModel
         var generation = BeginGeneration();
         try
         {
-            if (_defaults.UseStreaming)
+            if (AgentRequestTrigger.TryMatch(text, AgentRequestSource.Text, out var agentRequest))
+            {
+                await RunAgentAsync(agentRequest.WithConversation(ConversationId), generation.Token);
+            }
+            else if (_defaults.UseStreaming)
             {
                 await StreamAsync(text, generation.Token);
             }
@@ -203,6 +220,130 @@ public sealed partial class ChatViewModel : VoiceInteractionViewModel
         {
             EndGeneration(generation);
         }
+    }
+
+    /// <summary>
+    /// Hands a request the trigger recognised to the agent, and reports what it did here.
+    /// <para>
+    /// This path is deliberately the narrow one. It is reached only when somebody asked for the
+    /// agent by name, and the only difference it makes is which engine answers — the message still
+    /// goes into the same conversation, and the answer still appears in the same transcript.
+    /// </para>
+    /// <para>
+    /// Approvals are not answered from here. A prompt that asks somebody to agree to writing a
+    /// file has to be an explicit, labelled, deliberate act, and a yes typed into a chat window
+    /// is not that: it is a word in a transcript that may have been sent to a provider and
+    /// scrolled past. So a run that needs approval is reported as needing one, and the person
+    /// goes to the workspace, where the prompt names the action and has two buttons.
+    /// </para>
+    /// </summary>
+    private async Task RunAgentAsync(AgentRequestContext context, CancellationToken cancellationToken)
+    {
+        EventHandler<AgentProgress>? report = (_, progress) =>
+            OnAgentProgress(progress);
+
+        _agent.ProgressChanged += report;
+
+        try
+        {
+            // Recorded by hand because the message never reaches a provider on this path, and a
+            // conversation that showed a request it could not replay would be a different
+            // conversation from the one the person remembers.
+            await _conversations
+                .AddMessageAsync(
+                    ConversationId,
+                    AIMessage.CreateUser(context.Request),
+                    cancellationToken)
+                .ConfigureAwait(true);
+
+            var result = await _agent.RunAsync(context, cancellationToken).ConfigureAwait(true);
+
+            if (result.IsFailure || result.Value is null)
+            {
+                Append(ChatMessageViewModel.FromStatus(DescribeFailure(result)));
+                return;
+            }
+
+            var finished = result.Value;
+
+            if (finished.WasCancelled)
+            {
+                Append(ChatMessageViewModel.FromStatus("Stopped."));
+                return;
+            }
+
+            Append(ChatMessageViewModel.FromAssistant(finished.FinalResponse));
+
+            await _conversations
+                .AddMessageAsync(
+                    ConversationId,
+                    AIMessage.CreateAssistant(finished.FinalResponse),
+                    cancellationToken)
+                .ConfigureAwait(true);
+        }
+        finally
+        {
+            _agent.ProgressChanged -= report;
+        }
+    }
+
+    /// <summary>
+    /// Reports a step boundary as a status line, so a run that takes a few seconds says what it
+    /// is doing rather than appearing to hang.
+    /// </summary>
+    private void OnAgentProgress(AgentProgress progress)
+    {
+        switch (progress.Kind)
+        {
+            case AgentProgressKind.PlanReady when progress.Plan is { } plan:
+                Append(ChatMessageViewModel.FromStatus(
+                    $"Plan: {progress.TotalSteps} step(s) — {string.Join(", ", plan.PlannedTools)}"));
+                break;
+
+            case AgentProgressKind.StepStarted:
+                Append(ChatMessageViewModel.FromStatus(
+                    $"Step {progress.StepOrder} of {progress.TotalSteps}: {progress.ToolName}"));
+                break;
+
+            case AgentProgressKind.AwaitingApproval:
+                // Named rather than silently waiting. A run sitting on an approval nobody can see
+                // would look exactly like a run that had hung.
+                Append(ChatMessageViewModel.FromStatus(
+                    $"Waiting for your approval: {progress.Approval!.Action}. " +
+                    "Open the Agent workspace to approve or refuse it."));
+                break;
+
+            case AgentProgressKind.Completed:
+                if (progress.Message is not null)
+                {
+                    Append(ChatMessageViewModel.FromStatus(progress.Message));
+                }
+
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Turns a run that did not succeed into a sentence for the transcript.
+    /// <para>
+    /// The code names the situation and the tools named, and nothing else. A run's own error text
+    /// is written by a tool or a provider, which is a place their words could come back out, so
+    /// it is not quoted here.
+    /// </para>
+    /// </summary>
+    private static string DescribeFailure(Result<AgentExecutionResult> result)
+    {
+        if (result.Value?.WasRejected == true)
+        {
+            return "The agent stopped because that step was refused. Nothing was changed.";
+        }
+
+        if (result.ErrorCode is { } code)
+        {
+            return $"The agent could not finish that ({code}). Nothing was changed.";
+        }
+
+        return "The agent could not finish that. Nothing was changed.";
     }
 
     /// <summary>

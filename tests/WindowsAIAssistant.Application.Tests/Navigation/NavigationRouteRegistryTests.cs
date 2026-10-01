@@ -50,6 +50,13 @@ public sealed class NavigationRouteRegistryTests
     }
 
     [Fact]
+    public void AgentRouteResolvesToTheAgentWorkspacePage()
+    {
+        Assert.True(Registry.TryResolve(NavigationRoute.Agent, out var pageType));
+        Assert.Equal(typeof(AgentWorkspacePage), pageType);
+    }
+
+    [Fact]
     public void AutomationsRouteResolvesToTheAutomationsPage()
     {
         Assert.True(Registry.TryResolve(NavigationRoute.Automations, out var pageType));
@@ -111,6 +118,9 @@ public sealed class NavigationRouteRegistryTests
     [InlineData("Chat", NavigationRoute.Chat)]
     [InlineData("  chat ", NavigationRoute.Chat)]
     [InlineData("Files", NavigationRoute.Files)]
+    [InlineData("Document", NavigationRoute.Document)]
+    [InlineData("Agent", NavigationRoute.Agent)]
+    [InlineData(" agent ", NavigationRoute.Agent)]
     [InlineData("Automations", NavigationRoute.Automations)]
     [InlineData("Settings", NavigationRoute.Settings)]
     [InlineData("assistant settings", NavigationRoute.Settings)]
@@ -130,6 +140,21 @@ public sealed class NavigationRouteRegistryTests
     [InlineData(null)]
     public void AnUnknownTagIsRefused(string? tag) =>
         Assert.False(NavigationRouteExtensions.TryParse(tag, out _));
+
+    [Theory]
+    [InlineData("files", NavigationRoute.Files)]
+    [InlineData("documents", NavigationRoute.Files)]
+    [InlineData("document", NavigationRoute.Document)]
+    public void TheTwoPlacesADocumentCanLiveAreNotConfused(
+        string tag,
+        NavigationRoute expected)
+    {
+        // Files is where a document is found; the Document page is the one that opens it and
+        // questions it. They are one word apart, so a phrase that could mean either has to be
+        // assigned to exactly one of them rather than whichever case happens to come first.
+        Assert.True(NavigationRouteExtensions.TryParse(tag, out var route));
+        Assert.Equal(expected, route);
+    }
 
     [Fact]
     public void EveryRouteHasADisplayName()

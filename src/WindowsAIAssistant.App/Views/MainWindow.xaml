@@ -111,6 +111,15 @@
                 </NavigationViewItem.Icon>
             </NavigationViewItem>
             <NavigationViewItem
+                AutomationProperties.Name="Agent"
+                Content="Agent"
+                Tag="Agent"
+                ToolTipService.ToolTip="Watch a request planned, step by step">
+                <NavigationViewItem.Icon>
+                    <SymbolIcon Symbol="World" />
+                </NavigationViewItem.Icon>
+            </NavigationViewItem>
+            <NavigationViewItem
                 AutomationProperties.Name="Automations"
                 Content="Automations"
                 Tag="Automations"

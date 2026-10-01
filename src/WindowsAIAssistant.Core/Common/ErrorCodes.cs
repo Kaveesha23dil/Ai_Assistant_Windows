@@ -180,4 +180,81 @@ public static class ErrorCodes
     public const string VoiceActionNotAvailable = "VOICE_ACTION_NOT_AVAILABLE";
     public const string VoiceSynthesisFailed = "VOICE_SYNTHESIS_FAILED";
     public const string VoiceBusy = "VOICE_BUSY";
+
+    // The agent. Split the same way as everything above: each code names a situation a person
+    // can do something about, and none of them describe a class name, a tool, or a file path.
+    // A tool name in a message would tell a reader more about the build than about their
+    // request, and it is exactly the sort of internal detail these codes exist to keep out of
+    // the interface.
+
+    /// <summary>The request could not be understood as something the assistant can do.</summary>
+    public const string AgentIntentUnrecognized = "AGENT_INTENT_UNRECOGNIZED";
+
+    /// <summary>
+    /// The plan the planner produced could not be read as a plan. Almost always a model that
+    /// answered in prose instead of the requested structure.
+    /// </summary>
+    public const string AgentPlanUnreadable = "AGENT_PLAN_UNREADABLE";
+
+    /// <summary>
+    /// The plan asked for something that is not a tool this build has. A plan naming a
+    /// capability the assistant does not have is refused rather than approximated, because
+    /// running the nearest available tool instead would be doing something the person did not
+    /// ask for.
+    /// </summary>
+    public const string AgentToolUnknown = "AGENT_TOOL_UNKNOWN";
+
+    /// <summary>The tool exists but the capability it needs is not switched on.</summary>
+    public const string AgentToolUnavailable = "AGENT_TOOL_UNAVAILABLE";
+
+    /// <summary>The tool is installed but is missing something it cannot work without.</summary>
+    public const string AgentToolMisconfigured = "AGENT_TOOL_MISCONFIGURED";
+
+    /// <summary>A step did not produce a result, and the plan could not carry on without it.</summary>
+    public const string AgentStepFailed = "AGENT_STEP_FAILED";
+
+    /// <summary>A person refused an action, so it was not done.</summary>
+    public const string AgentApprovalRejected = "AGENT_APPROVAL_REJECTED";
+
+    /// <summary>An approval was asked for and never answered, so nothing was done.</summary>
+    public const string AgentApprovalTimedOut = "AGENT_APPROVAL_TIMED_OUT";
+
+    /// <summary>The agent was stopped part-way through.</summary>
+    public const string AgentCancelled = "AGENT_CANCELLED";
+
+    /// <summary>
+    /// A run was asked for while another was already in progress.
+    /// <para>
+    /// A refusal rather than a queue, because a run holds a lock rather than a place in a line.
+    /// Two runs at once would interleave their tool calls, their progress, and their approvals
+    /// into something neither caller could describe — and a caller that queued silently would
+    /// have no way to say "that will take a moment" instead, which is the more useful answer.
+    /// </para>
+    /// </summary>
+    public const string AgentBusy = "AGENT_BUSY";
+
+    /// <summary>The memory store could not be read or written.</summary>
+    public const string AgentMemoryUnavailable = "AGENT_MEMORY_UNAVAILABLE";
+
+    /// <summary>
+    /// What was offered to be remembered is not something that may be kept: a credential, or
+    /// text too long to be a preference.
+    /// </summary>
+    public const string AgentMemoryRefused = "AGENT_MEMORY_REFUSED";
+
+    /// <summary>The activity timeline could not be read or written.</summary>
+    public const string AgentActivityUnavailable = "AGENT_ACTIVITY_UNAVAILABLE";
+
+    /// <summary>A report could not be written to the place it was asked for.</summary>
+    public const string AgentReportFailed = "AGENT_REPORT_FAILED";
+
+    /// <summary>The expression to work out was not arithmetic this build can evaluate.</summary>
+    public const string AgentCalculationFailed = "AGENT_CALCULATION_FAILED";
+
+    /// <summary>
+    /// A tool that writes files was asked to write somewhere it is not allowed to write. Kept
+    /// separate from <see cref="AgentReportFailed"/> because it is a refusal to act rather than a
+    /// failure to complete, and the sentence for it is different.
+    /// </summary>
+    public const string AgentPathRefused = "AGENT_PATH_REFUSED";
 }

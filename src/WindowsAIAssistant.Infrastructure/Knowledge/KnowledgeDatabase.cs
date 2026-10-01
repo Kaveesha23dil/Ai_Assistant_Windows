@@ -294,7 +294,35 @@ public sealed class KnowledgeDatabase : IAsyncDisposable, IDisposable
         _disposed = true;
         _initializationLock.Dispose();
 
-        SqliteConnection.ClearAllPools();
+        // Only this database's pool. ClearAllPools would also close connections belonging to
+        // every other SQLite file in the process, which in this application means the settings
+        // and conversation stores as well: disposing the knowledge index would break an
+        // unrelated store that something else was still using. Clearing the one pool is what
+        // actually releases the handle this object is responsible for, which is the reason it
+        // is cleared at all — Windows will not delete the file while a pooled handle is open.
+        ClearOwnPool();
+    }
+
+    /// <summary>
+    /// Releases the pooled handles for this database alone.
+    /// <para>
+    /// The connection passed to <see cref="SqliteConnection.ClearPool(SqliteConnection)"/> is
+    /// never opened; the pool is selected by its connection string, and a file-backed
+    /// connection string is all that is needed to identify it.
+    /// </para>
+    /// </summary>
+    private void ClearOwnPool()
+    {
+        try
+        {
+            using var connection = new SqliteConnection(_connectionString);
+            SqliteConnection.ClearPool(connection);
+        }
+        catch (SqliteException)
+        {
+            // The pool is being released as a favour to the file system. A database that will
+            // not give its handles back must not turn a clean shutdown into a failed one.
+        }
     }
 
     /// <inheritdoc />
