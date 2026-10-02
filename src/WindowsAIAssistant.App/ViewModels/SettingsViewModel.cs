@@ -342,12 +342,14 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     /// <summary>
     /// Gets the note shown under the provider choice. It differs by provider, because the one
-    /// that needs nothing and the one that needs a key should not be described the same way.
+    /// that is local needs no key and sends nothing out.
     /// </summary>
     public string ProviderNotice =>
         SelectedProvider == nameof(AIProviderType.Mock)
             ? "Answers come from a built-in stand-in. No account and no key are needed, and nothing leaves this device."
-            : $"Answers are sent to {SelectedProvider}. Set the {ApiKeyVariableName} environment variable first, and allow cloud AI below.";
+            : SelectedProvider == nameof(AIProviderType.GeminiCloud)
+                ? "Answers go to your Gemini Cloud Backend. Set GEMINI_CLOUD_API_KEY and CloudApiBaseUrl in settings/environment."
+                : $"Answers are sent to {SelectedProvider}. Set the {ApiKeyVariableName} environment variable first, and allow cloud AI below.";
 
     /// <summary>
     /// Gets a value indicating whether the chosen provider needs a key that has not been
