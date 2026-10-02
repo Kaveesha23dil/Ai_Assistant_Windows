@@ -36,10 +36,15 @@
     <PackageReference Include="DocumentFormat.OpenXml" />
     <PackageReference Include="PdfPig" />
     <!--
+      Http client factory for the cloud AI provider. The factory owns the handler lifetime so a
+      long-lived desktop process does not exhaust sockets, and a named client lets the cloud
+      endpoint be configured per client rather than globally.
+    -->
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <!--
       The knowledge base is a local SQLite file. Referenced here rather than in Application so
       that no layer above Infrastructure can acquire a connection, a command, or a SQL string:
-      everything above it goes through the knowledge repositories, and the one place that knows
-      there is a database at all is the one that owns its schema.
+      that connection is owned by the Infrastructure project and never passed up.
     -->
     <PackageReference Include="Microsoft.Data.Sqlite" />
   </ItemGroup>

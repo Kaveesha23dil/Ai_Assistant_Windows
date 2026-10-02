@@ -62,6 +62,16 @@ public sealed class AIOptions
     public string ApiKeyEnvironmentVariable { get; init; } = "OPENAI_API_KEY";
 
     /// <summary>
+    /// Gets the base URL for a custom/cloud backend API. Used for GeminiCloud provider.
+    /// </summary>
+    public string? CloudApiBaseUrl { get; init; }
+
+    /// <summary>
+    /// Gets the API key for cloud backend. Only the name lives in config; value comes from environment.
+    /// </summary>
+    public string CloudApiKeyEnvironmentVariable { get; init; } = "GEMINI_CLOUD_API_KEY";
+
+    /// <summary>
     /// Gets instructions that replace the built-in system prompt. Empty means the built-in
     /// one, which is the safe default: it is the wording that says the assistant cannot run
     /// anything.
