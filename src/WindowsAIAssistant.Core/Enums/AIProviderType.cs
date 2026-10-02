@@ -25,5 +25,10 @@ public enum AIProviderType
     /// what lets the application be built, demonstrated, and tested with no account, no key,
     /// and no network.
     /// </summary>
-    Mock
+    Mock,
+
+    /// <summary>
+    /// Google Gemini cloud provider accessed via the AI Assistant Cloud Backend.
+    /// </summary>
+    GeminiCloud
 }

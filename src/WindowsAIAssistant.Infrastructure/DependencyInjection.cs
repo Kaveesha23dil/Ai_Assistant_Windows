@@ -157,6 +157,14 @@ public static class DependencyInjection
         services.AddSingleton<IAIApiKeyProvider, EnvironmentApiKeyProvider>();
         services.AddSingleton<IAIProvider, MockAIProvider>();
         services.AddSingleton<IAIProvider, OpenAIProvider>();
+
+        // The cloud provider reaches Gemini through the AI Assistant Cloud Backend rather than
+        // directly. The named client is registered here so its handler is pooled for the life of
+        // the process; the base address and token are applied per request inside the provider,
+        // because both are configuration that can change while the application is running.
+        services.AddHttpClient(GeminiCloudProvider.HttpClientName);
+        services.AddSingleton<IAIProvider, GeminiCloudProvider>();
+
         services.AddSingleton<IAIProviderFactory, AIProviderFactory>();
 
         // Registered after the Application layer's fallbacks, so the bound configuration is

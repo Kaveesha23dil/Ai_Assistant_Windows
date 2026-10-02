@@ -23,6 +23,7 @@ public static class AIProviderTypes
     [
         nameof(AIProviderType.Mock),
         nameof(AIProviderType.OpenAI),
+        nameof(AIProviderType.GeminiCloud),
     ];
 
     /// <summary>

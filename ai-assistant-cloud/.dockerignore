@@ -1,0 +1,45 @@
+# Everything that is not needed to build and run the service. The first four entries are the
+# ones that matter: a .env or a credential file in the build context is a secret in an image layer,
+# where it survives history and is readable by anybody who can pull.
+
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.p12
+credentials*.json
+service-account*.json
+gcloud-service-key*.json
+
+.git
+.gitignore
+.github
+
+# Test-only files. The serving image needs neither the tests nor the tooling to run them.
+tests/
+pytest.ini
+scripts/
+benchmark.py
+**/test_*.py
+**/*_test.py
+**/__pycache__/
+
+# Documentation and editor state.
+README.md
+*.md
+.vscode/
+.idea/
+.DS_Store
+
+# Build output.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
