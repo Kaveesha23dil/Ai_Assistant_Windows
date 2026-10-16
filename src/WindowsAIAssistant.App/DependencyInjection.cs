@@ -28,6 +28,7 @@ public static class DependencyInjection
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();
         services.AddSingleton<UserSettingsService>();
+        services.AddHostedService<AutomationScheduler>();
 
         services.AddNavigation();
 

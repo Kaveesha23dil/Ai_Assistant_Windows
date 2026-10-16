@@ -77,6 +77,12 @@ public static class DependencyInjection
         // After the Application layer's agent registrations, because the stores it registers as
         // fallbacks are the ones this displaces.
         services.AddAgentStore(configuration);
+        services.AddSingleton<Core.Abstractions.Automations.IAutomationService>(provider =>
+            new Automations.AutomationService(
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "WindowsAIAssistant", "automations.json"),
+                provider.GetRequiredService<IDocumentAnalysisService>(),
+                provider.GetRequiredService<IDocumentTypeDetector>(),
+                provider.GetRequiredService<IPermissionService>()));
 
         // File search and settings storage are still the development implementations. The voice
         // layer calls them through the same abstractions, so swapping in the real services later

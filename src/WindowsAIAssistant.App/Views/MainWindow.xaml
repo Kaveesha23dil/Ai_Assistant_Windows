@@ -145,6 +145,7 @@
         <Grid Background="{ThemeResource LayerFillColorDefaultBrush}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="48" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
@@ -180,7 +181,12 @@
                     TextTrimming="CharacterEllipsis" />
             </Grid>
 
-            <Frame x:Name="ContentFrame" Grid.Row="1" />
+            <InfoBar x:Name="AutomationAlert" Grid.Row="1" IsOpen="False" IsClosable="True">
+                <InfoBar.ActionButton>
+                    <Button Content="View schedules" Click="OnViewAutomationsClick" />
+                </InfoBar.ActionButton>
+            </InfoBar>
+            <Frame x:Name="ContentFrame" Grid.Row="2" />
         </Grid>
     </NavigationView>
 </Window>
