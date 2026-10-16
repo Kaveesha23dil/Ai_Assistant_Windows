@@ -45,6 +45,22 @@ public sealed partial class MainWindow : Window
     private bool _isSelectionSynchronizing;
     private bool _backHandled;
 
+    public void ShowAutomationNotification(WindowsAIAssistant.Core.Models.Automations.Automation automation)
+    {
+        AutomationAlert.Title = automation.Title;
+        AutomationAlert.Message = automation.Status == "Completed" && automation.Kind == Core.Models.Automations.AutomationKind.Reminder
+            ? (automation.LastResult.Length > 240 ? automation.LastResult[..240] + "… Open Automations to read more." : automation.LastResult)
+            : $"{automation.Status}. Open Automations to view the result.";
+        AutomationAlert.Severity = automation.Status == "Completed" ? InfoBarSeverity.Informational : InfoBarSeverity.Warning;
+        AutomationAlert.IsOpen = true;
+    }
+
+    private void OnViewAutomationsClick(object sender, RoutedEventArgs args)
+    {
+        _navigation.Navigate(NavigationRoute.Automations);
+        AutomationAlert.IsOpen = false;
+    }
+
     public MainWindow(
         MainViewModel viewModel,
         INavigationService navigation,

@@ -57,6 +57,7 @@ public partial class App : Microsoft.UI.Xaml.Application
             _logger.LogInformation("Application started successfully.");
 
             _window = _host.Services.GetRequiredService<MainWindow>();
+            _host.Services.GetRequiredService<Core.Abstractions.Automations.IAutomationService>().Completed += OnAutomationCompleted;
             _window.Closed += (_, _) => _ = ShutdownHostAsync();
             _window.Activate();
         }
@@ -74,6 +75,14 @@ public partial class App : Microsoft.UI.Xaml.Application
             await ShutdownHostAsync();
             throw;
         }
+    }
+
+    private void OnAutomationCompleted(object? sender, Core.Models.Automations.Automation automation)
+    {
+        _window?.DispatcherQueue.TryEnqueue(() =>
+        {
+            if (!_hostStopped && _window is MainWindow main) main.ShowAutomationNotification(automation);
+        });
     }
 
     private static IHost CreateHost()
