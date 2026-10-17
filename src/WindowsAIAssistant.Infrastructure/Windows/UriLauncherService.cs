@@ -2,6 +2,8 @@ using Microsoft.Extensions.Logging;
 using WindowsAIAssistant.Core.Abstractions.System;
 using WindowsAIAssistant.Core.Common;
 using WindowsAIAssistant.Core.Exceptions;
+using WindowsAIAssistant.Core.Abstractions.Security;
+using WindowsAIAssistant.Core.Enums;
 
 namespace WindowsAIAssistant.Infrastructure.Windows;
 
@@ -17,12 +19,14 @@ namespace WindowsAIAssistant.Infrastructure.Windows;
 public sealed class UriLauncherService : IUriLauncherService
 {
     private readonly ILogger<UriLauncherService> _logger;
+    private readonly IPermissionService _permissions;
 
-    public UriLauncherService(ILogger<UriLauncherService> logger)
+    public UriLauncherService(ILogger<UriLauncherService> logger, IPermissionService permissions)
     {
         ArgumentNullException.ThrowIfNull(logger);
 
         _logger = logger;
+        _permissions = permissions;
     }
 
     /// <inheritdoc />
@@ -30,13 +34,29 @@ public sealed class UriLauncherService : IUriLauncherService
     {
         ArgumentNullException.ThrowIfNull(uri);
 
-        if (!uri.IsAbsoluteUri || !uri.IsWellFormedOriginalString())
+        if (!uri.IsAbsoluteUri || (!uri.IsFile && !uri.IsWellFormedOriginalString()))
         {
             return Result.Failure("That address could not be opened.");
         }
 
         try
         {
+            if (uri.IsFile)
+            {
+                foreach (var capability in new[] { PermissionCapability.FileSearch, PermissionCapability.ApplicationLaunch })
+                    if (!_permissions.IsGranted(capability)) return Result.Failure(_permissions.GetDeniedMessage(capability));
+                var path = uri.LocalPath;
+                if (Directory.Exists(path))
+                {
+                    var folder = await global::Windows.Storage.StorageFolder.GetFolderFromPathAsync(path).AsTask(cancellationToken);
+                    return await global::Windows.System.Launcher.LaunchFolderAsync(folder).AsTask(cancellationToken)
+                        ? Result.Success() : Result.Failure("Windows could not open this folder.");
+                }
+                if (!File.Exists(path)) return Result.Failure("This file has moved or been deleted.");
+                var file = await global::Windows.Storage.StorageFile.GetFileFromPathAsync(path).AsTask(cancellationToken);
+                return await global::Windows.System.Launcher.LaunchFileAsync(file).AsTask(cancellationToken)
+                    ? Result.Success() : Result.Failure("No application is registered to open this file.");
+            }
             var launched = await global::Windows.System.Launcher
                 .LaunchUriAsync(uri)
                 .AsTask(cancellationToken)
