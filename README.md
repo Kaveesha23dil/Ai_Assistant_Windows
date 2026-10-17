@@ -120,6 +120,9 @@ Layered clean architecture where dependency direction always points downward:
 
 ## Future Roadmap
 
+Local file search now uses the real filesystem with location/type/date/size filters, local
+text previews, and Windows file/folder actions. See [Local file search](docs/file-search.md).
+
 Automations now support persistent one-time, daily, and weekly reminders and folder summaries.
 They run while the app is open, with in-app alerts and one catch-up run after reopening.
 See [Automations and reminders](docs/automations.md) for setup, permissions, and limitations.

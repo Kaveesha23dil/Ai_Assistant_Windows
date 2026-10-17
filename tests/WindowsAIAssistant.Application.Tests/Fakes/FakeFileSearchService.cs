@@ -11,6 +11,13 @@ public sealed class FakeFileSearchService : IFileSearchService
     public string? LastQuery { get; private set; }
 
     public int CallCount { get; private set; }
+    public FileSearchRequest? LastRequest { get; private set; }
+
+    public async Task<FileSearchResponse> SearchAsync(FileSearchRequest request, CancellationToken cancellationToken = default)
+    {
+        LastRequest = request;
+        return new FileSearchResponse(await SearchAsync(request.Query, cancellationToken), "Test search completed.");
+    }
 
     public Task<IReadOnlyCollection<FileSearchResult>> SearchAsync(
         string query,

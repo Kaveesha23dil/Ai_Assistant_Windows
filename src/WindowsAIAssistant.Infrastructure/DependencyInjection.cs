@@ -84,10 +84,8 @@ public static class DependencyInjection
                 provider.GetRequiredService<IDocumentTypeDetector>(),
                 provider.GetRequiredService<IPermissionService>()));
 
-        // File search and settings storage are still the development implementations. The voice
-        // layer calls them through the same abstractions, so swapping in the real services later
-        // needs no change to any command handler.
-        services.AddSingleton<IFileSearchService, MockFileSearchService>();
+        services.AddSingleton<IFileSearchService, Files.LocalFileSearchService>();
+        services.AddSingleton<IFilePreviewService, Files.LocalFilePreviewService>();
         services.AddSingleton<ISettingsStorage, InMemorySettingsStorage>();
 
         return services;
@@ -247,6 +245,8 @@ public static class DependencyInjection
     public static IServiceCollection AddDevelopmentServices(this IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
+
+        services.AddSingleton<IFileSearchService, MockFileSearchService>();
 
         services.AddSingleton<IWindowsSystemService, MockWindowsSystemService>();
         services.AddSingleton<IClipboardService, MockClipboardService>();

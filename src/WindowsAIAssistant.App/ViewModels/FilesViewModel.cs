@@ -10,283 +10,200 @@ using WindowsAIAssistant.Core.Models;
 
 namespace WindowsAIAssistant.App.ViewModels;
 
-/// <summary>
-/// One row in the files list: a search result, with the four things a person can do with it.
-/// <para>
-/// The actions are commands on the row rather than on the page, because a button that acts on
-/// whichever row happens to be selected is a button that acts on the wrong file the moment two
-/// people use the page differently. Each row carries its own path, and no action has to be
-/// told which one it is for.
-/// </para>
-/// </summary>
 public sealed partial class FileResultViewModel : ObservableObject
 {
     private readonly INavigationService _navigation;
     private readonly IUriLauncherService _launcher;
-
-    public FileResultViewModel(
-        FileSearchResult result,
-        INavigationService navigation,
-        IUriLauncherService launcher)
+    private readonly IFilePreviewService? _preview;
+    public FileResultViewModel(FileSearchResult result, INavigationService navigation, IUriLauncherService launcher, IFilePreviewService? preview = null)
     {
-        ArgumentNullException.ThrowIfNull(result);
-        ArgumentNullException.ThrowIfNull(navigation);
-        ArgumentNullException.ThrowIfNull(launcher);
-
         Result = result;
         _navigation = navigation;
         _launcher = launcher;
+        _preview = preview;
     }
-
     public FileSearchResult Result { get; }
-
     public string FullPath => Result.FullPath;
-
-    /// <summary>
-    /// Gets a value indicating whether the file is one this application can read and analyze.
-    /// A row that cannot be opened is shown but its document actions are disabled, rather than
-    /// being hidden, because a person looking for that file should still be able to find it.
-    /// </summary>
-    public bool IsSupportedDocument => SupportedExtensions.Contains(Result.Extension, StringComparer.OrdinalIgnoreCase);
-
     public string Name => Result.Name;
-
     public string ExtensionText => Result.Extension.TrimStart('.').ToUpperInvariant();
+    public string LocationText => System.IO.Path.GetDirectoryName(FullPath) ?? FullPath;
+    public string ModifiedText => Result.LastModified.ToLocalTime().ToString("d MMM yyyy HH:mm");
+    public string CreatedText => Result.Created?.ToLocalTime().ToString("d MMM yyyy HH:mm") ?? "Unavailable";
+    public string SizeText => Result.Size < 1024 ? $"{Result.Size} B" : Result.Size < 1048576 ? $"{Result.Size / 1024d:0.#} KB" : Result.Size < 1073741824 ? $"{Result.Size / 1048576d:0.#} MB" : $"{Result.Size / 1073741824d:0.#} GB";
+    public bool IsSupportedDocument => new[] { ".pdf", ".docx", ".xlsx", ".pptx", ".txt", ".md", ".csv", ".json", ".xml", ".cs", ".xaml", ".csproj", ".sln", ".log" }.Contains(Result.Extension, StringComparer.OrdinalIgnoreCase);
+    [ObservableProperty] public partial string ActionMessage { get; set; } = string.Empty;
+    [ObservableProperty] public partial string PreviewText { get; set; } = string.Empty;
+    [ObservableProperty] public partial bool IsPreviewing { get; set; }
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(PreviewVisibility))]
+    public partial bool IsPreviewOpen { get; set; }
+    public Visibility PreviewVisibility => IsPreviewOpen ? Visibility.Visible : Visibility.Collapsed;
 
-    public string LocationText =>
-        System.IO.Path.GetDirectoryName(Result.FullPath) ?? Result.FullPath;
-
-    public string SizeText => FormatSize(Result.Size);
-
-    public string ModifiedText => Result.LastModified.ToLocalTime().ToString("d MMM yyyy");
-
-    /// <summary>
-    /// Opens the file in whatever application the person already uses for it. The file is
-    /// handed to the shell as a URI, which is the only route by which the application opens
-    /// anything at all.
-    /// </summary>
     [RelayCommand]
-    private async Task OpenAsync()
+    private Task OpenAsync() => LaunchAsync(FullPath);
+    [RelayCommand]
+    private Task OpenFolderAsync() => LaunchAsync(LocationText);
+    private async Task LaunchAsync(string path)
     {
-        if (!Uri.TryCreate(Result.FullPath, UriKind.Absolute, out var uri))
+        try
         {
-            return;
+            if (!Uri.TryCreate(path, UriKind.Absolute, out var uri) || !uri.IsFile) { ActionMessage = "This file path cannot be opened."; return; }
+            var result = await _launcher.OpenAsync(uri);
+            ActionMessage = result.IsSuccess ? string.Empty : result.ErrorMessage ?? "Windows could not open this item.";
         }
-
-        await _launcher.OpenAsync(uri).ConfigureAwait(true);
+        catch (Exception) { ActionMessage = "Could not open this item. Check that it still exists and that Windows has an app for it."; }
     }
-
-    /// <summary>
-    /// Opens the folder containing the file, with the file selected, so a person who wants the
-    /// original rather than a summary can go straight to it.
-    /// </summary>
-    [RelayCommand]
-    private async Task OpenFolderAsync()
+    [RelayCommand(CanExecute = nameof(IsSupportedDocument))]
+    private void Summarize() => _navigation.Navigate(NavigationRoute.Document, FullPath);
+    [RelayCommand(CanExecute = nameof(IsSupportedDocument))]
+    private void AskAi() => _navigation.Navigate(NavigationRoute.Document, FullPath);
+    [RelayCommand(IncludeCancelCommand = true)]
+    private async Task PreviewAsync(CancellationToken cancellationToken)
     {
-        if (!Uri.TryCreate(Result.FullPath, UriKind.Absolute, out var file) ||
-            !Uri.TryCreate(
-                System.IO.Path.GetDirectoryName(file.LocalPath) ?? string.Empty,
-                UriKind.Absolute,
-                out var folder))
+        if (_preview is null) { ActionMessage = "Preview is unavailable."; return; }
+        IsPreviewOpen = true;
+        IsPreviewing = true;
+        PreviewText = string.Empty;
+        try
         {
-            return;
+            var result = await _preview.ReadAsync(FullPath, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            PreviewText = result.Text;
+            ActionMessage = result.Notice;
         }
-
-        await _launcher.OpenAsync(folder).ConfigureAwait(true);
+        catch (OperationCanceledException) { ActionMessage = "Preview cancelled."; }
+        catch (UnauthorizedAccessException exception) { ActionMessage = exception.Message; }
+        catch (Core.Exceptions.DocumentException exception) { ActionMessage = exception.Message; }
+        catch (Exception) { ActionMessage = "Could not preview this file. It may have moved, be protected, or be unreadable."; }
+        finally { IsPreviewing = false; }
     }
-
-    /// <summary>Summarizes the file on the document page.</summary>
     [RelayCommand]
-    private void Summarize() => _navigation.Navigate(NavigationRoute.Document, Result.FullPath);
-
-    /// <summary>Opens the file on the document page to ask it a question.</summary>
-    [RelayCommand]
-    private void AskAi() => _navigation.Navigate(NavigationRoute.Document, Result.FullPath);
-
-    private static readonly string[] SupportedExtensions =
-    [
-        ".pdf", ".docx", ".doc", ".pptx", ".ppt", ".xlsx", ".xls", ".txt", ".md", ".rtf", ".csv",
-    ];
-
-    /// <summary>
-    /// Writes a byte count the way a person reading a file list expects it: divided down to a
-    /// unit that leaves a number worth reading, and labelled with the unit that number is in.
-    /// Dividing after choosing the label would put every size one unit too large.
-    /// </summary>
-    private static string FormatSize(long bytes)
-    {
-        if (bytes < 1024)
-        {
-            return $"{bytes} B";
-        }
-
-        var size = (double)bytes;
-
-        foreach (var unit in new[] { "KB", "MB", "GB", "TB" })
-        {
-            size /= 1024;
-
-            if (size < 1024)
-            {
-                return $"{size:0.#} {unit}";
-            }
-        }
-
-        return $"{size:0.#} PB";
-    }
+    private void ClosePreview() { PreviewCommand.Cancel(); IsPreviewOpen = false; PreviewText = string.Empty; }
 }
 
-/// <summary>
-/// Files page state. No indexing happens in this step.
-/// <para>
-/// Searching is still the development implementation underneath, so this page's job is the part
-/// that is real: opening a document. A path is turned into a route through the navigation
-/// service rather than by constructing a page, so a document opened from here follows exactly
-/// the path one opened by voice or by a quick action would.
-/// </para>
-/// <para>
-/// Results are the search service's, unchanged. A row shows the name, the folder, the size, and
-/// the date, and carries the actions; it holds no extracted text, because nothing on this page
-/// needs any and a list of results is a poor place to keep copies of files.
-/// </para>
-/// </summary>
 public sealed partial class FilesViewModel : ObservableObject
 {
     private readonly IFileSearchService _search;
     private readonly INavigationService _navigation;
     private readonly IUriLauncherService _launcher;
+    private readonly IFilePreviewService? _preview;
     private CancellationTokenSource? _current;
-
-    public FilesViewModel(
-        IFileSearchService search,
-        INavigationService navigation,
-        IUriLauncherService launcher)
+    public FilesViewModel(IFileSearchService search, INavigationService navigation, IUriLauncherService launcher, IFilePreviewService? preview = null)
     {
-        ArgumentNullException.ThrowIfNull(search);
-        ArgumentNullException.ThrowIfNull(navigation);
-        ArgumentNullException.ThrowIfNull(launcher);
-
         _search = search;
         _navigation = navigation;
         _launcher = launcher;
+        _preview = preview;
     }
-
+    public string[] LocationChoices { get; } = ["Common user folders (or location in query)", "Downloads", "Documents", "Desktop", "Pictures", "Music", "Videos", "Custom folder"];
+    public string[] DateChoices { get; } = ["Any date", "Today", "Last 7 days", "Last week (Monday-Sunday)", "This month"];
+    public string[] DateFieldChoices { get; } = ["Automatic (downloaded = created)", "Modified", "Created"];
+    public string[] SizeChoices { get; } = ["Any size", "Under 1 MB", "1-10 MB", "Over 10 MB"];
+    [ObservableProperty] public partial int LocationIndex { get; set; }
+    [ObservableProperty] public partial string FolderPath { get; set; } = string.Empty;
+    [ObservableProperty] public partial string Extension { get; set; } = string.Empty;
+    [ObservableProperty] public partial int DateIndex { get; set; }
+    [ObservableProperty] public partial int DateFieldIndex { get; set; }
+    [ObservableProperty] public partial int SizeIndex { get; set; }
+    [ObservableProperty] public partial bool IncludeSubfolders { get; set; } = true;
+    [ObservableProperty] public partial string StatusMessage { get; set; } = string.Empty;
+    [ObservableProperty] public partial bool HasSearched { get; set; }
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSearchText))]
     [NotifyPropertyChangedFor(nameof(CanSearch))]
     [NotifyCanExecuteChangedFor(nameof(SearchCommand))]
     public partial string SearchText { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the path of the document to open. Kept here so the person can paste a path
-    /// rather than find a file through a dialog, which matters for a document that arrived as a
-    /// download or lives on a network share.
-    /// </summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasDocumentPath))]
     [NotifyCanExecuteChangedFor(nameof(OpenDocumentCommand))]
     public partial string DocumentPath { get; set; } = string.Empty;
-
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(SearchingVisibility))]
+    [NotifyPropertyChangedFor(nameof(EmptyStateVisibility))]
+    [NotifyPropertyChangedFor(nameof(CanSearch))]
     [NotifyCanExecuteChangedFor(nameof(SearchCommand))]
     public partial bool IsSearching { get; set; }
-
     public string HeaderTitle => "Files";
-
-    public string Description => "Search your local files, or open a document to summarize it and ask it questions.";
-
-    public string PlaceholderText => "Search files...";
-
+    public string Description => "Find files by name, type, date, and size. Preview document text locally or open files in Windows.";
+    public string PlaceholderText => "Try: Find the invoice PDF I downloaded last week (or * for all files)";
     public string DocumentPlaceholderText => "Full path to a document to open...";
-
     public string EmptyStateTitle => "No files found.";
-
-    public string EmptyStateMessage => "Search your files, or paste a full path above to open one.";
-
+    public string EmptyStateMessage => "Try fewer words, another folder, or a wider date range.";
     public bool HasSearchText => !string.IsNullOrWhiteSpace(SearchText);
-
     public bool CanSearch => HasSearchText && !IsSearching;
-
     public bool HasDocumentPath => !string.IsNullOrWhiteSpace(DocumentPath);
-
     public bool HasResults => Results.Count > 0;
-
-    /// <summary>
-    /// Gets the visibility of the spinner. A bound boolean cannot become a
-    /// <see cref="Visibility"/> on its own, and a page should not have to carry a converter for
-    /// one element, so the mapping lives here beside the state it describes.
-    /// </summary>
-    public Visibility SearchingVisibility =>
-        IsSearching ? Visibility.Visible : Visibility.Collapsed;
-
-    /// <summary>
-    /// Gets the visibility of the empty state, which is shown only when a search has finished
-    /// and found nothing. Showing it before a search has been asked for would greet a person
-    /// who has not done anything with a claim about what they do not have.
-    /// </summary>
-    public Visibility EmptyStateVisibility =>
-        !IsSearching && Results.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-
+    public Visibility SearchingVisibility => IsSearching ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility EmptyStateVisibility => HasSearched && !IsSearching && Results.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     public ObservableCollection<FileResultViewModel> Results { get; } = [];
 
     [RelayCommand(CanExecute = nameof(CanSearch))]
     private async Task SearchAsync()
     {
-        var query = SearchText?.Trim();
-        if (string.IsNullOrWhiteSpace(query) || IsSearching)
-        {
-            return;
-        }
-
-        // Each search replaces the token of the one before it, so a person who types another
-        // query while the first is still walking the disk is not left with whichever finishes
-        // last.
+        if (!CanSearch) return;
         _current?.Dispose();
         _current = new CancellationTokenSource();
-        var token = _current.Token;
-
         IsSearching = true;
-        SearchCommand.NotifyCanExecuteChanged();
-
+        HasSearched = false;
+        StatusMessage = "Searching local file names and metadata...";
+        foreach (var row in Results) row.ClosePreviewCommand.Execute(null);
+        Results.Clear();
         try
         {
-            var found = await _search.SearchAsync(query, token).ConfigureAwait(true);
-
-            Results.Clear();
-            foreach (var result in found)
-            {
-                Results.Add(new FileResultViewModel(result, _navigation, _launcher));
-            }
+            if (LocationIndex == 7 && string.IsNullOrWhiteSpace(FolderPath)) throw new ArgumentException("Enter a folder path for a custom-folder search.");
+            var request = BuildRequest();
+            var response = await _search.SearchAsync(request, _current.Token);
+            _current.Token.ThrowIfCancellationRequested();
+            foreach (var result in response.Files) Results.Add(new FileResultViewModel(result, _navigation, _launcher, _preview));
+            HasSearched = true;
+            StatusMessage = string.IsNullOrEmpty(response.Summary) ? $"{Results.Count} file(s) found." : response.Summary;
         }
-        catch (OperationCanceledException)
-        {
-            // A search that was replaced by a newer one is not a failure and has nothing to say.
-        }
+        catch (OperationCanceledException) { StatusMessage = "Search cancelled."; }
+        catch (UnauthorizedAccessException exception) { StatusMessage = exception.Message; }
+        catch (ArgumentException exception) { StatusMessage = exception.Message; }
+        catch (Exception) { StatusMessage = "Could not search this location. Check that the folder exists and is accessible."; }
         finally
         {
             IsSearching = false;
-            SearchCommand.NotifyCanExecuteChanged();
             OnPropertyChanged(nameof(HasResults));
+            OnPropertyChanged(nameof(EmptyStateVisibility));
         }
     }
 
-    /// <summary>
-    /// Opens the document page on the chosen file.
-    /// </summary>
-    [RelayCommand(CanExecute = nameof(HasDocumentPath))]
-    private void OpenDocument()
+    private FileSearchRequest BuildRequest()
     {
-        if (string.IsNullOrWhiteSpace(DocumentPath))
+        KnownFolderKind? location = LocationIndex switch
         {
-            return;
+            1 => KnownFolderKind.Downloads, 2 => KnownFolderKind.Documents, 3 => KnownFolderKind.Desktop,
+            4 => KnownFolderKind.Pictures, 5 => KnownFolderKind.Music, 6 => KnownFolderKind.Videos, _ => null,
+        };
+        var today = DateTime.Today;
+        DateTime? from = null, before = null;
+        switch (DateIndex)
+        {
+            case 1: from = today; before = today.AddDays(1); break;
+            case 2: from = today.AddDays(-6); before = today.AddDays(1); break;
+            case 3: before = today.AddDays(-((int)today.DayOfWeek + 6) % 7); from = before.Value.AddDays(-7); break;
+            case 4: from = new DateTime(today.Year, today.Month, 1); before = from.Value.AddMonths(1); break;
         }
-
-        _navigation.Navigate(NavigationRoute.Document, DocumentPath.Trim());
+        return new FileSearchRequest(SearchText.Trim())
+        {
+            Location = location, FolderPath = LocationIndex == 7 ? FolderPath.Trim() : null,
+            Extension = string.IsNullOrWhiteSpace(Extension) ? null : Extension.Trim(), IncludeSubfolders = IncludeSubfolders,
+            From = from is { } start ? new DateTimeOffset(start).ToUniversalTime() : null,
+            Before = before is { } end ? new DateTimeOffset(end).ToUniversalTime() : null,
+            DateField = DateFieldIndex == 1 ? FileSearchDateField.Modified : DateFieldIndex == 2 ? FileSearchDateField.Created : null,
+            MinimumSize = SizeIndex == 2 ? 1048576 : SizeIndex == 3 ? 10485761 : null,
+            MaximumSize = SizeIndex == 1 ? 1048575 : SizeIndex == 2 ? 10485760 : null,
+        };
     }
-
     [RelayCommand]
-    private void IndexFolder()
+    private void CancelSearch() => _current?.Cancel();
+    public void Deactivate()
     {
+        _current?.Cancel();
+        foreach (var row in Results) row.ClosePreviewCommand.Execute(null);
     }
+    [RelayCommand(CanExecute = nameof(HasDocumentPath))]
+    private void OpenDocument() => _navigation.Navigate(NavigationRoute.Document, DocumentPath.Trim());
 }

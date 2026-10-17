@@ -12,6 +12,7 @@ public sealed partial class FilesPage : Page
         ViewModel = viewModel;
         DataContext = viewModel;
         InitializeComponent();
+        Unloaded += (_, _) => ViewModel.Deactivate();
     }
 
     public FilesViewModel ViewModel { get; }

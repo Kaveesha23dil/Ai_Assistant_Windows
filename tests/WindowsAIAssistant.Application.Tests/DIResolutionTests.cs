@@ -57,10 +57,10 @@ public sealed class DIResolutionTests
 
     // AI now resolves to the coordinator, which is what every caller should be talking to. The
     // offline provider is one of the candidates behind it rather than the service itself, and
-    // file search is still the development one: no real provider has been built yet.
+    // file search resolves to the real local filesystem provider.
     Assert.IsType<AIService>(provider.GetRequiredService<IAIService>());
     Assert.Contains(provider.GetServices<IAIProvider>(), candidate => candidate.ProviderType == AIProviderType.Mock);
-    Assert.IsType<MockFileSearchService>(provider.GetRequiredService<IFileSearchService>());
+    Assert.IsType<WindowsAIAssistant.Infrastructure.Files.LocalFileSearchService>(provider.GetRequiredService<IFileSearchService>());
         Assert.IsType<InMemorySettingsStorage>(provider.GetRequiredService<ISettingsStorage>());
 
         Assert.NotNull(provider.GetRequiredService<IConversationService>());
