@@ -6,6 +6,10 @@ using WindowsAIAssistant.Core.Abstractions.Navigation;
 using WindowsAIAssistant.Core.Abstractions.Voice;
 using WindowsAIAssistant.Core.Enums;
 using WindowsAIAssistant.Infrastructure.Configuration.Options;
+using System.Collections.ObjectModel;
+using Microsoft.UI.Xaml;
+using WindowsAIAssistant.Core.Abstractions.Agents;
+using WindowsAIAssistant.Core.Models.Agents;
 
 namespace WindowsAIAssistant.App.ViewModels;
 
@@ -24,6 +28,7 @@ public sealed record HomeQuickAction(string Title, string Description, string Gl
 public sealed partial class HomeViewModel : VoiceInteractionViewModel
 {
     private readonly INavigationService _navigation;
+    private readonly IAgentActivityStore? _activities;
 
     [ObservableProperty]
     public partial string DraftText { get; set; } = string.Empty;
@@ -32,7 +37,8 @@ public sealed partial class HomeViewModel : VoiceInteractionViewModel
         IOptions<AIOptions> aiOptions,
         IOptions<PrivacyOptions> privacyOptions,
         INavigationService navigation,
-        IVoiceAssistantService voice)
+        IVoiceAssistantService voice,
+        IAgentActivityStore? activities = null)
         : base(voice)
     {
         ArgumentNullException.ThrowIfNull(aiOptions);
@@ -40,6 +46,7 @@ public sealed partial class HomeViewModel : VoiceInteractionViewModel
         ArgumentNullException.ThrowIfNull(navigation);
 
         _navigation = navigation;
+        _activities = activities;
 
         AiProvider = aiOptions.Value.Provider;
         PrivacyMode = privacyOptions.Value.AllowCloudAI ? "Cloud-enabled" : "Local-first";
@@ -50,8 +57,6 @@ public sealed partial class HomeViewModel : VoiceInteractionViewModel
             new("Find a file", "Search your folders by name, type, or date.", "\uE721", SearchFilesCommand),
             new("Read a document", "Get a summary or ask a focused question.", "\uE8A5", OpenDocumentsCommand),
             new("Your knowledge", "Find answers across your document library.", "\uE8F1", OpenKnowledgeCommand),
-            new("Plan a task", "Follow your assistant's work, step by step.", "\uE7C1", OpenAgentCommand),
-            new("Build a routine", "Schedule folder summaries and reminders.", "\uE787", OpenAutomationsCommand),
         ];
     }
 
@@ -59,6 +64,22 @@ public sealed partial class HomeViewModel : VoiceInteractionViewModel
 
     public string WelcomeMessage => "A little less busywork. A little more possibility.";
     public IReadOnlyList<HomeQuickAction> QuickActions { get; }
+    public ObservableCollection<AgentActivity> RecentActivity { get; } = [];
+    [ObservableProperty] public partial string ActivityMessage { get; set; } = "No agent activity yet. Your tasks will appear here.";
+    public Visibility ActivityEmptyVisibility => RecentActivity.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+    public async Task RefreshActivityAsync()
+    {
+        if (_activities is null) return;
+        try
+        {
+            var recent = await _activities.GetRecentAsync(3);
+            RecentActivity.Clear();
+            foreach (var activity in recent) RecentActivity.Add(activity);
+        }
+        catch (Exception) { ActivityMessage = "Recent activity is unavailable. Open the Agent workspace to try again."; }
+        OnPropertyChanged(nameof(ActivityEmptyVisibility));
+    }
 
     [RelayCommand]
     private void OpenDocuments() => _navigation.Navigate(NavigationRoute.Document);
