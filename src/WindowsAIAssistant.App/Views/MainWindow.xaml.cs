@@ -35,8 +35,8 @@ namespace WindowsAIAssistant.App.Views;
 /// </summary>
 public sealed partial class MainWindow : Window
 {
-    private const int DefaultWindowWidth = 1200;
-    private const int DefaultWindowHeight = 800;
+    private const int DefaultWindowWidth = 1440;
+    private const int DefaultWindowHeight = 960;
 
     private readonly INavigationService _navigation;
     private readonly ILogger<MainWindow> _logger;
@@ -44,6 +44,31 @@ public sealed partial class MainWindow : Window
     private readonly WindowCaptureHost _captureHost;
     private bool _isSelectionSynchronizing;
     private bool _backHandled;
+
+    private async void OnWorkspaceSearchClick(object sender, RoutedEventArgs args) => await SearchWorkspaceAsync();
+    private async void OnWorkspaceSearchInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = true;
+        await SearchWorkspaceAsync();
+    }
+    private void OnSearchFocusInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        WorkspaceSearchBox.Focus(FocusState.Keyboard);
+        args.Handled = true;
+    }
+    private async Task SearchWorkspaceAsync()
+    {
+        var query = WorkspaceSearchBox.Text.Trim();
+        if (!_navigation.Navigate(NavigationRoute.Files) || ContentFrame.Content is not Pages.FilesPage page || string.IsNullOrWhiteSpace(query)) return;
+        var model = page.ViewModel;
+        if (model.SearchCommand.ExecutionTask is { IsCompleted: false } pending)
+        {
+            model.CancelSearchCommand.Execute(null);
+            await pending;
+        }
+        model.SearchText = query;
+        await model.SearchCommand.ExecuteAsync(null);
+    }
 
     public void ShowAutomationNotification(WindowsAIAssistant.Core.Models.Automations.Automation automation)
     {
@@ -176,7 +201,11 @@ public sealed partial class MainWindow : Window
         {
             var handle = WindowNative.GetWindowHandle(this);
             var appWindow = AppWindow.GetFromWindowId(Win32Interop.GetWindowIdFromWindow(handle));
-            appWindow?.Resize(new SizeInt32(DefaultWindowWidth, DefaultWindowHeight));
+            if (appWindow is not null)
+            {
+                var area = DisplayArea.GetFromWindowId(appWindow.Id, DisplayAreaFallback.Primary).WorkArea;
+                appWindow.Resize(new SizeInt32(Math.Min(DefaultWindowWidth, Math.Max(320, area.Width - 40)), Math.Min(DefaultWindowHeight, Math.Max(320, area.Height - 40))));
+            }
         }
         catch (Exception exception)
         {

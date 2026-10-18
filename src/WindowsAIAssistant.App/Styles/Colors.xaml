@@ -1,6 +1,11 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ResourceDictionary.ThemeDictionaries>
-        <ResourceDictionary x:Key="Light">
+        <ResourceDictionary x:Key="Light"><SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#235950DE" /><SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#7160EF" />
+            <LinearGradientBrush x:Key="AppHeroBackgroundBrush" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#F2EFFF" Offset="0" /><GradientStop Color="#DCE5FF" Offset="0.65" /><GradientStop Color="#E6D9FF" Offset="1" /></LinearGradientBrush>
+            <LinearGradientBrush x:Key="AppGlassBrush" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#FFFFFF" Offset="0" /><GradientStop Color="#EDF0FC" Offset="1" /></LinearGradientBrush>
+            <LinearGradientBrush x:Key="AppPrimaryButtonBrush" StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#9D88FF" Offset="0" /><GradientStop Color="#7164EC" Offset="1" /></LinearGradientBrush>
+            <SolidColorBrush x:Key="AppPrimaryForegroundBrush" Color="#11142B" />
+            <x:Double x:Key="AppArtworkOpacity">0.48</x:Double>
             <SolidColorBrush x:Key="AppCanvasBrush" Color="#F4F6FB" />
             <SolidColorBrush x:Key="AppSurfaceBrush" Color="#FFFFFF" />
             <SolidColorBrush x:Key="AppStrokeBrush" Color="#E2E7F0" />
@@ -8,15 +13,25 @@
             <SolidColorBrush x:Key="AppAccentBrush" Color="#5046D9" />
             <SolidColorBrush x:Key="AppMutedSurfaceBrush" Color="#E9EDF7" />
         </ResourceDictionary>
-        <ResourceDictionary x:Key="Default">
-            <SolidColorBrush x:Key="AppCanvasBrush" Color="#10131D" />
-            <SolidColorBrush x:Key="AppSurfaceBrush" Color="#1A1F2E" />
-            <SolidColorBrush x:Key="AppStrokeBrush" Color="#30384B" />
-            <SolidColorBrush x:Key="AppHeroBrush" Color="#252A48" />
-            <SolidColorBrush x:Key="AppAccentBrush" Color="#B3ACFF" />
-            <SolidColorBrush x:Key="AppMutedSurfaceBrush" Color="#242C3E" />
+        <ResourceDictionary x:Key="Default"><SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="#554F47B5" /><SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#A998FF" />
+            <LinearGradientBrush x:Key="AppHeroBackgroundBrush" StartPoint="0,0.3" EndPoint="1,0.8"><GradientStop Color="#15192F" Offset="0" /><GradientStop Color="#161D49" Offset="0.5" /><GradientStop Color="#3C276A" Offset="1" /></LinearGradientBrush>
+            <LinearGradientBrush x:Key="AppGlassBrush" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#D9222945" Offset="0" /><GradientStop Color="#B3131A30" Offset="1" /></LinearGradientBrush>
+            <LinearGradientBrush x:Key="AppPrimaryButtonBrush" StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#AE96FF" Offset="0" /><GradientStop Color="#7771FF" Offset="1" /></LinearGradientBrush>
+            <SolidColorBrush x:Key="AppPrimaryForegroundBrush" Color="#0D1025" />
+            <x:Double x:Key="AppArtworkOpacity">0.9</x:Double>
+            <SolidColorBrush x:Key="AppCanvasBrush" Color="#0B1022" />
+            <SolidColorBrush x:Key="AppSurfaceBrush" Color="#D9172038" />
+            <SolidColorBrush x:Key="AppStrokeBrush" Color="#424C7E" />
+            <SolidColorBrush x:Key="AppHeroBrush" Color="#282552" />
+            <SolidColorBrush x:Key="AppAccentBrush" Color="#B8A6FF" />
+            <SolidColorBrush x:Key="AppMutedSurfaceBrush" Color="#111B34" />
         </ResourceDictionary>
-        <ResourceDictionary x:Key="HighContrast">
+        <ResourceDictionary x:Key="HighContrast"><SolidColorBrush x:Key="NavigationViewItemBackgroundSelected" Color="{ThemeResource SystemColorHighlightColor}" /><SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="{ThemeResource SystemColorHighlightTextColor}" />
+            <SolidColorBrush x:Key="AppHeroBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="AppGlassBrush" Color="{ThemeResource SystemColorWindowColor}" />
+            <SolidColorBrush x:Key="AppPrimaryButtonBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+            <SolidColorBrush x:Key="AppPrimaryForegroundBrush" Color="{ThemeResource SystemColorHighlightTextColor}" />
+            <x:Double x:Key="AppArtworkOpacity">0</x:Double>
             <SolidColorBrush x:Key="AppCanvasBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="AppSurfaceBrush" Color="{ThemeResource SystemColorWindowColor}" />
             <SolidColorBrush x:Key="AppStrokeBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
@@ -31,7 +46,7 @@
     <x:Double x:Key="AppSpaceLarge">16</x:Double>
     <x:Double x:Key="AppSpaceXLarge">24</x:Double>
     <x:Double x:Key="AppSpaceXXLarge">32</x:Double>
-    <x:Double x:Key="AppPageTitleFontSize">32</x:Double>
+    <x:Double x:Key="AppPageTitleFontSize">38</x:Double>
     <x:Double x:Key="AppSectionTitleFontSize">22</x:Double>
     <CornerRadius x:Key="AppCardCornerRadius">16</CornerRadius>
     <x:Double x:Key="AppQuickActionWidth">180</x:Double>

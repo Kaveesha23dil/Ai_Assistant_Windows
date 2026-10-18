@@ -3,12 +3,12 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-        Shared control styles. Cards stay deliberately light: a system fill, a hairline stroke
-        and generous padding instead of shadows or gradients.
+        Shared control styles. Cards share a translucent surface, a hairline stroke
+        and consistent spacing across the workspace.
     -->
 
     <Style x:Key="AppSurfaceCardStyle" TargetType="Border">
-        <Setter Property="Background" Value="{ThemeResource AppSurfaceBrush}" />
+        <Setter Property="Background" Value="{ThemeResource AppGlassBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource AppStrokeBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource AppCardCornerRadius}" />
@@ -22,10 +22,10 @@
 
     <Style x:Key="AppQuickActionButtonStyle" TargetType="Button">
         <Setter Property="MinWidth" Value="{StaticResource AppQuickActionWidth}" />
-        <Setter Property="MinHeight" Value="136" />
+        <Setter Property="MinHeight" Value="112" />
         <Setter Property="Padding" Value="16" />
         <Setter Property="CornerRadius" Value="{StaticResource AppCardCornerRadius}" />
-        <Setter Property="Background" Value="{ThemeResource AppSurfaceBrush}" />
+        <Setter Property="Background" Value="{ThemeResource AppGlassBrush}" />
         <Setter Property="BorderBrush" Value="{ThemeResource AppStrokeBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
@@ -92,6 +92,7 @@
         <Setter Property="HorizontalAlignment" Value="Stretch" />
     </Style>
     <Style x:Key="AppPrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource AccentButtonStyle}">
+<Setter Property="Background" Value="{ThemeResource AppPrimaryButtonBrush}" /><Setter Property="Foreground" Value="{ThemeResource AppPrimaryForegroundBrush}" />
         <Setter Property="CornerRadius" Value="10" />
         <Setter Property="MinHeight" Value="40" />
         <Setter Property="Padding" Value="20,10" />
