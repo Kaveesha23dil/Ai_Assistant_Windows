@@ -44,8 +44,8 @@
                                 Width="336"
                                 Margin="0,0,16,16"
                                 Padding="20"
-                                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                                Background="{ThemeResource AppSurfaceBrush}"
+                                BorderBrush="{ThemeResource AppStrokeBrush}"
                                 BorderThickness="1"
                                 CornerRadius="{StaticResource AppCardCornerRadius}"
                                 Opacity="{x:Bind CardOpacity}">
@@ -75,7 +75,7 @@
                                         Command="{x:Bind Run}"
                                         Content="Run"
                                         IsEnabled="{x:Bind IsAvailable}"
-                                        Style="{StaticResource AccentButtonStyle}" />
+                                        Style="{StaticResource AppPrimaryButtonStyle}" />
                                 </StackPanel>
                             </Border>
                         </DataTemplate>
@@ -99,7 +99,7 @@
                         AutomationProperties.Name="Run"
                         Command="{x:Bind ViewModel.RunCommand}"
                         Content="Run"
-                        Style="{StaticResource AccentButtonStyle}" />
+                        Style="{StaticResource AppPrimaryButtonStyle}" />
                 </Grid>
                 <TextBlock
                     Style="{StaticResource AppCaptionTextBlockStyle}"
@@ -145,7 +145,7 @@
                  about is still on screen while it is being answered. -->
             <Border
                 Padding="20"
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                Background="{ThemeResource AppSurfaceBrush}"
                 BorderBrush="{ThemeResource AccentControlBorderBrush}"
                 BorderThickness="2"
                 CornerRadius="{StaticResource AppCardCornerRadius}"
@@ -167,7 +167,7 @@
                             AutomationProperties.Name="Approve"
                             Command="{x:Bind ViewModel.ApproveCommand}"
                             Content="Go ahead"
-                            Style="{StaticResource AccentButtonStyle}" />
+                            Style="{StaticResource AppPrimaryButtonStyle}" />
                         <Button
                             AutomationProperties.Name="Refuse"
                             Command="{x:Bind ViewModel.RejectCommand}"

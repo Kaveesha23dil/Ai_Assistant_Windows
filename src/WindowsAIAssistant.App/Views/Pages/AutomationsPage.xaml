@@ -18,7 +18,7 @@
                         <DatePicker Header="First date" Date="{x:Bind ViewModel.StartDate, Mode=TwoWay}" />
                         <TimePicker Header="Time" Time="{x:Bind ViewModel.StartTime, Mode=TwoWay}" />
                     </StackPanel>
-                    <Button Content="Create schedule" Command="{x:Bind ViewModel.CreateAutomationCommand}" Style="{StaticResource AccentButtonStyle}" />
+                    <Button Content="Create schedule" Command="{x:Bind ViewModel.CreateAutomationCommand}" Style="{StaticResource AppPrimaryButtonStyle}" />
                 </StackPanel>
             </Border>
             <TextBlock Text="{x:Bind ViewModel.Message, Mode=OneWay}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />

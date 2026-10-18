@@ -10,6 +10,8 @@
             <Border Style="{StaticResource AppSurfaceCardStyle}" Padding="16">
                 <StackPanel Spacing="12">
                     <TextBox Header="Search file names" MaxLength="1000" AutomationProperties.Name="Search local files" PlaceholderText="{x:Bind ViewModel.PlaceholderText}" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Expander Header="Filters: location, type, date, and size" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                        <StackPanel Spacing="12">
                     <ComboBox Header="Location" ItemsSource="{x:Bind ViewModel.LocationChoices}" SelectedIndex="{x:Bind ViewModel.LocationIndex, Mode=TwoWay}" />
                     <TextBox Header="Custom folder (choose Custom folder above)" PlaceholderText="Full folder path" Text="{x:Bind ViewModel.FolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBox Header="File extension (optional)" MaxLength="30" PlaceholderText="For example .pdf or docx" Text="{x:Bind ViewModel.Extension, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
@@ -18,8 +20,10 @@
                     <ComboBox Header="Size" ItemsSource="{x:Bind ViewModel.SizeChoices}" SelectedIndex="{x:Bind ViewModel.SizeIndex, Mode=TwoWay}" />
                     <CheckBox Content="Include subfolders" IsChecked="{x:Bind ViewModel.IncludeSubfolders, Mode=TwoWay}" />
                     <TextBlock Text="Searches names and metadata, not document contents. Last week means the previous Monday-Sunday. Downloaded uses file creation time, which may change when files are copied. Explicit filters override words in the query. Linked and system entries are skipped." TextWrapping="Wrap" Style="{StaticResource AppCaptionTextBlockStyle}" />
+                    </StackPanel>
+                    </Expander>
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button Content="Search Files" Command="{x:Bind ViewModel.SearchCommand}" Style="{StaticResource AccentButtonStyle}" />
+                        <Button Content="Search Files" Command="{x:Bind ViewModel.SearchCommand}" Style="{StaticResource AppPrimaryButtonStyle}" />
                         <Button Content="Cancel search" Command="{x:Bind ViewModel.CancelSearchCommand}" />
                         <ProgressRing Width="24" Height="24" IsActive="{x:Bind ViewModel.IsSearching, Mode=OneWay}" Visibility="{x:Bind ViewModel.SearchingVisibility, Mode=OneWay}" />
                     </StackPanel>

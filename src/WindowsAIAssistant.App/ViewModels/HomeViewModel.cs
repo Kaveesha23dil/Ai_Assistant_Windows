@@ -9,6 +9,8 @@ using WindowsAIAssistant.Infrastructure.Configuration.Options;
 
 namespace WindowsAIAssistant.App.ViewModels;
 
+public sealed record HomeQuickAction(string Title, string Description, string Glyph, IRelayCommand Command);
+
 /// <summary>
 /// Landing page state. Values shown here are derived from configuration where possible and
 /// never contain machine or account details.
@@ -42,11 +44,28 @@ public sealed partial class HomeViewModel : VoiceInteractionViewModel
         AiProvider = aiOptions.Value.Provider;
         PrivacyMode = privacyOptions.Value.AllowCloudAI ? "Cloud-enabled" : "Local-first";
         Greeting = BuildGreeting(DateTime.Now);
+        QuickActions =
+        [
+            new("Start a conversation", "Think, write, and explore ideas with AI.", "\uE8F2", AskAiCommand),
+            new("Find a file", "Search your folders by name, type, or date.", "\uE721", SearchFilesCommand),
+            new("Read a document", "Get a summary or ask a focused question.", "\uE8A5", OpenDocumentsCommand),
+            new("Your knowledge", "Find answers across your document library.", "\uE8F1", OpenKnowledgeCommand),
+            new("Plan a task", "Follow your assistant's work, step by step.", "\uE7C1", OpenAgentCommand),
+            new("Build a routine", "Schedule folder summaries and reminders.", "\uE787", OpenAutomationsCommand),
+        ];
     }
 
     public string Greeting { get; }
 
-    public string WelcomeMessage => "Windows AI Assistant is ready. Features are being enabled step by step.";
+    public string WelcomeMessage => "A little less busywork. A little more possibility.";
+    public IReadOnlyList<HomeQuickAction> QuickActions { get; }
+
+    [RelayCommand]
+    private void OpenDocuments() => _navigation.Navigate(NavigationRoute.Document);
+    [RelayCommand]
+    private void OpenKnowledge() => _navigation.Navigate(NavigationRoute.Knowledge);
+    [RelayCommand]
+    private void OpenAgent() => _navigation.Navigate(NavigationRoute.Agent);
 
     public string AiProvider { get; }
 

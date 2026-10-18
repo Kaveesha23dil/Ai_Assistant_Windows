@@ -14,9 +14,9 @@
         IsPaneToggleButtonVisible="False"
         IsPaneOpen="{Binding IsNavigationPaneOpen, Mode=TwoWay}"
         IsSettingsVisible="False"
-        OpenPaneLength="260"
-        PaneDisplayMode="Left"
-        SelectionChanged="OnNavigationSelectionChanged">
+        OpenPaneLength="240" CompactPaneLength="64" ExpandedModeThresholdWidth="900" CompactModeThresholdWidth="640"
+        PaneDisplayMode="Auto"
+        Background="{ThemeResource AppMutedSurfaceBrush}" SelectionChanged="OnNavigationSelectionChanged">
 
         <!--
           Alt+Left is registered here as well as on the navigation view itself. The guard in the
@@ -31,31 +31,15 @@
         </NavigationView.KeyboardAccelerators>
 
         <NavigationView.PaneHeader>
-            <Grid
-                Margin="16,12,16,16"
-                ColumnSpacing="12"
-                RowSpacing="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Border
-                    Width="32"
-                    Height="32"
-                    Background="{ThemeResource AccentFillColorDefaultBrush}"
-                    CornerRadius="8">
-                    <SymbolIcon
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                        Symbol="Home" />
+            <Grid Margin="12,16,12,24" ColumnSpacing="12">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <Border Width="40" Height="40" CornerRadius="12" Background="{ThemeResource AppHeroBrush}">
+                    <FontIcon Glyph="&#xE945;" FontSize="22" Foreground="{ThemeResource AppAccentBrush}" />
                 </Border>
-                <TextBlock
-                    Grid.Column="1"
-                    VerticalAlignment="Center"
-                    Style="{StaticResource AppCardTitleTextBlockStyle}"
-                    Text="{Binding ApplicationTitle}"
-                    TextTrimming="CharacterEllipsis" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                    <TextBlock Text="Windows AI" FontSize="17" FontWeight="SemiBold" />
+                    <TextBlock Text="PERSONAL ASSISTANT" FontSize="9" CharacterSpacing="120" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
             </Grid>
         </NavigationView.PaneHeader>
 
@@ -64,7 +48,7 @@
           wording change cannot break routing and a translation can happen without touching code.
           The names match the NavigationRoute values and are read by the shared parser.
         -->
-        <NavigationView.MenuItems>
+        <NavigationView.MenuItems><NavigationViewItemHeader Content="WORKSPACE" />
             <NavigationViewItem
                 AutomationProperties.Name="Home"
                 Content="Home"
@@ -142,9 +126,9 @@
             </NavigationViewItem>
         </NavigationView.FooterMenuItems>
 
-        <Grid Background="{ThemeResource LayerFillColorDefaultBrush}">
+        <Border Background="{ThemeResource AppCanvasBrush}" BorderBrush="{ThemeResource AppStrokeBrush}" BorderThickness="1,1,0,0" CornerRadius="20,0,0,0" Margin="0,8,0,0"><Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="48" />
+                <RowDefinition Height="56" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
@@ -161,7 +145,7 @@
                 <Button
                     Width="40"
                     Height="32"
-                    Margin="12,0,0,0"
+                    Margin="16,0,8,0"
                     AutomationProperties.Name="Toggle navigation pane"
                     Background="Transparent"
                     BorderThickness="0"
@@ -188,5 +172,6 @@
             </InfoBar>
             <Frame x:Name="ContentFrame" Grid.Row="2" />
         </Grid>
+        </Border>
     </NavigationView>
 </Window>
