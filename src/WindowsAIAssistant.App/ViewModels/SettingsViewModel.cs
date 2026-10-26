@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Options;
 using Microsoft.UI.Xaml;
 using WindowsAIAssistant.App.Services;
+using WindowsAIAssistant.Core.Abstractions.Launcher;
 using WindowsAIAssistant.Core.Enums;
 using WindowsAIAssistant.Core.Models;
 using WindowsAIAssistant.Core.Models.Launcher;
@@ -22,6 +23,7 @@ namespace WindowsAIAssistant.App.ViewModels;
 public sealed partial class SettingsViewModel : ObservableObject
 {
     private readonly UserSettingsService _userSettings;
+    private readonly IAssistantLauncherService _launcher;
     private readonly int _computerActionTimeoutSeconds;
     private readonly int _computerMaxActionsPerMinute;
     private readonly List<string> _computerTrustedApplications;
@@ -248,6 +250,20 @@ public sealed partial class SettingsViewModel : ObservableObject
         try
         {
             var result = await _userSettings.SaveAsync(ToUserSettings());
+            if (result.IsSuccess && result.SuccessMessage is null)
+            {
+                var hotkey = await _launcher.StartAsync();
+                if (hotkey.IsFailure)
+                {
+                    var active = _launcher.ActiveHotkey;
+                    SaveStatus = hotkey.ErrorMessage
+                        + (string.IsNullOrWhiteSpace(active)
+                            ? " Settings were saved, but no launcher shortcut is active."
+                            : $" Settings were saved. {active} is still the active shortcut.");
+                    return;
+                }
+            }
+
             SaveStatus = result.ErrorMessage
                 ?? result.SuccessMessage
                 ?? $"Saved to {_userSettings.Location}.";
@@ -352,7 +368,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         IOptionsMonitor<VoiceOptions> voiceOptions,
         IOptionsMonitor<ComputerControlOptions> computerOptions,
         IOptionsMonitor<LauncherOptions> launcherOptions,
-        UserSettingsService userSettings)
+        UserSettingsService userSettings,
+        IAssistantLauncherService launcher)
     {
         ArgumentNullException.ThrowIfNull(aiOptions);
         ArgumentNullException.ThrowIfNull(featureOptions);
@@ -362,8 +379,10 @@ public sealed partial class SettingsViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(computerOptions);
         ArgumentNullException.ThrowIfNull(launcherOptions);
         ArgumentNullException.ThrowIfNull(userSettings);
+        ArgumentNullException.ThrowIfNull(launcher);
 
         _userSettings = userSettings;
+        _launcher = launcher;
 
         ApiKeyVariableName = aiOptions.CurrentValue.ApiKeyEnvironmentVariable;
         AiModelText = aiOptions.CurrentValue.Model ?? string.Empty;
@@ -382,10 +401,10 @@ public sealed partial class SettingsViewModel : ObservableObject
         IsTelemetryEnabled = privacyOptions.CurrentValue.AllowTelemetry;
         IsSystemTrayIconEnabled = uiOptions.CurrentValue.ShowSystemTrayIcon;
 
-        var launcher = launcherOptions.CurrentValue;
-        IsLauncherEnabled = launcher.Enabled;
-        LauncherHotkeyText = launcher.Hotkey;
-        RememberLauncherRecentItems = launcher.RememberRecentItems;
+        var launcherSettings = launcherOptions.CurrentValue;
+        IsLauncherEnabled = launcherSettings.Enabled;
+        LauncherHotkeyText = launcherSettings.Hotkey;
+        RememberLauncherRecentItems = launcherSettings.RememberRecentItems;
 
         var voice = voiceOptions.CurrentValue;
         var privacy = privacyOptions.CurrentValue;
