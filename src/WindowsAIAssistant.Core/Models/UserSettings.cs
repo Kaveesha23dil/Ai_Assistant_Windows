@@ -25,6 +25,8 @@ public sealed class UserSettings
     public FeatureSettings Features { get; set; } = new();
 
     public AISettings AI { get; set; } = new();
+
+    public ComputerControlSettings ComputerControl { get; set; } = new();
 }
 
 /// <summary>

@@ -121,6 +121,7 @@ public static class DependencyInjection
         services.AddTransient<ITool, DocumentAnalysisTool>();
         services.AddTransient<ITool, ScreenAnalysisTool>();
         services.AddTransient<ITool, ReportGenerationTool>();
+        services.AddTransient<ITool, ComputerControlTool>();
 
         services.TryAddSingleton<IAgentMemoryStore, InMemoryAgentMemoryStore>();
         services.TryAddSingleton<IAgentActivityStore, InMemoryAgentActivityStore>();

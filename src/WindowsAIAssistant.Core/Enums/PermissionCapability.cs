@@ -133,5 +133,17 @@ public enum PermissionCapability
     /// again or keep it, which is a separate decision taken at a separate moment.
     /// </para>
     /// </summary>
-    ScreenshotHistory
+    ScreenshotHistory,
+
+    ComputerControl,
+
+    ComputerApplicationLaunch,
+
+    ComputerWindowControl,
+
+    ComputerKeyboardInput,
+
+    ComputerMouseInput,
+
+    ComputerFormSubmission
 }

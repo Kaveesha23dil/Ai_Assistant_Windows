@@ -257,4 +257,19 @@ public static class ErrorCodes
     /// failure to complete, and the sentence for it is different.
     /// </summary>
     public const string AgentPathRefused = "AGENT_PATH_REFUSED";
+
+    public const string ComputerControlDisabled = "COMPUTER_CONTROL_DISABLED";
+    public const string ComputerPermissionDenied = "COMPUTER_PERMISSION_DENIED";
+    public const string ComputerApprovalRequired = "COMPUTER_APPROVAL_REQUIRED";
+    public const string ComputerActionFailed = "COMPUTER_ACTION_FAILED";
+    public const string ComputerActionTimeout = "COMPUTER_ACTION_TIMEOUT";
+    public const string ComputerTargetNotFound = "COMPUTER_TARGET_NOT_FOUND";
+    public const string ComputerUnsafeAction = "COMPUTER_UNSAFE_ACTION";
+    public const string ComputerBusy = "COMPUTER_BUSY";
+    public const string ComputerCancelled = "COMPUTER_CANCELLED";
+    public const string ComputerCoordinateClickRefused = "COMPUTER_COORDINATE_CLICK_REFUSED";
+    public const string ComputerVerificationFailed = "COMPUTER_VERIFICATION_FAILED";
+    public const string ComputerWrongActiveWindow = "COMPUTER_WRONG_ACTIVE_WINDOW";
+    public const string ComputerRateLimited = "COMPUTER_RATE_LIMITED";
+    public const string ComputerTerminalDisabled = "COMPUTER_TERMINAL_DISABLED";
 }
