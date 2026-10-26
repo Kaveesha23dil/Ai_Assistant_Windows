@@ -11,6 +11,7 @@ using WindowsAIAssistant.Core.Abstractions.Documents;
 using WindowsAIAssistant.Core.Abstractions.Embeddings;
 using WindowsAIAssistant.Core.Abstractions.Files;
 using WindowsAIAssistant.Core.Abstractions.Knowledge;
+using WindowsAIAssistant.Core.Abstractions.Launcher;
 using WindowsAIAssistant.Core.Abstractions.Reports;
 using WindowsAIAssistant.Core.Abstractions.Security;
 using WindowsAIAssistant.Core.Abstractions.Storage;
@@ -36,6 +37,8 @@ using WindowsAIAssistant.Infrastructure.Documents.Text;
 using WindowsAIAssistant.Infrastructure.Documents.Word;
 using WindowsAIAssistant.Infrastructure.Embeddings;
 using WindowsAIAssistant.Infrastructure.Knowledge;
+using WindowsAIAssistant.Infrastructure.Launcher;
+using WindowsAIAssistant.Infrastructure.Launcher.SearchProviders;
 using WindowsAIAssistant.Infrastructure.Reports;
 using WindowsAIAssistant.Infrastructure.Vision;
 using WindowsAIAssistant.Infrastructure.Vision.Capture;
@@ -68,6 +71,7 @@ public static class DependencyInjection
         services.AddApplicationConfiguration(configuration);
         services.AddUserSettings(userSettingsPath);
         services.AddWindowsServices();
+        services.AddLauncherServices(configuration);
         services.AddComputerServices(configuration);
         services.AddWebSearchProviders();
         services.AddVoiceServices();
@@ -265,7 +269,11 @@ public static class DependencyInjection
     {
         ArgumentNullException.ThrowIfNull(services);
 
-        services.AddSingleton<IApplicationResolver, ApplicationResolver>();
+        services.AddSingleton<ApplicationResolver>();
+        services.AddSingleton<IApplicationResolver>(provider =>
+            provider.GetRequiredService<ApplicationResolver>());
+        services.AddSingleton<IApplicationCatalog>(provider =>
+            provider.GetRequiredService<ApplicationResolver>());
         services.AddSingleton<IApplicationLauncherService, WindowsApplicationLauncherService>();
         services.AddSingleton<IWindowsSystemService, WindowsSystemService>();
         services.AddSingleton<IClipboardService, WindowsClipboardService>();
@@ -279,6 +287,36 @@ public static class DependencyInjection
         services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
 
         return;
+    }
+
+    /// <summary>
+    /// Registers the global shortcut, the launcher lifecycle, and the local search providers.
+    /// <para>
+    /// The shortcut service owns one message-only window on a dedicated STA thread because a
+    /// hotkey is a machine-wide resource: a second registration would fail, and the launcher has
+    /// to be able to tell the person which key is already taken. The providers are registered as
+    /// <see cref="IUniversalSearchProvider"/> so a new source is one line, and the interface
+    /// never learns which one produced a row.
+    /// </para>
+    /// </summary>
+    private static void AddLauncherServices(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        services.AddSingleton<IValidateOptions<LauncherOptions>, LauncherOptionsValidator>();
+        services.AddOptions<LauncherOptions>()
+            .Bind(configuration.GetSection(LauncherOptions.SectionName))
+            .ValidateOnStart();
+
+        services.AddSingleton<IUniversalSearchProvider, ApplicationSearchProvider>();
+        services.AddSingleton<IUniversalSearchProvider, FileSearchProvider>();
+        services.AddSingleton<IUniversalSearchProvider, KnowledgeSearchProvider>();
+
+        services.AddSingleton<IGlobalHotkeyService, WindowsGlobalHotkeyService>();
+        services.AddSingleton<IAssistantLauncherService, AssistantLauncherService>();
     }
 
     /// <summary>

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.UI.Xaml;
+using WindowsAIAssistant.App.Services.Launcher;
 using WindowsAIAssistant.App.Views;
 using WindowsAIAssistant.Application;
 using WindowsAIAssistant.Application.Common.Errors;
@@ -20,6 +21,7 @@ public partial class App : Microsoft.UI.Xaml.Application
     private readonly ILogger<App> _logger;
     private readonly IErrorHandler _errorHandler;
     private Window? _window;
+    private LauncherWindowHost? _launcherHost;
     private bool _hostStopped;
 
     public App()
@@ -56,9 +58,21 @@ public partial class App : Microsoft.UI.Xaml.Application
             await _host.StartAsync();
             _logger.LogInformation("Application started successfully.");
 
-            _window = _host.Services.GetRequiredService<MainWindow>();
+            var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+            _window = mainWindow;
             _window.Closed += (_, _) => _ = ShutdownHostAsync();
             _window.Activate();
+
+            // The launcher is started after the shell is on screen so a shortcut conflict can
+            // be explained in a dialog with a XamlRoot. A failure is never allowed to stop the
+            // application: the shell remains usable without the global shortcut.
+            _launcherHost = _host.Services.GetRequiredService<LauncherWindowHost>();
+            var launcherRegistration = await _launcherHost.StartAsync();
+            if (launcherRegistration.IsFailure)
+            {
+                await mainWindow.ShowLauncherShortcutErrorAsync(
+                    launcherRegistration.ErrorMessage ?? "The launcher shortcut is unavailable.");
+            }
         }
         catch (OptionsValidationException exception)
         {
@@ -93,6 +107,7 @@ public partial class App : Microsoft.UI.Xaml.Application
                 services.AddVoiceConfiguration();
                 services.AddDocumentConfiguration();
                 services.AddKnowledgeConfiguration();
+                services.AddLauncherConfiguration();
                 services.AddScreenVisionHosting();
                 services.AddAppShell();
             })
@@ -140,6 +155,11 @@ public partial class App : Microsoft.UI.Xaml.Application
 
         try
         {
+            if (_launcherHost is not null)
+            {
+                await _launcherHost.StopAsync();
+            }
+
             await _host.StopAsync();
         }
         catch (Exception exception)

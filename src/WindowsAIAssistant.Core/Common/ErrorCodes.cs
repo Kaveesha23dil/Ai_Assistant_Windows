@@ -272,4 +272,13 @@ public static class ErrorCodes
     public const string ComputerWrongActiveWindow = "COMPUTER_WRONG_ACTIVE_WINDOW";
     public const string ComputerRateLimited = "COMPUTER_RATE_LIMITED";
     public const string ComputerTerminalDisabled = "COMPUTER_TERMINAL_DISABLED";
+
+    // Launcher. A shortcut that Windows will not grant is a normal, actionable situation rather
+    // than a crash, and an expression the local calculator cannot read is not a failure of the
+    // launcher itself.
+    public const string LauncherHotkeyUnavailable = "LAUNCHER_HOTKEY_UNAVAILABLE";
+    public const string LauncherHotkeyInvalid = "LAUNCHER_HOTKEY_INVALID";
+    public const string LauncherCalculationInvalid = "LAUNCHER_CALCULATION_INVALID";
+    public const string LauncherSearchFailed = "LAUNCHER_SEARCH_FAILED";
+    public const string LauncherActionFailed = "LAUNCHER_ACTION_FAILED";
 }

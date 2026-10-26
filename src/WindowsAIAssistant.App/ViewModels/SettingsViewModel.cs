@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml;
 using WindowsAIAssistant.App.Services;
 using WindowsAIAssistant.Core.Enums;
 using WindowsAIAssistant.Core.Models;
+using WindowsAIAssistant.Core.Models.Launcher;
 using WindowsAIAssistant.Infrastructure.Configuration.Options;
 
 namespace WindowsAIAssistant.App.ViewModels;
@@ -177,6 +178,18 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     public partial bool IsStreamingEnabled { get; set; }
 
+    /// <summary>Gets or sets a value indicating whether the global launcher is enabled.</summary>
+    [ObservableProperty]
+    public partial bool IsLauncherEnabled { get; set; }
+
+    /// <summary>Gets or sets the global shortcut, for example <c>Alt+Space</c>.</summary>
+    [ObservableProperty]
+    public partial string LauncherHotkeyText { get; set; } = HotkeyGesture.Default.DisplayName;
+
+    /// <summary>Gets or sets a value indicating whether recent launcher choices are kept locally.</summary>
+    [ObservableProperty]
+    public partial bool RememberLauncherRecentItems { get; set; }
+
     /// <summary>Gets a value indicating whether a save is in progress.</summary>
     [ObservableProperty]
     public partial bool IsSaving { get; private set; }
@@ -219,6 +232,13 @@ public sealed partial class SettingsViewModel : ObservableObject
     {
         if (IsSaving)
         {
+            return;
+        }
+
+        if (IsLauncherEnabled
+            && !HotkeyGesture.TryParse(LauncherHotkeyText, out _, out var hotkeyError))
+        {
+            SaveStatus = $"Choose a launcher shortcut such as Alt+Space. {hotkeyError}";
             return;
         }
 
@@ -284,6 +304,12 @@ public sealed partial class SettingsViewModel : ObservableObject
             Model = AiModelText?.Trim() ?? string.Empty,
             UseStreaming = IsStreamingEnabled,
         },
+        Launcher = new LauncherSettings
+        {
+            Enabled = IsLauncherEnabled,
+            Hotkey = LauncherHotkeyText?.Trim() ?? HotkeyGesture.Default.DisplayName,
+            RememberRecentItems = RememberLauncherRecentItems,
+        },
         ComputerControl = new ComputerControlSettings
         {
             AllowComputerControl = IsComputerControlEnabled,
@@ -325,6 +351,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         IOptionsMonitor<UIOptions> uiOptions,
         IOptionsMonitor<VoiceOptions> voiceOptions,
         IOptionsMonitor<ComputerControlOptions> computerOptions,
+        IOptionsMonitor<LauncherOptions> launcherOptions,
         UserSettingsService userSettings)
     {
         ArgumentNullException.ThrowIfNull(aiOptions);
@@ -333,6 +360,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(uiOptions);
         ArgumentNullException.ThrowIfNull(voiceOptions);
         ArgumentNullException.ThrowIfNull(computerOptions);
+        ArgumentNullException.ThrowIfNull(launcherOptions);
         ArgumentNullException.ThrowIfNull(userSettings);
 
         _userSettings = userSettings;
@@ -353,6 +381,11 @@ public sealed partial class SettingsViewModel : ObservableObject
         IsConversationHistoryEnabled = privacyOptions.CurrentValue.StoreConversationHistory;
         IsTelemetryEnabled = privacyOptions.CurrentValue.AllowTelemetry;
         IsSystemTrayIconEnabled = uiOptions.CurrentValue.ShowSystemTrayIcon;
+
+        var launcher = launcherOptions.CurrentValue;
+        IsLauncherEnabled = launcher.Enabled;
+        LauncherHotkeyText = launcher.Hotkey;
+        RememberLauncherRecentItems = launcher.RememberRecentItems;
 
         var voice = voiceOptions.CurrentValue;
         var privacy = privacyOptions.CurrentValue;

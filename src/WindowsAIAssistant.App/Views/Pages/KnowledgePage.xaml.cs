@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Navigation;
+using WindowsAIAssistant.App.Services.Navigation;
+using NavigationEventArgs = Microsoft.UI.Xaml.Navigation.NavigationEventArgs;
 using WindowsAIAssistant.App.ViewModels;
 
 namespace WindowsAIAssistant.App.Views.Pages;
@@ -18,7 +19,7 @@ namespace WindowsAIAssistant.App.Views.Pages;
 /// shows what is there now rather than what was there when the application started.
 /// </para>
 /// </summary>
-public sealed partial class KnowledgePage : Page
+public sealed partial class KnowledgePage : Page, IParameterNavigationAware
 {
     public KnowledgePage(KnowledgeViewModel viewModel)
     {
@@ -39,12 +40,30 @@ public sealed partial class KnowledgePage : Page
         try
         {
             await ViewModel.LoadAsync(CancellationToken.None);
+
+            if (args.Parameter is string query && !string.IsNullOrWhiteSpace(query))
+            {
+                ViewModel.Question = query;
+                await ViewModel.SearchCommand.ExecuteAsync(null);
+            }
         }
         catch (Exception)
         {
             // The view model already turns a failure into a sentence on the page. Reaching here
             // means the page itself could not be shown, and there is nothing above it to show the
             // problem in, so it is left to the log rather than swallowed silently.
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task ApplyNavigationParameterAsync(
+        object parameter,
+        CancellationToken cancellationToken = default)
+    {
+        if (parameter is string query && !string.IsNullOrWhiteSpace(query))
+        {
+            ViewModel.Question = query;
+            await ViewModel.SearchCommand.ExecuteAsync(null);
         }
     }
 

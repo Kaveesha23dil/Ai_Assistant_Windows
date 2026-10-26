@@ -19,6 +19,7 @@ using WindowsAIAssistant.Application.Knowledge.Commands.ManageKnowledgeBase;
 using WindowsAIAssistant.Application.Knowledge.Commands.ManageKnowledgeDocuments;
 using WindowsAIAssistant.Application.Knowledge.Queries.AskKnowledgeQuestion;
 using WindowsAIAssistant.Application.Knowledge.Queries.GetKnowledgeOverview;
+using WindowsAIAssistant.Application.Launcher;
 using WindowsAIAssistant.Application.Navigation;
 using WindowsAIAssistant.Application.Settings.Commands.SaveUserSettings;
 using WindowsAIAssistant.Application.Settings.Commands.UpdateSetting;
@@ -46,6 +47,7 @@ using WindowsAIAssistant.Core.Abstractions.Agents;
 using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Core.Abstractions.Documents;
 using WindowsAIAssistant.Core.Abstractions.Knowledge;
+using WindowsAIAssistant.Core.Abstractions.Launcher;
 using WindowsAIAssistant.Core.Abstractions.Navigation;
 using WindowsAIAssistant.Core.Abstractions.Vision;
 using WindowsAIAssistant.Core.Abstractions.Voice;
@@ -83,6 +85,26 @@ public static class DependencyInjection
         services.AddVoiceAssistant();
 
         services.AddAgents();
+
+        services.AddAssistantLauncher();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the launcher's deterministic services. Search providers are supplied by
+    /// Infrastructure, so this layer stays constructible with no platform behind it.
+    /// </summary>
+    public static IServiceCollection AddAssistantLauncher(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.TryAddSingleton(new LauncherSearchPolicy());
+        services.TryAddSingleton<ILauncherIntentService, LauncherIntentService>();
+        services.TryAddSingleton<ICalculatorService, CalculatorService>();
+        services.TryAddSingleton<ICommandPaletteService, CommandPaletteService>();
+        services.TryAddSingleton<IUniversalSearchService, UniversalSearchService>();
+        services.TryAddSingleton<ILauncherSearchService, LauncherSearchService>();
 
         return services;
     }
