@@ -12,6 +12,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!--
+      Windows UI Automation. The WindowsDesktop framework supplies the two managed UI
+      Automation assemblies, and only this project is allowed to reference them: everything
+      above reaches the desktop through the Computer abstractions, so no layer above this one
+      can hold an AutomationElement or walk another application's visual tree.
+    -->
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />

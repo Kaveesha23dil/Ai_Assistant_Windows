@@ -566,6 +566,184 @@
             </StackPanel>
 
             <StackPanel Spacing="12">
+                <TextBlock Style="{StaticResource AppMutedHeadingTextBlockStyle}" Text="Computer control" />
+                <Border Style="{StaticResource AppSurfaceCardStyle}">
+                    <StackPanel Spacing="16">
+                        <TextBlock
+                            Style="{StaticResource AppCaptionTextBlockStyle}"
+                            Text="{x:Bind ViewModel.ComputerControlNotice, Mode=OneWay}" />
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Computer control" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Allow the assistant to operate another application's controls." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Computer control"
+                                IsOn="{x:Bind ViewModel.IsComputerControlEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Open applications" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Lets computer control start an allow-listed application." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Open applications with computer control"
+                                IsEnabled="{x:Bind ViewModel.IsComputerControlEnabled, Mode=OneWay}"
+                                IsOn="{x:Bind ViewModel.IsComputerApplicationLaunchEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Control windows" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Switch, minimize, maximize, restore, focus, and close a window." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Control windows"
+                                IsEnabled="{x:Bind ViewModel.IsComputerControlEnabled, Mode=OneWay}"
+                                IsOn="{x:Bind ViewModel.IsComputerWindowControlEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Type into applications" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Type text and press keys in the focused window." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Type into applications"
+                                IsEnabled="{x:Bind ViewModel.IsComputerControlEnabled, Mode=OneWay}"
+                                IsOn="{x:Bind ViewModel.IsComputerKeyboardInputEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Click and scroll" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Click, double-click, right-click, select, and scroll a control." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Click and scroll"
+                                IsEnabled="{x:Bind ViewModel.IsComputerControlEnabled, Mode=OneWay}"
+                                IsOn="{x:Bind ViewModel.IsComputerMouseInputEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Submit forms" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Allow an action that sends what was typed, such as pressing a submit button." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Submit forms"
+                                IsEnabled="{x:Bind ViewModel.IsComputerControlEnabled, Mode=OneWay}"
+                                IsOn="{x:Bind ViewModel.IsComputerFormSubmissionEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Safe mode" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Refuses typing, clicking, and closing windows. Leave this on unless you need it off." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Computer control safe mode"
+                                IsEnabled="{x:Bind ViewModel.IsComputerControlEnabled, Mode=OneWay}"
+                                IsOn="{x:Bind ViewModel.IsComputerSafeModeEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource AppCardTitleTextBlockStyle}"
+                                    Text="Confirm position clicks" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Ask before clicking a screen position rather than a named control." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Confirm position clicks"
+                                IsEnabled="{x:Bind ViewModel.IsComputerControlEnabled, Mode=OneWay}"
+                                IsOn="{x:Bind ViewModel.IsComputerCoordinateApprovalEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Spacing="12">
                 <TextBlock Style="{StaticResource AppMutedHeadingTextBlockStyle}" Text="Notifications" />
                 <Border Style="{StaticResource AppSurfaceCardStyle}">
                     <Grid Style="{StaticResource AppSectionRowStyle}">

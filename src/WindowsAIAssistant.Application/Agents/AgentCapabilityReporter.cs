@@ -142,6 +142,7 @@ public sealed class AgentCapabilityReporter : IAgentCapabilityReporter
         AgentCapability.ReportGeneration => PermissionCapability.FileWrite,
         AgentCapability.FileSearch => PermissionCapability.FileSearch,
         AgentCapability.DocumentAnalysis => PermissionCapability.DocumentCloudProcessing,
+        AgentCapability.ComputerControl => PermissionCapability.ComputerControl,
         _ => null,
     };
 
@@ -160,6 +161,7 @@ public sealed class AgentCapabilityReporter : IAgentCapabilityReporter
         AgentCapability.FileSearch => ["FileSearchTool"],
         AgentCapability.SystemInformation => ["SystemInformationTool"],
         AgentCapability.Calculation => ["CalculationTool"],
+        AgentCapability.ComputerControl => ["ComputerControlTool"],
 
         // Voice is not a tool the agent calls; it is a way a request arrives. Availability is
         // decided by the switches the voice pipeline itself honours.

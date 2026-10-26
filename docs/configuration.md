@@ -62,6 +62,7 @@ Neither file contains credentials.
 | `PrivacyOptions` | `Privacy` | Privacy-sensitive capability permissions |
 | `UIOptions` | `UI` | Theme and launch preferences for future UI behavior |
 | `VoiceOptions` | `Voice` | Speech, confidence, confirmation, and response-length behaviour |
+| `ComputerControlOptions` | `ComputerControl` | Desktop control consent, safe mode, limits, and application allow/block lists |
 
 All options are registered by `AddApplicationConfiguration` and validated on host startup. Settings that cannot change during a session are consumed with `IOptions<T>`. Anything that must notice a change made while the application is open, such as a privacy permission, uses `IOptionsMonitor<T>`, because a snapshot is worked out once and then reused for the rest of the process.
 
@@ -138,6 +139,29 @@ Each spoken capability maps onto one of these: voice input needs `AllowMicrophon
 A voice command is refused unless the matching capability is granted, so enabling `Voice` alone does not grant anything. Application launching and web search are on by default because they only ever act on an allow-listed name or a query the user spoke aloud, and both are still gated behind spoken confirmation.
 
 The settings screen exposes these switches, and saving writes them to the person's own settings file. They are read back through `IOptionsMonitor<PrivacyOptions>`, so turning a permission off takes effect in the running session without a restart.
+
+## Computer control defaults
+
+Computer control is a separate consent from system control and starts entirely off:
+
+| Setting | Default |
+|---|---|
+| `AllowComputerControl` | `false` |
+| `AllowApplicationLaunch` | `false` |
+| `AllowWindowControl` | `false` |
+| `AllowKeyboardInput` | `false` |
+| `AllowMouseInput` | `false` |
+| `AllowFormSubmission` | `false` |
+| `SafeMode` | `true` |
+| `RequireApprovalForCoordinateClicks` | `true` |
+| `ActionTimeoutSeconds` | `10` |
+| `MaxActionsPerMinute` | `30` |
+
+`SafeMode` allows launching, switching windows, reading an element, scrolling, and waiting. Typing, clicking, and closing a window are refused while it is on. Every action an agent proposes is also shown for approval before it runs, regardless of safe mode.
+
+`TrustedApplications` and `BlockedApplications` narrow which names computer control may launch. An empty trusted list allows any name that is not blocked; a populated one acts as an allow-list. `Permissions` maps an action name such as `Click` to `AlwaysAllow`, `AskEveryTime`, or `Blocked`, and overrides the risk-based default.
+
+The assistant never starts a terminal and never types by screen coordinates unless `RequireApprovalForCoordinateClicks` is satisfied by an explicit confirmation.
 
 ## Secrets
 

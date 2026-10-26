@@ -21,6 +21,11 @@ namespace WindowsAIAssistant.App.ViewModels;
 public sealed partial class SettingsViewModel : ObservableObject
 {
     private readonly UserSettingsService _userSettings;
+    private readonly int _computerActionTimeoutSeconds;
+    private readonly int _computerMaxActionsPerMinute;
+    private readonly List<string> _computerTrustedApplications;
+    private readonly List<string> _computerBlockedApplications;
+    private readonly Dictionary<string, ComputerPermissionLevel> _computerPermissions;
     private string _saveStatus = "Changes are not saved until you save them.";
 
     [ObservableProperty]
@@ -117,6 +122,38 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool IsWakeWordEnabled { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the assistant may operate another application's
+    /// controls. Off by default, and the master switch for every other computer-control choice.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsComputerControlEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsComputerApplicationLaunchEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsComputerWindowControlEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsComputerKeyboardInputEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsComputerMouseInputEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsComputerFormSubmissionEnabled { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether only launching, switching, reading, scrolling,
+    /// and waiting may run. A plan cannot turn this off for a step; only the person can.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool IsComputerSafeModeEnabled { get; set; }
+
+    [ObservableProperty]
+    public partial bool IsComputerCoordinateApprovalEnabled { get; set; }
 
     /// <summary>
     /// Gets or sets which provider is chosen. An index rather than a name, because the page
@@ -247,6 +284,24 @@ public sealed partial class SettingsViewModel : ObservableObject
             Model = AiModelText?.Trim() ?? string.Empty,
             UseStreaming = IsStreamingEnabled,
         },
+        ComputerControl = new ComputerControlSettings
+        {
+            AllowComputerControl = IsComputerControlEnabled,
+            AllowApplicationLaunch = IsComputerApplicationLaunchEnabled,
+            AllowWindowControl = IsComputerWindowControlEnabled,
+            AllowKeyboardInput = IsComputerKeyboardInputEnabled,
+            AllowMouseInput = IsComputerMouseInputEnabled,
+            AllowFormSubmission = IsComputerFormSubmissionEnabled,
+            SafeMode = IsComputerSafeModeEnabled,
+            RequireApprovalForCoordinateClicks = IsComputerCoordinateApprovalEnabled,
+            ActionTimeoutSeconds = _computerActionTimeoutSeconds,
+            MaxActionsPerMinute = _computerMaxActionsPerMinute,
+            TrustedApplications = [.. _computerTrustedApplications],
+            BlockedApplications = [.. _computerBlockedApplications],
+            Permissions = new Dictionary<string, ComputerPermissionLevel>(
+                _computerPermissions,
+                StringComparer.OrdinalIgnoreCase),
+        },
     };
 
     /// <param name="aiOptions">The AI options currently in effect.</param>
@@ -254,6 +309,7 @@ public sealed partial class SettingsViewModel : ObservableObject
     /// <param name="privacyOptions">The privacy options currently in effect.</param>
     /// <param name="uiOptions">The interface options currently in effect.</param>
     /// <param name="voiceOptions">The voice options currently in effect.</param>
+    /// <param name="computerOptions">The computer-control options currently in effect.</param>
     /// <param name="userSettings">The service that writes and applies a saved change.</param>
     /// <remarks>
     /// The options are monitors rather than snapshots on purpose. A snapshot is worked out once
@@ -268,6 +324,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         IOptionsMonitor<PrivacyOptions> privacyOptions,
         IOptionsMonitor<UIOptions> uiOptions,
         IOptionsMonitor<VoiceOptions> voiceOptions,
+        IOptionsMonitor<ComputerControlOptions> computerOptions,
         UserSettingsService userSettings)
     {
         ArgumentNullException.ThrowIfNull(aiOptions);
@@ -275,6 +332,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         ArgumentNullException.ThrowIfNull(privacyOptions);
         ArgumentNullException.ThrowIfNull(uiOptions);
         ArgumentNullException.ThrowIfNull(voiceOptions);
+        ArgumentNullException.ThrowIfNull(computerOptions);
         ArgumentNullException.ThrowIfNull(userSettings);
 
         _userSettings = userSettings;
@@ -310,6 +368,27 @@ public sealed partial class SettingsViewModel : ObservableObject
         IsCloudSpeechProcessingEnabled = privacy.AllowCloudSpeechProcessing;
         IsScreenCaptureEnabled = privacy.AllowScreenCapture;
         IsSystemControlEnabled = privacy.AllowSystemControl;
+
+        var computer = computerOptions.CurrentValue;
+
+        IsComputerControlEnabled = computer.AllowComputerControl;
+        IsComputerApplicationLaunchEnabled = computer.AllowApplicationLaunch;
+        IsComputerWindowControlEnabled = computer.AllowWindowControl;
+        IsComputerKeyboardInputEnabled = computer.AllowKeyboardInput;
+        IsComputerMouseInputEnabled = computer.AllowMouseInput;
+        IsComputerFormSubmissionEnabled = computer.AllowFormSubmission;
+        IsComputerSafeModeEnabled = computer.SafeMode;
+        IsComputerCoordinateApprovalEnabled = computer.RequireApprovalForCoordinateClicks;
+
+        // Kept so a save from this page cannot silently replace values it does not show with
+        // the defaults the page happened to be built with.
+        _computerActionTimeoutSeconds = computer.ActionTimeoutSeconds;
+        _computerMaxActionsPerMinute = computer.MaxActionsPerMinute;
+        _computerTrustedApplications = [.. computer.TrustedApplications];
+        _computerBlockedApplications = [.. computer.BlockedApplications];
+        _computerPermissions = new Dictionary<string, ComputerPermissionLevel>(
+            computer.Permissions,
+            StringComparer.OrdinalIgnoreCase);
 
         SelectedThemeIndex = ThemeOptions
             .ToList()
@@ -400,6 +479,12 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     public string VoiceNotice =>
         "The microphone is closed by default and only opens while you ask a question. Recognition runs on this device; cloud speech is off unless you allow it.";
+
+    public string ComputerControlNotice =>
+        "Computer control lets the assistant open an application and use its controls by name. "
+        + "It is off by default, every action is shown for your approval first, safe mode refuses "
+        + "destructive actions, and the Stop button ends a run. The assistant never opens a terminal "
+        + "or types by screen position unless you allow it separately.";
 
     /// <summary>
     /// Gets a value indicating whether the wake phrase can be armed. It cannot yet, because no

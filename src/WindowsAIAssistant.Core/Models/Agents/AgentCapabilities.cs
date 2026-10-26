@@ -89,6 +89,7 @@ public static class AgentCapabilities
         AgentCapabilityStatus.Available(AgentCapability.FileSearch),
         AgentCapabilityStatus.Available(AgentCapability.SystemInformation),
         AgentCapabilityStatus.Available(AgentCapability.Calculation),
+        AgentCapabilityStatus.Available(AgentCapability.ComputerControl),
     ];
 
     /// <summary>Finds one capability's default entry.</summary>
@@ -109,6 +110,7 @@ public static class AgentCapabilities
             AgentCapability.FileSearch => "File Search",
             AgentCapability.SystemInformation => "System Information",
             AgentCapability.Calculation => "Calculation",
+            AgentCapability.ComputerControl => "Computer Control",
             _ => "Unknown capability",
         };
     }
@@ -134,6 +136,8 @@ public static class AgentCapabilities
                 "Report what this computer is and how it is doing.",
             AgentCapability.Calculation =>
                 "Work out arithmetic exactly, without asking a model.",
+            AgentCapability.ComputerControl =>
+                "Open an application and use its controls by name, with your approval.",
             _ => string.Empty,
         };
     }

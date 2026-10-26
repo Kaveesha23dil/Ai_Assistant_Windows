@@ -5,6 +5,7 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using WindowsAIAssistant.Application.Agents;
 using WindowsAIAssistant.Core.Abstractions.Agents;
+using WindowsAIAssistant.Core.Abstractions.Computer;
 using WindowsAIAssistant.Core.Enums;
 using WindowsAIAssistant.Core.Models.Agents;
 
@@ -88,6 +89,7 @@ public sealed partial class AgentWorkspaceViewModel : ObservableObject, IDisposa
     private readonly IToolRegistry _tools;
     private readonly IAgentActivityStore _activity;
     private readonly IAgentMemoryService _memory;
+    private readonly IComputerControlService _computer;
     private readonly DispatcherQueue _dispatcher;
 
     private CancellationTokenSource? _cancellation;
@@ -98,19 +100,22 @@ public sealed partial class AgentWorkspaceViewModel : ObservableObject, IDisposa
         IAgentCapabilityReporter capabilities,
         IToolRegistry tools,
         IAgentActivityStore activity,
-        IAgentMemoryService memory)
+        IAgentMemoryService memory,
+        IComputerControlService computer)
     {
         ArgumentNullException.ThrowIfNull(agent);
         ArgumentNullException.ThrowIfNull(capabilities);
         ArgumentNullException.ThrowIfNull(tools);
         ArgumentNullException.ThrowIfNull(activity);
         ArgumentNullException.ThrowIfNull(memory);
+        ArgumentNullException.ThrowIfNull(computer);
 
         _agent = agent;
         _capabilities = capabilities;
         _tools = tools;
         _activity = activity;
         _memory = memory;
+        _computer = computer;
 
         // Progress arrives on whichever thread the tool finished on, so every change it causes
         // is marshalled here. Captured once at construction, which is the only moment a page
@@ -282,7 +287,12 @@ public sealed partial class AgentWorkspaceViewModel : ObservableObject, IDisposa
     [RelayCommand]
     private void Stop()
     {
+        // Two signals on purpose. Cancelling the run stops the executor before its next step,
+        // and cancelling the computer service reaches into an action that is already running —
+        // a long UI Automation wait, for example — which the run token alone cannot interrupt
+        // once that call is inside the desktop layer.
         _cancellation?.Cancel();
+        _computer.CancelCurrent();
         StatusLine = "Stopping.";
     }
 

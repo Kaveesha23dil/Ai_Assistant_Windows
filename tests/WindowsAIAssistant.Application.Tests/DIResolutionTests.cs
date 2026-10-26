@@ -276,7 +276,7 @@ public sealed class DIResolutionTests
 
         // Every tool the demonstrations promise has to be registered, or a showcase card
         // describes a capability this machine does not have.
-        Assert.Equal(8, provider.GetRequiredService<IToolRegistry>().Tools.Count);
+        Assert.Equal(9, provider.GetRequiredService<IToolRegistry>().Tools.Count);
     }
 
     [Fact]

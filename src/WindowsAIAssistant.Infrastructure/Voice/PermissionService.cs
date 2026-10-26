@@ -20,14 +20,20 @@ namespace WindowsAIAssistant.Infrastructure.Voice;
 public sealed class PermissionService : IPermissionService
 {
     private readonly IOptionsMonitor<PrivacyOptions> _privacy;
+    private readonly IOptionsMonitor<ComputerControlOptions> _computer;
     private readonly ILogger<PermissionService> _logger;
 
-    public PermissionService(IOptionsMonitor<PrivacyOptions> privacy, ILogger<PermissionService> logger)
+    public PermissionService(
+        IOptionsMonitor<PrivacyOptions> privacy,
+        IOptionsMonitor<ComputerControlOptions> computer,
+        ILogger<PermissionService> logger)
     {
         ArgumentNullException.ThrowIfNull(privacy);
+        ArgumentNullException.ThrowIfNull(computer);
         ArgumentNullException.ThrowIfNull(logger);
 
         _privacy = privacy;
+        _computer = computer;
         _logger = logger;
     }
 
@@ -35,6 +41,7 @@ public sealed class PermissionService : IPermissionService
     public bool IsGranted(PermissionCapability capability)
     {
         var options = _privacy.CurrentValue;
+        var computer = _computer.CurrentValue;
 
         return capability switch
         {
@@ -104,6 +111,21 @@ public sealed class PermissionService : IPermissionService
 
             PermissionCapability.VoiceHistory => options.StoreVoiceHistory,
 
+            // Computer control is its own consent, separate from system control. Being allowed
+            // to change the volume is not the same decision as being allowed to click and type
+            // in another application, and the two are switched on in different places.
+            PermissionCapability.ComputerControl => computer.AllowComputerControl,
+            PermissionCapability.ComputerApplicationLaunch =>
+                computer.AllowComputerControl && computer.AllowApplicationLaunch,
+            PermissionCapability.ComputerWindowControl =>
+                computer.AllowComputerControl && computer.AllowWindowControl,
+            PermissionCapability.ComputerKeyboardInput =>
+                computer.AllowComputerControl && computer.AllowKeyboardInput,
+            PermissionCapability.ComputerMouseInput =>
+                computer.AllowComputerControl && computer.AllowMouseInput,
+            PermissionCapability.ComputerFormSubmission =>
+                computer.AllowComputerControl && computer.AllowFormSubmission,
+
             _ => false
         };
     }
@@ -164,6 +186,24 @@ public sealed class PermissionService : IPermissionService
 
         PermissionCapability.VoiceHistory =>
             "Voice history is disabled in Privacy settings.",
+
+        PermissionCapability.ComputerControl =>
+            "Computer control is disabled in Settings.",
+
+        PermissionCapability.ComputerApplicationLaunch =>
+            "Opening applications through computer control is disabled in Settings.",
+
+        PermissionCapability.ComputerWindowControl =>
+            "Controlling application windows is disabled in Settings.",
+
+        PermissionCapability.ComputerKeyboardInput =>
+            "Typing into applications is disabled in Settings.",
+
+        PermissionCapability.ComputerMouseInput =>
+            "Clicking and scrolling in applications is disabled in Settings.",
+
+        PermissionCapability.ComputerFormSubmission =>
+            "Submitting forms in applications is disabled in Settings.",
 
         _ => "That capability is not available."
     };

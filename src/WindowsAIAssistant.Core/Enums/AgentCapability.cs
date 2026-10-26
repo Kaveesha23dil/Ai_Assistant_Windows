@@ -34,5 +34,15 @@ public enum AgentCapability
     SystemInformation = 6,
 
     /// <summary>Evaluate arithmetic without involving a model.</summary>
-    Calculation = 7
+    Calculation = 7,
+
+    /// <summary>
+    /// Open an application and operate its controls on the person's behalf.
+    /// <para>
+    /// Coarser than the actions behind it. Launching, clicking, typing, and pressing a shortcut
+    /// are one advertised capability, because that is what a person asked for; which of those
+    /// an individual step uses is an implementation detail the permission prompt names.
+    /// </para>
+    /// </summary>
+    ComputerControl = 8
 }

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using WindowsAIAssistant.Core.Abstractions.Agents;
 using WindowsAIAssistant.Core.Abstractions.AI;
 using WindowsAIAssistant.Core.Abstractions.Clipboard;
+using WindowsAIAssistant.Core.Abstractions.Computer;
 using WindowsAIAssistant.Core.Abstractions.Documents;
 using WindowsAIAssistant.Core.Abstractions.Embeddings;
 using WindowsAIAssistant.Core.Abstractions.Files;
@@ -25,6 +26,7 @@ using WindowsAIAssistant.Infrastructure.Agents.Configuration;
 using WindowsAIAssistant.Infrastructure.Configuration;
 using WindowsAIAssistant.Infrastructure.Configuration.Options;
 using WindowsAIAssistant.Infrastructure.Configuration.Validation;
+using WindowsAIAssistant.Infrastructure.Computer;
 using WindowsAIAssistant.Infrastructure.Development;
 using WindowsAIAssistant.Infrastructure.Documents;
 using WindowsAIAssistant.Infrastructure.Documents.Excel;
@@ -66,6 +68,7 @@ public static class DependencyInjection
         services.AddApplicationConfiguration(configuration);
         services.AddUserSettings(userSettingsPath);
         services.AddWindowsServices();
+        services.AddComputerServices(configuration);
         services.AddWebSearchProviders();
         services.AddVoiceServices();
         services.AddAIServices();
@@ -280,6 +283,51 @@ public static class DependencyInjection
         services.AddSingleton<IVolumeService, VolumeService>();
         services.AddSingleton<IScreenshotService, ScreenshotService>();
         services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
+
+        return;
+    }
+
+    /// <summary>
+    /// Registers the Windows computer-control stack.
+    /// <para>
+    /// The single control service, its validator, and its permission check are singletons: they
+    /// share one rate-limit budget and one cancellation signal, and two of them would be two
+    /// answers to "may this run". The UI Automation finder and the input controller are
+    /// singletons for the same reason a microphone is: the desktop is one machine-wide resource
+    /// and competing access is what makes an interaction unreliable.
+    /// </para>
+    /// <para>
+    /// The terminal is registered as the refusing implementation on purpose. Nothing in this
+    /// step runs a command line, and the abstraction exists so a future shell cannot be reached
+    /// by a different route.
+    /// </para>
+    /// </summary>
+    private static void AddComputerServices(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        services.AddOptions<ComputerControlOptions>()
+            .Bind(configuration.GetSection(ComputerControlOptions.SectionName))
+            .ValidateOnStart();
+
+        services.AddSingleton<IComputerActionValidator, ComputerActionValidator>();
+        services.AddSingleton<IComputerPermissionService, ComputerPermissionService>();
+        services.AddSingleton<UiElementRegistry>();
+
+        services.AddSingleton<IComputerContextService, WindowsComputerContextService>();
+        services.AddSingleton<IWindowManager, WindowsWindowManager>();
+        services.AddSingleton<IInputController, WindowsInputController>();
+        services.AddSingleton<IUiElementFinder, WindowsUiElementFinder>();
+        services.AddSingleton<IUiElementInteractor, WindowsUiElementInteractor>();
+        services.AddSingleton<IComputerApplicationLauncher, WindowsComputerApplicationLauncher>();
+
+        services.AddSingleton<IComputerControlService, WindowsComputerControlService>();
+        services.AddSingleton<IComputerWorkflowExecutor, ComputerWorkflowExecutor>();
+        services.AddSingleton<IUiInspectorService, UiInspectorService>();
+        services.AddSingleton<ITerminalTool, DisabledTerminalTool>();
 
         return;
     }

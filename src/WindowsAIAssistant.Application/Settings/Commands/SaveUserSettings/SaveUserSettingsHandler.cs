@@ -92,9 +92,17 @@ public sealed class SaveUserSettingsHandler
             return "These settings are incomplete. Nothing was saved.";
         }
 
-        if (settings.AI is null)
+        if (settings.AI is null || settings.ComputerControl is null)
         {
             return "These settings are incomplete. Nothing was saved.";
+        }
+
+        if (settings.ComputerControl.ActionTimeoutSeconds < 1
+            || settings.ComputerControl.ActionTimeoutSeconds > 60
+            || settings.ComputerControl.MaxActionsPerMinute < 1
+            || settings.ComputerControl.MaxActionsPerMinute > 600)
+        {
+            return "Choose a computer-control timeout from 1 to 60 seconds and a rate limit from 1 to 600 actions per minute.";
         }
 
         if (!SupportedThemes.Contains(settings.UI.Theme, StringComparer.OrdinalIgnoreCase))
