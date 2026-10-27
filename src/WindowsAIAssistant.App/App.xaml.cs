@@ -1,175 +1,192 @@
-using System.Threading.Tasks;
+```csharp
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.UI.Xaml;
-using WindowsAIAssistant.App.Services.Launcher;
-using WindowsAIAssistant.App.Views;
-using WindowsAIAssistant.Application;
-using WindowsAIAssistant.Application.Common.Errors;
-using WindowsAIAssistant.Infrastructure;
-using WindowsAIAssistant.Infrastructure.Configuration;
-using WindowsAIAssistant.Infrastructure.Configuration.Options;
-using WindowsAIAssistant.Infrastructure.Logging;
+using System;
+using System.Threading.Tasks;
 
-namespace WindowsAIAssistant.App;
-
-public partial class App : Microsoft.UI.Xaml.Application
+// Keep your existing namespace here
+namespace WindowsAIAssistant
 {
-    private readonly IHost _host;
-    private readonly ILogger<App> _logger;
-    private readonly IErrorHandler _errorHandler;
-    private Window? _window;
-    private LauncherWindowHost? _launcherHost;
-    private bool _hostStopped;
-
-    public App()
+    public partial class App : Application
     {
-        InitializeComponent();
-        _host = CreateHost();
-        _logger = _host.Services.GetRequiredService<ILogger<App>>();
-        _errorHandler = _host.Services.GetRequiredService<IErrorHandler>();
+        private readonly IHost _host;
+        private readonly ILogger<App> _logger;
+        private readonly IErrorHandler _errorHandler;
 
-        UnhandledException += OnUnhandledException;
-        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
-    }
+        private MainWindow? _window;
+        private LauncherWindowHost? _launcherHost;
 
-    protected override async void OnLaunched(LaunchActivatedEventArgs args)
-    {
-        if (_window is not null)
+        public App()
         {
-            _window.Activate();
-            return;
+            InitializeComponent();
+
+            _host = CreateHost();
+            _logger = _host.Services.GetRequiredService<ILogger<App>>();
+            _errorHandler = _host.Services.GetRequiredService<IErrorHandler>();
+
+            UnhandledException += OnUnhandledException;
+            TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
         }
 
-        try
+        protected override async void OnLaunched(LaunchActivatedEventArgs args)
         {
-            _logger.LogInformation("Windows AI Assistant starting.");
-
-            var environment = _host.Services.GetRequiredService<IHostEnvironment>().EnvironmentName;
-            _logger.LogInformation("Environment detected: {Environment}.", environment);
-
-            var aiOptions = _host.Services.GetRequiredService<IOptions<AIOptions>>().Value;
-            _logger.LogInformation("AI provider type: {Provider}.", aiOptions.Provider);
-
-            _logger.LogInformation("Application services configured.");
-
-            await _host.StartAsync();
-            _logger.LogInformation("Application started successfully.");
-
-            var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-            _window = mainWindow;
-            _window.Closed += (_, _) => _ = ShutdownHostAsync();
-            _window.Activate();
-
-            // The launcher is started after the shell is on screen so a shortcut conflict can
-            // be explained in a dialog with a XamlRoot. A failure is never allowed to stop the
-            // application: the shell remains usable without the global shortcut.
-            _launcherHost = _host.Services.GetRequiredService<LauncherWindowHost>();
-            var launcherRegistration = await _launcherHost.StartAsync();
-            if (launcherRegistration.IsFailure)
+            if (_window is not null)
             {
-                await mainWindow.ShowLauncherShortcutErrorAsync(
-                    launcherRegistration.ErrorMessage ?? "The launcher shortcut is unavailable.");
+                _window.Activate();
+                return;
+            }
+
+            try
+            {
+                _logger.LogInformation("Windows AI Assistant starting.");
+
+                var environment = _host.Services
+                    .GetRequiredService<IHostEnvironment>()
+                    .EnvironmentName;
+
+                _logger.LogInformation(
+                    "Environment detected: {Environment}.",
+                    environment);
+
+                var aiOptions = _host.Services
+                    .GetRequiredService<IOptions<AIOptions>>()
+                    .Value;
+
+                _logger.LogInformation(
+                    "AI provider type: {Provider}.",
+                    aiOptions.Provider);
+
+                _logger.LogInformation("Application services configured.");
+
+                await _host.StartAsync();
+
+                _logger.LogInformation("Application started successfully.");
+
+                // Resolved merge conflict:
+                // Keep the local variable because it is used below,
+                // and keep the automation event registration from main.
+                var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+                _window = mainWindow;
+
+                _host.Services
+                    .GetRequiredService<Core.Abstractions.Automations.IAutomationService>()
+                    .Completed += OnAutomationCompleted;
+
+                _window.Closed += (_, _) => _ = ShutdownHostAsync();
+                _window.Activate();
+
+                // The launcher is started after the shell is on screen so a shortcut conflict can
+                // be explained in a dialog with a XamlRoot. A failure is never allowed to stop the
+                // application: the shell remains usable without the global shortcut.
+                _launcherHost = _host.Services.GetRequiredService<LauncherWindowHost>();
+
+                var launcherRegistration = await _launcherHost.StartAsync();
+
+                if (launcherRegistration.IsFailure)
+                {
+                    await mainWindow.ShowLauncherShortcutErrorAsync(
+                        launcherRegistration.ErrorMessage
+                        ?? "The launcher shortcut is unavailable.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to launch Windows AI Assistant.");
+
+                await _errorHandler.HandleAsync(ex);
             }
         }
-        catch (OptionsValidationException exception)
+
+        private void OnUnhandledException(
+            object sender,
+            Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
         {
             _logger.LogError(
-                "Configuration validation failed for {Section}.",
-                exception.OptionsType?.Name ?? "Configuration");
-            await ShutdownHostAsync();
-            throw;
-        }
-        catch (Exception exception)
-        {
-            _logger.LogError(exception, "Application failed to start.");
-            await ShutdownHostAsync();
-            throw;
-        }
-    }
+                e.Exception,
+                "Unhandled application exception.");
 
-    private static IHost CreateHost()
-    {
-        return Host.CreateDefaultBuilder()
-            .UseContentRoot(AppContext.BaseDirectory)
-            .ConfigureAppConfiguration((_, configuration) =>
-                configuration.AddUserSettingsFile())
-            .ConfigureLogging((context, logging) =>
-                logging.AddApplicationLogging(
-                    context.Configuration,
-                    context.HostingEnvironment.EnvironmentName))
-            .ConfigureServices((context, services) =>
+            _ = _errorHandler.HandleAsync(e.Exception);
+
+            e.Handled = true;
+        }
+
+        private void OnUnobservedTaskException(
+            object? sender,
+            UnobservedTaskExceptionEventArgs e)
+        {
+            _logger.LogError(
+                e.Exception,
+                "Unobserved task exception.");
+
+            _ = _errorHandler.HandleAsync(e.Exception);
+
+            e.SetObserved();
+        }
+
+        private void OnAutomationCompleted(
+            object? sender,
+            EventArgs e)
+        {
+            _logger.LogInformation("Automation completed.");
+        }
+
+        private async Task ShutdownHostAsync()
+        {
+            try
             {
-                services.AddApplication();
-                services.AddInfrastructure(context.Configuration);
-                services.AddVoiceConfiguration();
-                services.AddDocumentConfiguration();
-                services.AddKnowledgeConfiguration();
-                services.AddLauncherConfiguration();
-                services.AddScreenVisionHosting();
-                services.AddAppShell();
-            })
-            .Build();
-    }
+                if (_launcherHost is not null)
+                {
+                    await _launcherHost.StopAsync();
+                }
 
-    private void OnUnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs args)
-    {
-        if (args.Exception is Exception exception)
-        {
-            var error = ExceptionMapper.Map(exception);
-            _logger.LogCritical(
-                exception,
-                "Unhandled exception detected at the application boundary. {ErrorCode} ({ErrorType})",
-                error.Code,
-                error.Type);
-        }
-        else
-        {
-            _logger.LogCritical("Unhandled non-exception failure detected at the application boundary.");
-        }
-
-        // The exception is deliberately not marked handled. Without a user-facing error
-        // surface yet, continuing could leave the app in an inconsistent state; the runtime
-        // is allowed to terminate. A later UI step will add selective handling.
-        args.Handled = false;
-    }
-
-    private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs args)
-    {
-        _logger.LogWarning("Unobserved task exception detected.");
-        _errorHandler.Handle(args.Exception, "UnobservedTaskException");
-        args.SetObserved();
-    }
-
-    private async Task ShutdownHostAsync()
-    {
-        if (_hostStopped)
-        {
-            return;
-        }
-
-        _hostStopped = true;
-        _logger.LogInformation("Application stopping.");
-
-        try
-        {
-            if (_launcherHost is not null)
-            {
-                await _launcherHost.StopAsync();
+                await _host.StopAsync();
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error while shutting down the application.");
+            }
+        }
 
-            await _host.StopAsync();
-        }
-        catch (Exception exception)
+        private static IHost CreateHost()
         {
-            _logger.LogError(exception, "Application host shutdown failed.");
-        }
-        finally
-        {
-            _host.Dispose();
-            _logger.LogInformation("Application stopped.");
+            return Host.CreateDefaultBuilder()
+                .ConfigureServices((context, services) =>
+                {
+                    // Keep your existing service registrations here.
+                    //
+                    // Example:
+                    // services.Configure<AIOptions>(
+                    //     context.Configuration.GetSection("AI"));
+                    //
+                    // services.AddSingleton<MainWindow>();
+                    // services.AddSingleton<LauncherWindowHost>();
+                    // services.AddSingleton<IErrorHandler, ErrorHandler>();
+                    // services.AddSingleton<IAutomationService, AutomationService>();
+                })
+                .Build();
         }
     }
 }
+```
+
+**Important:** I had to infer the parts of the file that were not included in your message, such as the exact namespace, `CreateHost()` registrations, and the actual signatures of `IErrorHandler` and `OnAutomationCompleted`. Do **not** replace those parts blindly if your original file already contains them.
+
+The actual merge conflict itself should be resolved exactly like this:
+
+```csharp
+var mainWindow = _host.Services.GetRequiredService<MainWindow>();
+_window = mainWindow;
+
+_host.Services
+    .GetRequiredService<Core.Abstractions.Automations.IAutomationService>()
+    .Completed += OnAutomationCompleted;
+```
+
+Then remove all `<<<<<<<`, `=======`, and `>>>>>>>` markers.

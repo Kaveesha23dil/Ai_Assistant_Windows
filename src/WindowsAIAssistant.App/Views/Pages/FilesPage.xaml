@@ -3,175 +3,79 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:viewModels="using:WindowsAIAssistant.App.ViewModels">
-
-    <ScrollViewer VerticalScrollBarVisibility="Auto" VerticalScrollMode="Auto">
-        <StackPanel
-                Style="{StaticResource AppPagePadding}"
-                MaxWidth="1120"
-                HorizontalAlignment="Center">
-
-            <StackPanel Spacing="4">
-                <TextBlock Style="{StaticResource AppPageTitleTextBlockStyle}" Text="{x:Bind ViewModel.HeaderTitle}" />
-                <TextBlock
-                    Style="{StaticResource AppSecondaryTextBlockStyle}"
-                    Text="{x:Bind ViewModel.Description}" />
-            </StackPanel>
-
-            <Border Style="{StaticResource AppSurfaceCardStyle}">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalContentAlignment="Stretch" HorizontalScrollMode="Disabled" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Style="{StaticResource AppPagePadding}" MaxWidth="1360" HorizontalAlignment="Stretch" Spacing="16">
+            <TextBlock Style="{StaticResource AppPageTitleTextBlockStyle}" Text="{x:Bind ViewModel.HeaderTitle}" />
+            <TextBlock Text="{x:Bind ViewModel.Description}" TextWrapping="Wrap" />
+            <Border Style="{StaticResource AppSurfaceCardStyle}" Padding="16">
                 <StackPanel Spacing="12">
-                    <TextBox
-                        MinHeight="40"
-                        AutomationProperties.Name="Search local files"
-                        HorizontalAlignment="Stretch"
-                        PlaceholderText="{x:Bind ViewModel.PlaceholderText, Mode=OneWay}"
-                        Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <StackPanel
-                        Margin="0,4,0,0"
-                        Orientation="Horizontal"
-                        Spacing="8">
-                        <Button
-                            AutomationProperties.Name="Search files"
-                            Command="{x:Bind ViewModel.SearchCommand}"
-                            Content="Search Files"
-                            ToolTipService.ToolTip="File search arrives in a later step." />
-                        <Button
-                            AutomationProperties.Name="Index a folder"
-                            Command="{x:Bind ViewModel.IndexFolderCommand}"
-                            Content="Index Folder"
-                            ToolTipService.ToolTip="Indexing requires the file indexing permission." />
+                    <TextBox Header="Search file names" MaxLength="1000" AutomationProperties.Name="Search local files" PlaceholderText="{x:Bind ViewModel.PlaceholderText}" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Expander Header="Filters: location, type, date, and size" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                        <StackPanel Spacing="12">
+                    <ComboBox Header="Location" ItemsSource="{x:Bind ViewModel.LocationChoices}" SelectedIndex="{x:Bind ViewModel.LocationIndex, Mode=TwoWay}" />
+                    <TextBox Header="Custom folder (choose Custom folder above)" PlaceholderText="Full folder path" Text="{x:Bind ViewModel.FolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox Header="File extension (optional)" MaxLength="30" PlaceholderText="For example .pdf or docx" Text="{x:Bind ViewModel.Extension, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <ComboBox Header="Date range" ItemsSource="{x:Bind ViewModel.DateChoices}" SelectedIndex="{x:Bind ViewModel.DateIndex, Mode=TwoWay}" />
+                    <ComboBox Header="Date to use" ItemsSource="{x:Bind ViewModel.DateFieldChoices}" SelectedIndex="{x:Bind ViewModel.DateFieldIndex, Mode=TwoWay}" />
+                    <ComboBox Header="Size" ItemsSource="{x:Bind ViewModel.SizeChoices}" SelectedIndex="{x:Bind ViewModel.SizeIndex, Mode=TwoWay}" />
+                    <CheckBox Content="Include subfolders" IsChecked="{x:Bind ViewModel.IncludeSubfolders, Mode=TwoWay}" />
+                    <TextBlock Text="Searches names and metadata, not document contents. Last week means the previous Monday-Sunday. Downloaded uses file creation time, which may change when files are copied. Explicit filters override words in the query. Linked and system entries are skipped." TextWrapping="Wrap" Style="{StaticResource AppCaptionTextBlockStyle}" />
                     </StackPanel>
-                </StackPanel>
-            </Border>
-
-            <Border Style="{StaticResource AppSurfaceCardStyle}">
-                <StackPanel Spacing="12">
-                    <TextBlock
-                        Style="{StaticResource AppMutedHeadingTextBlockStyle}"
-                        Text="Open a document" />
-                    <TextBlock
-                        Style="{StaticResource AppCaptionTextBlockStyle}"
-                        Text="Reads one file, summarizes it, and answers questions from what it says. PDF, Word, PowerPoint, Excel, and text files. The file is not uploaded unless you turn on sending documents to a cloud provider." />
-                    <TextBox
-                        MinHeight="40"
-                        AutomationProperties.Name="Path to a document to open"
-                        HorizontalAlignment="Stretch"
-                        PlaceholderText="{x:Bind ViewModel.DocumentPlaceholderText, Mode=OneWay}"
-                        Text="{x:Bind ViewModel.DocumentPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </Expander>
                     <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button
-                            AutomationProperties.Name="Open document"
-                            Command="{x:Bind ViewModel.OpenDocumentCommand}"
-                            Content="Open Document" />
+                        <Button Content="Search Files" Command="{x:Bind ViewModel.SearchCommand}" Style="{StaticResource AppPrimaryButtonStyle}" />
+                        <Button Content="Cancel search" Command="{x:Bind ViewModel.CancelSearchCommand}" />
+                        <ProgressRing Width="24" Height="24" IsActive="{x:Bind ViewModel.IsSearching, Mode=OneWay}" Visibility="{x:Bind ViewModel.SearchingVisibility, Mode=OneWay}" />
                     </StackPanel>
                 </StackPanel>
             </Border>
-
-            <StackPanel Spacing="12">
-                <TextBlock
-                    Style="{StaticResource AppMutedHeadingTextBlockStyle}"
-                    Text="Search results" />
-                <ProgressRing
-                    Width="28"
-                    Height="28"
-                    HorizontalAlignment="Left"
-                    IsActive="{x:Bind ViewModel.IsSearching, Mode=OneWay}"
-                    Visibility="{x:Bind ViewModel.SearchingVisibility, Mode=OneWay}" />
-                <ItemsControl ItemsSource="{x:Bind ViewModel.Results, Mode=OneWay}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="viewModels:FileResultViewModel">
-                            <Border Style="{StaticResource AppSurfaceCardStyle}">
-                                <Grid ColumnSpacing="12" RowSpacing="4">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*" />
-                                        <ColumnDefinition Width="Auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-
-                                    <TextBlock
-                                        Grid.Column="0"
-                                        Grid.Row="0"
-                                        Style="{StaticResource AppBodyStrongTextBlockStyle}"
-                                        Text="{x:Bind Name, Mode=OneWay}"
-                                        TextTrimming="CharacterEllipsis" />
-                                    <TextBlock
-                                        Grid.Column="0"
-                                        Grid.Row="1"
-                                        Style="{StaticResource AppCaptionTextBlockStyle}"
-                                        Text="{x:Bind LocationText, Mode=OneWay}"
-                                        TextTrimming="CharacterEllipsis" />
-                                    <TextBlock
-                                        Grid.Column="0"
-                                        Grid.Row="2"
-                                        Style="{StaticResource AppCaptionTextBlockStyle}">
-                                        <Run Text="{x:Bind ExtensionText, Mode=OneWay}" />
-                                        <Run Text="  " />
-                                        <Run Text="{x:Bind SizeText, Mode=OneWay}" />
-                                        <Run Text="  " />
-                                        <Run Text="{x:Bind ModifiedText, Mode=OneWay}" />
-                                    </TextBlock>
-
-                                    <StackPanel
-                                        Grid.Column="1"
-                                        Grid.Row="0"
-                                        Grid.RowSpan="3"
-                                        Orientation="Horizontal"
-                                        Spacing="4"
-                                        VerticalAlignment="Center">
-                                        <Button
-                                            AutomationProperties.Name="Open file"
-                                            Command="{x:Bind OpenCommand}"
-                                            Content="Open"
-                                            ToolTipService.ToolTip="Open in the app you normally use for this file type." />
-                                        <Button
-                                            AutomationProperties.Name="Open folder"
-                                            Command="{x:Bind OpenFolderCommand}"
-                                            Content="Open Folder"
-                                            ToolTipService.ToolTip="Open the folder this file is in." />
-                                        <Button
-                                            AutomationProperties.Name="Summarize document"
-                                            Command="{x:Bind SummarizeCommand}"
-                                            Content="Summarize"
-                                            ToolTipService.ToolTip="Read the file and summarize what it says." />
-                                        <Button
-                                            AutomationProperties.Name="Ask a question about the document"
-                                            Command="{x:Bind AskAiCommand}"
-                                            Content="Ask AI"
-                                            ToolTipService.ToolTip="Ask the file a question, answered only from what it says." />
-                                    </StackPanel>
-                                </Grid>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-                <Border
-                    Style="{StaticResource AppSurfaceCardStyle}"
-                    Visibility="{x:Bind ViewModel.EmptyStateVisibility, Mode=OneWay}">
-                    <StackPanel
-                        Padding="16"
-                        HorizontalAlignment="Stretch"
-                        Spacing="12">
-                        <Border Style="{StaticResource AppEmptyStateIconStyle}">
-                            <SymbolIcon
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Symbol="Folder" />
+            <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+            <Expander Header="Open a document by path" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                <StackPanel Spacing="12">
+                    <TextBox AutomationProperties.Name="Document path" PlaceholderText="{x:Bind ViewModel.DocumentPlaceholderText}" Text="{x:Bind ViewModel.DocumentPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Button Content="Open Document" Command="{x:Bind ViewModel.OpenDocumentCommand}" />
+                </StackPanel>
+            </Expander>
+            <TextBlock Text="Search results" Style="{StaticResource AppMutedHeadingTextBlockStyle}" />
+            <ItemsControl ItemsSource="{x:Bind ViewModel.Results}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:FileResultViewModel">
+                        <Border Style="{StaticResource AppSurfaceCardStyle}" Padding="16" Margin="0,0,0,12">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="{x:Bind Name}" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                <TextBlock Text="{x:Bind FullPath}" TextWrapping="Wrap" IsTextSelectionEnabled="True" Style="{StaticResource AppCaptionTextBlockStyle}" />
+                                <TextBlock>
+                                    <Run Text="{x:Bind ExtensionText}" /><Run Text="   " />
+                                    <Run Text="{x:Bind SizeText}" /><Run Text="   Modified: " />
+                                    <Run Text="{x:Bind ModifiedText}" />
+                                </TextBlock>
+                                <TextBlock><Run Text="Created: " /><Run Text="{x:Bind CreatedText}" /></TextBlock>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button Content="Open" Command="{x:Bind OpenCommand}" ToolTipService.ToolTip="Open in the default Windows application." />
+                                    <Button Content="Open Folder" Command="{x:Bind OpenFolderCommand}" />
+                                    <Button Content="Preview" Command="{x:Bind PreviewCommand}" ToolTipService.ToolTip="Read text locally without sending it to AI." />
+                                    <Button Content="Summarize" Command="{x:Bind SummarizeCommand}" />
+                                    <Button Content="Ask AI" Command="{x:Bind AskAiCommand}" />
+                                </StackPanel>
+                                <TextBlock Text="{x:Bind ActionMessage, Mode=OneWay}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                                <StackPanel Spacing="8" Visibility="{x:Bind PreviewVisibility, Mode=OneWay}">
+                                    <ProgressRing Width="24" Height="24" HorizontalAlignment="Left" IsActive="{x:Bind IsPreviewing, Mode=OneWay}" />
+                                    <ScrollViewer MaxHeight="300" VerticalScrollBarVisibility="Auto">
+                                        <TextBlock Text="{x:Bind PreviewText, Mode=OneWay}" TextWrapping="Wrap" IsTextSelectionEnabled="True" />
+                                    </ScrollViewer>
+                                    <Button Content="Close preview" Command="{x:Bind ClosePreviewCommand}" />
+                                </StackPanel>
+                            </StackPanel>
                         </Border>
-                        <TextBlock
-                            Style="{StaticResource AppEmptyStateTitleTextBlockStyle}"
-                            Text="{x:Bind ViewModel.EmptyStateTitle}" />
-                        <TextBlock
-                            HorizontalAlignment="Center"
-                            Style="{StaticResource AppSecondaryTextBlockStyle}"
-                            Text="{x:Bind ViewModel.EmptyStateMessage}"
-                            TextAlignment="Center" />
-                    </StackPanel>
-                </Border>
-            </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <Border Style="{StaticResource AppSurfaceCardStyle}" Visibility="{x:Bind ViewModel.EmptyStateVisibility, Mode=OneWay}" Padding="24">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="{x:Bind ViewModel.EmptyStateTitle}" FontWeight="SemiBold" />
+                    <TextBlock Text="{x:Bind ViewModel.EmptyStateMessage}" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </Page>

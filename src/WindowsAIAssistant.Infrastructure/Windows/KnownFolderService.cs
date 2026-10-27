@@ -15,7 +15,6 @@ namespace WindowsAIAssistant.Infrastructure.Windows;
 /// </summary>
 public sealed class KnownFolderService : IKnownFolderService
 {
-    private const int BufferSize = 32768;
 
     private static readonly IReadOnlyDictionary<KnownFolderKind, Guid> FolderIds =
         new Dictionary<KnownFolderKind, Guid>
@@ -51,10 +50,10 @@ public sealed class KnownFolderService : IKnownFolderService
 
     private static string? Resolve(Guid folderId)
     {
-        var buffer = Marshal.AllocCoTaskMem(BufferSize);
+        var buffer = IntPtr.Zero;
         try
         {
-            var result = SHGetKnownFolderPath(ref folderId, 0, IntPtr.Zero, buffer);
+            var result = SHGetKnownFolderPath(ref folderId, 0, IntPtr.Zero, out buffer);
             if (result != 0)
             {
                 return null;
@@ -79,5 +78,5 @@ public sealed class KnownFolderService : IKnownFolderService
         ref Guid folderId,
         uint flags,
         IntPtr token,
-        IntPtr buffer);
+        out IntPtr buffer);
 }

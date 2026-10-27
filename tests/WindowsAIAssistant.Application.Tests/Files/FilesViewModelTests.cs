@@ -199,6 +199,65 @@ public sealed class FilesViewModelTests
         Assert.Equal(@"C:\Notes\Report.pdf", Assert.Single(Navigator.Parameters));
     }
 
+    [Fact]
+    public async Task FiltersArePassedToTheSearchService()
+    {
+        var (viewModel, search) = ViewModel();
+        viewModel.LocationIndex = 7;
+        viewModel.FolderPath = @"C:\Invoices";
+        viewModel.Extension = ".pdf";
+        viewModel.DateIndex = 3;
+        viewModel.DateFieldIndex = 2;
+        viewModel.SizeIndex = 2;
+        viewModel.IncludeSubfolders = false;
+        await SearchAsync(viewModel, "invoice");
+        var request = Assert.IsType<Core.Models.FileSearchRequest>(search.LastRequest);
+        Assert.Equal(@"C:\Invoices", request.FolderPath);
+        Assert.Equal(".pdf", request.Extension);
+        Assert.Equal(Core.Models.FileSearchDateField.Created, request.DateField);
+        Assert.Equal(7, (request.Before!.Value.ToLocalTime().Date - request.From!.Value.ToLocalTime().Date).TotalDays);
+        Assert.Equal(1048576, request.MinimumSize);
+        Assert.False(request.IncludeSubfolders);
+        Assert.Equal("Test search completed.", viewModel.StatusMessage);
+    }
+
+    [Fact]
+    public void EmptyStateDoesNotClaimThereAreNoFilesBeforeFirstSearch()
+    {
+        var (viewModel, _) = ViewModel();
+        Assert.Equal(Microsoft.UI.Xaml.Visibility.Collapsed, viewModel.EmptyStateVisibility);
+    }
+
+    [Fact]
+    public async Task FailedFileOpenDisplaysTheLaunchersReason()
+    {
+        var (viewModel, search) = ViewModel();
+        search.Results = [Result("notes.txt", @"C:\Notes\notes.txt", ".txt", 100)];
+        await SearchAsync(viewModel, "notes");
+        Launcher.Result = Core.Common.Result.Failure("File search is switched off.");
+        await ExecuteAsync(viewModel.Results[0].OpenCommand);
+        Assert.Equal("File search is switched off.", viewModel.Results[0].ActionMessage);
+    }
+
+    [Fact]
+    public async Task LocalPreviewCanBeShownAndClearedWithoutNavigatingToAi()
+    {
+        var row = new FileResultViewModel(Result("notes.txt", @"C:\Notes\notes.txt", ".txt", 100), Navigator, Launcher, new Preview());
+        await ExecuteAsync(row.PreviewCommand);
+        Assert.Equal("Local preview text", row.PreviewText);
+        Assert.True(row.IsPreviewOpen);
+        Assert.Empty(Navigator.Requests);
+        row.ClosePreviewCommand.Execute(null);
+        Assert.Empty(row.PreviewText);
+        Assert.False(row.IsPreviewOpen);
+    }
+
+    private sealed class Preview : Core.Abstractions.Files.IFilePreviewService
+    {
+        public Task<Core.Models.FilePreview> ReadAsync(string path, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new Core.Models.FilePreview("Local preview text", "Local processing"));
+    }
+
     private readonly FakeNavigationService Navigator = new();
     private readonly List<Uri> OpenedUris = [];
     private readonly FakeUriLauncher Launcher;

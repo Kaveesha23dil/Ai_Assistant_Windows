@@ -14,16 +14,16 @@
         IsPaneToggleButtonVisible="False"
         IsPaneOpen="{Binding IsNavigationPaneOpen, Mode=TwoWay}"
         IsSettingsVisible="False"
-        OpenPaneLength="260"
-        PaneDisplayMode="Left"
-        SelectionChanged="OnNavigationSelectionChanged">
+        OpenPaneLength="240" CompactPaneLength="64" ExpandedModeThresholdWidth="900" CompactModeThresholdWidth="640"
+        PaneDisplayMode="Auto"
+        Background="{ThemeResource AppMutedSurfaceBrush}" SelectionChanged="OnNavigationSelectionChanged">
 
         <!--
           Alt+Left is registered here as well as on the navigation view itself. The guard in the
           code-behind makes the two paths safe to have at once: whichever one the toolkit
           chooses to use, only one back step is taken.
         -->
-        <NavigationView.KeyboardAccelerators>
+        <NavigationView.KeyboardAccelerators><KeyboardAccelerator Key="K" Modifiers="Control" Invoked="OnSearchFocusInvoked" />
             <KeyboardAccelerator
                 Invoked="OnBackAcceleratorInvoked"
                 Key="Left"
@@ -31,31 +31,15 @@
         </NavigationView.KeyboardAccelerators>
 
         <NavigationView.PaneHeader>
-            <Grid
-                Margin="16,12,16,16"
-                ColumnSpacing="12"
-                RowSpacing="0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Border
-                    Width="32"
-                    Height="32"
-                    Background="{ThemeResource AccentFillColorDefaultBrush}"
-                    CornerRadius="8">
-                    <SymbolIcon
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
-                        Symbol="Home" />
+            <Grid Margin="12,16,12,24" ColumnSpacing="12">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                <Border Width="40" Height="40" CornerRadius="12" Background="{ThemeResource AppHeroBackgroundBrush}">
+                    <FontIcon Glyph="&#xE945;" FontSize="22" Foreground="{ThemeResource AppAccentBrush}" />
                 </Border>
-                <TextBlock
-                    Grid.Column="1"
-                    VerticalAlignment="Center"
-                    Style="{StaticResource AppCardTitleTextBlockStyle}"
-                    Text="{Binding ApplicationTitle}"
-                    TextTrimming="CharacterEllipsis" />
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="2">
+                    <TextBlock Text="Windows AI" FontSize="17" FontWeight="SemiBold" />
+                    <TextBlock Text="PERSONAL ASSISTANT" FontSize="9" CharacterSpacing="120" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
             </Grid>
         </NavigationView.PaneHeader>
 
@@ -64,7 +48,7 @@
           wording change cannot break routing and a translation can happen without touching code.
           The names match the NavigationRoute values and are read by the shared parser.
         -->
-        <NavigationView.MenuItems>
+        <NavigationView.MenuItems><NavigationViewItemHeader Content="WORKSPACE" />
             <NavigationViewItem
                 AutomationProperties.Name="Home"
                 Content="Home"
@@ -130,7 +114,12 @@
             </NavigationViewItem>
         </NavigationView.MenuItems>
 
-        <NavigationView.FooterMenuItems>
+                <NavigationView.PaneFooter>
+            <Border Margin="12,12,12,20" Padding="14" CornerRadius="12" Background="{ThemeResource AppGlassBrush}" BorderBrush="{ThemeResource AppStrokeBrush}" BorderThickness="1" Visibility="{x:Bind ViewModel.IsNavigationPaneOpen, Mode=OneWay}">
+                <StackPanel Spacing="5"><TextBlock Text="Your workspace" FontWeight="SemiBold" /><TextBlock Text="Privacy and AI controls in Settings." Style="{StaticResource AppCaptionTextBlockStyle}" /></StackPanel>
+            </Border>
+        </NavigationView.PaneFooter>
+<NavigationView.FooterMenuItems>
             <NavigationViewItem
                 AutomationProperties.Name="Assistant settings"
                 Content="Settings"
@@ -142,9 +131,10 @@
             </NavigationViewItem>
         </NavigationView.FooterMenuItems>
 
-        <Grid Background="{ThemeResource LayerFillColorDefaultBrush}">
+        <Border Background="{ThemeResource AppCanvasBrush}" BorderBrush="{ThemeResource AppStrokeBrush}" BorderThickness="1,1,0,0" CornerRadius="20,0,0,0" Margin="0,8,0,0"><Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="48" />
+                <RowDefinition Height="38" /><RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
@@ -160,7 +150,7 @@
                 <Button
                     Width="40"
                     Height="32"
-                    Margin="12,0,0,0"
+                    Margin="16,0,8,0"
                     AutomationProperties.Name="Toggle navigation pane"
                     Background="Transparent"
                     BorderThickness="0"
@@ -180,7 +170,20 @@
                     TextTrimming="CharacterEllipsis" />
             </Grid>
 
-            <Frame x:Name="ContentFrame" Grid.Row="1" />
+            <Grid Grid.Row="1" Margin="32,8,32,0" MaxWidth="1360" ColumnSpacing="12">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <TextBox x:Name="WorkspaceSearchBox" AutomationProperties.Name="Search local files" PlaceholderText="Search your files and documents..." Background="{ThemeResource AppGlassBrush}" BorderBrush="{ThemeResource AppStrokeBrush}">
+                    <TextBox.KeyboardAccelerators><KeyboardAccelerator Key="Enter" Invoked="OnWorkspaceSearchInvoked" /></TextBox.KeyboardAccelerators>
+                </TextBox>
+                <Button Grid.Column="1" Content="Search" Click="OnWorkspaceSearchClick" ToolTipService.ToolTip="Search local files (Ctrl+K to focus)" />
+            </Grid>
+            <InfoBar x:Name="AutomationAlert" Grid.Row="2" IsOpen="False" IsClosable="True">
+                <InfoBar.ActionButton>
+                    <Button Content="View schedules" Click="OnViewAutomationsClick" />
+                </InfoBar.ActionButton>
+            </InfoBar>
+            <Frame x:Name="ContentFrame" Grid.Row="3" />
         </Grid>
+        </Border>
     </NavigationView>
 </Window>

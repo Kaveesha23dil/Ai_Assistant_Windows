@@ -6,8 +6,14 @@ using WindowsAIAssistant.Core.Abstractions.Navigation;
 using WindowsAIAssistant.Core.Abstractions.Voice;
 using WindowsAIAssistant.Core.Enums;
 using WindowsAIAssistant.Infrastructure.Configuration.Options;
+using System.Collections.ObjectModel;
+using Microsoft.UI.Xaml;
+using WindowsAIAssistant.Core.Abstractions.Agents;
+using WindowsAIAssistant.Core.Models.Agents;
 
 namespace WindowsAIAssistant.App.ViewModels;
+
+public sealed record HomeQuickAction(string Title, string Description, string Glyph, IRelayCommand Command);
 
 /// <summary>
 /// Landing page state. Values shown here are derived from configuration where possible and
@@ -22,6 +28,7 @@ namespace WindowsAIAssistant.App.ViewModels;
 public sealed partial class HomeViewModel : VoiceInteractionViewModel
 {
     private readonly INavigationService _navigation;
+    private readonly IAgentActivityStore? _activities;
 
     [ObservableProperty]
     public partial string DraftText { get; set; } = string.Empty;
@@ -30,7 +37,8 @@ public sealed partial class HomeViewModel : VoiceInteractionViewModel
         IOptions<AIOptions> aiOptions,
         IOptions<PrivacyOptions> privacyOptions,
         INavigationService navigation,
-        IVoiceAssistantService voice)
+        IVoiceAssistantService voice,
+        IAgentActivityStore? activities = null)
         : base(voice)
     {
         ArgumentNullException.ThrowIfNull(aiOptions);
@@ -38,15 +46,47 @@ public sealed partial class HomeViewModel : VoiceInteractionViewModel
         ArgumentNullException.ThrowIfNull(navigation);
 
         _navigation = navigation;
+        _activities = activities;
 
         AiProvider = aiOptions.Value.Provider;
         PrivacyMode = privacyOptions.Value.AllowCloudAI ? "Cloud-enabled" : "Local-first";
         Greeting = BuildGreeting(DateTime.Now);
+        QuickActions =
+        [
+            new("Start a conversation", "Think, write, and explore ideas with AI.", "\uE8F2", AskAiCommand),
+            new("Find a file", "Search your folders by name, type, or date.", "\uE721", SearchFilesCommand),
+            new("Read a document", "Get a summary or ask a focused question.", "\uE8A5", OpenDocumentsCommand),
+            new("Your knowledge", "Find answers across your document library.", "\uE8F1", OpenKnowledgeCommand),
+        ];
     }
 
     public string Greeting { get; }
 
-    public string WelcomeMessage => "Windows AI Assistant is ready. Features are being enabled step by step.";
+    public string WelcomeMessage => "A little less busywork. A little more possibility.";
+    public IReadOnlyList<HomeQuickAction> QuickActions { get; }
+    public ObservableCollection<AgentActivity> RecentActivity { get; } = [];
+    [ObservableProperty] public partial string ActivityMessage { get; set; } = "No agent activity yet. Your tasks will appear here.";
+    public Visibility ActivityEmptyVisibility => RecentActivity.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+
+    public async Task RefreshActivityAsync()
+    {
+        if (_activities is null) return;
+        try
+        {
+            var recent = await _activities.GetRecentAsync(3);
+            RecentActivity.Clear();
+            foreach (var activity in recent) RecentActivity.Add(activity);
+        }
+        catch (Exception) { ActivityMessage = "Recent activity is unavailable. Open the Agent workspace to try again."; }
+        OnPropertyChanged(nameof(ActivityEmptyVisibility));
+    }
+
+    [RelayCommand]
+    private void OpenDocuments() => _navigation.Navigate(NavigationRoute.Document);
+    [RelayCommand]
+    private void OpenKnowledge() => _navigation.Navigate(NavigationRoute.Knowledge);
+    [RelayCommand]
+    private void OpenAgent() => _navigation.Navigate(NavigationRoute.Agent);
 
     public string AiProvider { get; }
 

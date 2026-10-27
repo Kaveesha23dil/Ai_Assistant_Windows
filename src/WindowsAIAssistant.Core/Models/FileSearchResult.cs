@@ -11,7 +11,8 @@ public sealed record FileSearchResult
         string extension,
         long size,
         DateTimeOffset lastModified,
-        double relevanceScore)
+        double relevanceScore,
+        DateTimeOffset? created = null)
     {
         ArgumentNullException.ThrowIfNull(name);
         ArgumentNullException.ThrowIfNull(fullPath);
@@ -22,6 +23,7 @@ public sealed record FileSearchResult
         Size = size;
         LastModified = lastModified;
         RelevanceScore = relevanceScore;
+        Created = created;
     }
 
     /// <summary>Gets the file name.</summary>
@@ -38,6 +40,7 @@ public sealed record FileSearchResult
 
     /// <summary>Gets the point in time the file was last modified.</summary>
     public DateTimeOffset LastModified { get; }
+    public DateTimeOffset? Created { get; }
 
     /// <summary>Gets a value between 0 and 1 indicating relevance to the search query.</summary>
     public double RelevanceScore { get; }

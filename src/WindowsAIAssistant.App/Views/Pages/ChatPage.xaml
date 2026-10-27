@@ -53,7 +53,7 @@
                             turns with different alignments, and visibility per role is
                             clearer than a style chosen in code behind a template.
                         -->
-                        <Grid MaxWidth="720" Margin="0,2">
+                        <Grid MaxWidth="860" Margin="0,2">
                             <StackPanel
                                 HorizontalAlignment="Right"
                                 Spacing="2"
@@ -67,7 +67,7 @@
                                     Background="{ThemeResource AccentFillColorDefaultBrush}"
                                     Style="{StaticResource AppChatBubbleStyle}">
                                     <TextBlock
-                                        Style="{StaticResource AppBodyTextBlockStyle}"
+                                        Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}" Style="{StaticResource AppBodyTextBlockStyle}"
                                         Text="{x:Bind Text, Mode=OneWay}"
                                         TextWrapping="Wrap" />
                                 </Border>
@@ -82,7 +82,7 @@
                                     Text="{x:Bind RoleLabel, Mode=OneWay}" />
                                 <Border
                                     HorizontalAlignment="Left"
-                                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                                    Background="{ThemeResource AppSurfaceBrush}"
                                     Style="{StaticResource AppChatBubbleStyle}">
                                     <TextBlock
                                         Style="{StaticResource AppBodyTextBlockStyle}"
@@ -201,7 +201,7 @@
                         AutomationProperties.Name="Send message"
                         Command="{x:Bind ViewModel.SendCommand}"
                         Content="Send"
-                        Style="{StaticResource AccentButtonStyle}" />
+                        Style="{StaticResource AppPrimaryButtonStyle}" />
                 </Grid>
 
                 <TextBlock
