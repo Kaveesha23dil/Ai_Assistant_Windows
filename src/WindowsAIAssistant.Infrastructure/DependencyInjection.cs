@@ -251,6 +251,11 @@ public static class DependencyInjection
 
         services.AddSingleton<IWindowsSystemService, MockWindowsSystemService>();
         services.AddSingleton<IClipboardService, MockClipboardService>();
+        services.AddSingleton<WindowsAIAssistant.Core.Abstractions.Clipboard.IClipboardContentAnalyzer, WindowsAIAssistant.Infrastructure.Clipboard.ClipboardContentAnalyzer>();
+        services.AddSingleton<WindowsAIAssistant.Core.Abstractions.Clipboard.ITextTransformationService, WindowsAIAssistant.Infrastructure.Clipboard.TextTransformationService>();
+        services.AddSingleton<WindowsAIAssistant.Infrastructure.Clipboard.SensitiveContentDetector>();
+        services.AddSingleton<WindowsAIAssistant.Core.Abstractions.Clipboard.IClipboardHistoryService, WindowsAIAssistant.Infrastructure.Clipboard.ClipboardHistoryService>();
+        services.AddSingleton<WindowsAIAssistant.Core.Abstractions.Clipboard.IWritingAssistantService, WindowsAIAssistant.Infrastructure.Clipboard.WritingAssistantService>();
         services.AddSingleton<IApplicationLauncherService, MockApplicationLauncherService>();
 
         return services;
@@ -277,6 +282,11 @@ public static class DependencyInjection
         services.AddSingleton<IApplicationLauncherService, WindowsApplicationLauncherService>();
         services.AddSingleton<IWindowsSystemService, WindowsSystemService>();
         services.AddSingleton<IClipboardService, WindowsClipboardService>();
+        services.AddSingleton<WindowsAIAssistant.Core.Abstractions.Clipboard.IClipboardContentAnalyzer, WindowsAIAssistant.Infrastructure.Clipboard.ClipboardContentAnalyzer>();
+        services.AddSingleton<WindowsAIAssistant.Core.Abstractions.Clipboard.ITextTransformationService, WindowsAIAssistant.Infrastructure.Clipboard.TextTransformationService>();
+        services.AddSingleton<WindowsAIAssistant.Infrastructure.Clipboard.SensitiveContentDetector>();
+        services.AddSingleton<WindowsAIAssistant.Core.Abstractions.Clipboard.IClipboardHistoryService, WindowsAIAssistant.Infrastructure.Clipboard.ClipboardHistoryService>();
+        services.AddSingleton<WindowsAIAssistant.Core.Abstractions.Clipboard.IWritingAssistantService, WindowsAIAssistant.Infrastructure.Clipboard.WritingAssistantService>();
         services.AddSingleton<IKnownFolderService, KnownFolderService>();
         services.AddSingleton<IUriLauncherService, UriLauncherService>();
         services.AddSingleton<IWindowsSettingsService, WindowsSettingsService>();

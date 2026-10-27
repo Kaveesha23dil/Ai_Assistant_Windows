@@ -61,5 +61,10 @@ public enum NavigationRoute
     /// This application's own settings page. It is deliberately distinct from the Windows
     /// Settings application, which the assistant opens through a separate intent.
     /// </summary>
-    Settings
+    Settings,
+
+    /// <summary>
+    /// Clipboard assistant for writing and transformation of clipboard content.
+    /// </summary>
+    Clipboard
 }

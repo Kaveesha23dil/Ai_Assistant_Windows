@@ -71,6 +71,7 @@ public sealed class CommandPaletteService : ICommandPaletteService
     [
         new("home", "Open Home", "The assistant landing page.", "Home", "\uE80F", SearchResultType.Command, ["start", "assistant"]),
         new("chat", "Open Chat", "Ask the assistant a question.", "Chat", "\uE8BD", SearchResultType.Command, ["ask", "conversation"]),
+        new("clipboard", "Clipboard Assistant", "Improve writing, summarize, translate, or transform clipboard content.", "Clipboard", "\uE8C8", SearchResultType.Command, ["copy", "paste", "summarize", "rewrite", "translate", "grammar"]),
         new("files", "Search Files", "Find a file by name.", "Files", "\uE8A5", SearchResultType.Command, ["find", "file"]),
         new("document", "Open Document", "Read, summarize, or ask about a document.", "Document", "\uE8A5", SearchResultType.Command, ["summarize", "pdf", "word"]),
         new("knowledge", "Open Knowledge", "Search your indexed documents.", "Knowledge", "\uE8F1", SearchResultType.Command, ["documents", "index", "rag"]),
