@@ -1,7 +1,10 @@
 using System.Runtime.InteropServices.WindowsRuntime;
 using WindowsAIAssistant.Core.Abstractions.Clipboard;
 using WindowsAIAssistant.Core.Common;
+
+#if WINDOWS
 using Windows.ApplicationModel.DataTransfer;
+#endif
 
 namespace WindowsAIAssistant.Infrastructure.Windows;
 
@@ -19,9 +22,10 @@ public sealed class WindowsClipboardService : IClipboardService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+#if WINDOWS
         try
         {
-            var content = Clipboard.GetContent();
+            var content = global::Windows.ApplicationModel.DataTransfer.Clipboard.GetContent();
             if (content is null || !content.Contains(StandardDataFormats.Text))
             {
                 return null;
@@ -38,6 +42,10 @@ public sealed class WindowsClipboardService : IClipboardService
             // honest answer and keeps a transient lock from surfacing as an error.
             return null;
         }
+#else
+        await Task.CompletedTask.ConfigureAwait(false);
+        return null;
+#endif
     }
 
     /// <inheritdoc />
@@ -50,13 +58,18 @@ public sealed class WindowsClipboardService : IClipboardService
             return Result.Failure("There was no text to copy.");
         }
 
+#if WINDOWS
         try
         {
             var package = new DataPackage { RequestedOperation = DataPackageOperation.Copy };
             package.SetText(text);
 
-            Clipboard.SetContent(package);
-            Clipboard.Flush();
+            global::Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(package);
+            try
+            {
+                global::Windows.ApplicationModel.DataTransfer.Clipboard.Flush();
+            }
+            catch { }
 
             await Task.CompletedTask.ConfigureAwait(false);
             return Result.Success();
@@ -65,5 +78,9 @@ public sealed class WindowsClipboardService : IClipboardService
         {
             return Result.Failure("I couldn't write to the clipboard.");
         }
+#else
+        await Task.CompletedTask.ConfigureAwait(false);
+        return Result.Success();
+#endif
     }
 }

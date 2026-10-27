@@ -1,13 +1,17 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using WindowsAIAssistant.App.Services.Launcher;
 using WindowsAIAssistant.App.Services.Navigation;
 using WindowsAIAssistant.App.ViewModels;
+using WindowsAIAssistant.App.ViewModels.Launcher;
 using WindowsAIAssistant.App.Services;
 using WindowsAIAssistant.App.Views;
+using WindowsAIAssistant.App.Views.Launcher;
 using WindowsAIAssistant.App.Views.Pages;
 using WindowsAIAssistant.Application.Voice;
 using WindowsAIAssistant.Application.Documents;
 using WindowsAIAssistant.Application.Knowledge;
+using WindowsAIAssistant.Application.Launcher;
 using WindowsAIAssistant.App.Vision.Ocr;
 using WindowsAIAssistant.Core.Abstractions.Navigation;
 using WindowsAIAssistant.Core.Abstractions.Vision;
@@ -29,6 +33,13 @@ public static class DependencyInjection
         services.AddSingleton<MainWindow>();
         services.AddSingleton<UserSettingsService>();
         services.AddHostedService<AutomationScheduler>();
+
+        services.AddSingleton<LauncherHandoffService>();
+        services.AddSingleton<ForegroundWindowService>();
+        services.AddSingleton<LauncherActionService>();
+        services.AddTransient<LauncherViewModel>();
+        services.AddSingleton<LauncherWindow>();
+        services.AddSingleton<LauncherWindowHost>();
 
         services.AddNavigation();
 
@@ -242,6 +253,34 @@ public static class DependencyInjection
 
         services.AddSingleton(provider =>
             CreateRagPolicy(provider.GetRequiredService<IOptions<RagOptions>>().Value));
+
+        return services;
+    }
+
+    /// <summary>
+    /// Maps the bound launcher configuration onto the Application layer's search policy. The
+    /// Application project cannot read <c>LauncherOptions</c> itself, so this composition root
+    /// supplies the value.
+    /// </summary>
+    public static LauncherSearchPolicy CreateLauncherPolicy(LauncherOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        return new LauncherSearchPolicy
+        {
+            MaximumResults = options.MaximumResults,
+            ProviderTimeoutMilliseconds = options.ProviderTimeoutMilliseconds,
+            DebounceMilliseconds = options.DebounceMilliseconds,
+        };
+    }
+
+    /// <summary>Registers the launcher search policy from configuration.</summary>
+    public static IServiceCollection AddLauncherConfiguration(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddSingleton(provider =>
+            CreateLauncherPolicy(provider.GetRequiredService<IOptions<LauncherOptions>>().Value));
 
         return services;
     }

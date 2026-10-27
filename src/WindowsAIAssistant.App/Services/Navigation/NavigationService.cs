@@ -184,6 +184,7 @@ public sealed class NavigationService : INavigationService
         // history is not filled with copies of the same page. A request that carries a parameter
         // is the exception: it is asking for a specific conversation or a specific file rather
         // than for the page, so the current entry is refreshed rather than stacked on.
+        Page? parameterTarget = null;
         if (_currentRoute == route)
         {
             if (parameter is null)
@@ -192,7 +193,8 @@ public sealed class NavigationService : INavigationService
                 return true;
             }
 
-            _history[^1] = new HistoryEntry(route, parameter, frame.Content as Page);
+            parameterTarget = frame.Content as Page;
+            _history[^1] = new HistoryEntry(route, parameter, parameterTarget);
         }
         else
         {
@@ -241,7 +243,27 @@ public sealed class NavigationService : INavigationService
         }
 
         Announce(route, parameter, isBackNavigation);
+
+        if (parameterTarget is IParameterNavigationAware aware && parameter is not null)
+        {
+            _ = ApplyParameterAsync(aware, parameter);
+        }
+
         return true;
+    }
+
+    private async Task ApplyParameterAsync(
+        IParameterNavigationAware target,
+        object parameter)
+    {
+        try
+        {
+            await target.ApplyNavigationParameterAsync(parameter).ConfigureAwait(true);
+        }
+        catch (Exception exception)
+        {
+            _logger.LogError(exception, "A page could not apply a new navigation parameter.");
+        }
     }
 
     /// <summary>

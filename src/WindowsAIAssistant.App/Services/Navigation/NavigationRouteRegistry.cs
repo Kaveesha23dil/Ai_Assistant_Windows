@@ -150,6 +150,7 @@ public sealed class NavigationRouteRegistry
         new NavigationRegistration(NavigationRoute.Knowledge, typeof(KnowledgePage)),
         new NavigationRegistration(NavigationRoute.Automations, typeof(AutomationsPage)),
         new NavigationRegistration(NavigationRoute.Agent, typeof(AgentWorkspacePage)),
-        new NavigationRegistration(NavigationRoute.Settings, typeof(SettingsPage))
+        new NavigationRegistration(NavigationRoute.Settings, typeof(SettingsPage)),
+        new NavigationRegistration(NavigationRoute.Clipboard, typeof(WindowsAIAssistant.App.Views.Clipboard.ClipboardAssistantView))
     ];
 }

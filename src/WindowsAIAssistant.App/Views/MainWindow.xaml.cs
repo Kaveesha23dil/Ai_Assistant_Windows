@@ -317,4 +317,41 @@ public sealed partial class MainWindow : Window
 
     private void OnPaneToggleClick(object sender, RoutedEventArgs args) =>
         NavView.IsPaneOpen = !NavView.IsPaneOpen;
+
+    /// <summary>
+    /// Explains a shortcut that could not be registered. The dialog waits briefly for the shell
+    /// to have a XamlRoot, because startup reports this before the first frame is on screen.
+    /// </summary>
+    public async Task ShowLauncherShortcutErrorAsync(string message)
+    {
+        if (string.IsNullOrWhiteSpace(message))
+        {
+            return;
+        }
+
+        for (var attempt = 0; attempt < 20; attempt++)
+        {
+            if (Content?.XamlRoot is not null)
+            {
+                break;
+            }
+
+            await Task.Delay(100);
+        }
+
+        if (Content?.XamlRoot is not { } xamlRoot)
+        {
+            return;
+        }
+
+        var dialog = new ContentDialog
+        {
+            Title = "Shortcut unavailable",
+            Content = message,
+            CloseButtonText = "OK",
+            XamlRoot = xamlRoot,
+        };
+
+        await dialog.ShowAsync();
+    }
 }

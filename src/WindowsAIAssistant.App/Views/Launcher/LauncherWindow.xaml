@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="WindowsAIAssistant.App.Views.Launcher.LauncherWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:vm="using:WindowsAIAssistant.App.ViewModels.Launcher"
+    Title="Assistant">
+
+    <Grid
+        x:Name="RootGrid"
+        Background="Transparent"
+        KeyDown="OnRootKeyDown">
+
+        <Grid.Resources>
+            <CollectionViewSource
+                x:Name="GroupedResults"
+                IsSourceGrouped="True"
+                ItemsPath="Items"
+                Source="{x:Bind ViewModel.Groups, Mode=OneWay}" />
+        </Grid.Resources>
+
+        <Border
+            Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="12">
+            <Grid Padding="8,12,8,8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid
+                    Margin="8,0,8,8"
+                    ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <FontIcon
+                        VerticalAlignment="Center"
+                        FontSize="18"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Glyph="&#xE721;" />
+
+                    <TextBox
+                        x:Name="QueryBox"
+                        Grid.Column="1"
+                        AutomationProperties.Name="Search applications, files, settings, or ask a question"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        FontSize="20"
+                        KeyDown="OnQueryKeyDown"
+                        PlaceholderText="Search apps, files, settings, or ask anything"
+                        Text="{x:Bind ViewModel.Query, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <ProgressRing
+                        Grid.Column="2"
+                        Width="18"
+                        Height="18"
+                        VerticalAlignment="Center"
+                        IsActive="{x:Bind ViewModel.IsBusy, Mode=OneWay}" />
+                </Grid>
+
+                <ListView
+                    x:Name="ResultsList"
+                    Grid.Row="1"
+                    Margin="0,0,0,8"
+                    AutomationProperties.Name="Launcher results"
+                    IsItemClickEnabled="True"
+                    ItemClick="OnResultClick"
+                    ItemsSource="{x:Bind GroupedResults.View, Mode=OneWay}"
+                    SelectionChanged="OnSelectionChanged"
+                    SelectionMode="Single"
+                    SelectedItem="{x:Bind ViewModel.SelectedItem, Mode=TwoWay}">
+
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="MinHeight" Value="0" />
+                            <Setter Property="Padding" Value="0" />
+                        </Style>
+                    </ListView.ItemContainerStyle>
+
+                    <ListView.GroupStyle>
+                        <GroupStyle>
+                            <GroupStyle.HeaderTemplate>
+                                <DataTemplate x:DataType="vm:LauncherGroupViewModel">
+                                    <TextBlock
+                                        Margin="12,10,12,4"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind Key}" />
+                                </DataTemplate>
+                            </GroupStyle.HeaderTemplate>
+                        </GroupStyle>
+                    </ListView.GroupStyle>
+
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="vm:LauncherItemViewModel">
+                            <Grid
+                                Padding="12,8"
+                                AutomationProperties.Name="{x:Bind AccessibleName}"
+                                ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="28" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+
+                                <FontIcon
+                                    VerticalAlignment="Center"
+                                    FontFamily="Segoe Fluent Icons"
+                                    FontSize="18"
+                                    Foreground="{ThemeResource AccentTextFillColorPrimaryBrush}"
+                                    Glyph="{x:Bind Glyph}" />
+
+                                <StackPanel Grid.Column="1" Spacing="1">
+                                    <TextBlock
+                                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                                        Text="{x:Bind Title}"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <TextBlock
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind Description}"
+                                        TextTrimming="CharacterEllipsis" />
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+
+                <Grid
+                    Grid.Row="2"
+                    Margin="12,4,12,2"
+                    ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="{x:Bind ViewModel.StatusText, Mode=OneWay}"
+                        TextTrimming="CharacterEllipsis" />
+
+                    <TextBlock
+                        Grid.Column="1"
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        Text="↑↓  ·  Enter  ·  Esc" />
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

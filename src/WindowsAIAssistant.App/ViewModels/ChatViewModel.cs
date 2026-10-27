@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using WindowsAIAssistant.App.Services.Launcher;
 using WindowsAIAssistant.Application.Agents;
 using WindowsAIAssistant.Application.AI.Commands.SendMessage;
 using WindowsAIAssistant.Application.AI.Services;
@@ -36,6 +37,7 @@ public sealed partial class ChatViewModel : VoiceInteractionViewModel
     private readonly SendMessageHandler _sendMessages;
     private readonly IConversationService _conversations;
     private readonly IAIRequestDefaults _defaults;
+    private readonly LauncherHandoffService _launcherHandoff;
 
     /// <summary>
     /// The engine behind the opt-in path, used only when somebody asks for the agent by name.
@@ -65,7 +67,8 @@ public sealed partial class ChatViewModel : VoiceInteractionViewModel
         SendMessageHandler sendMessages,
         IConversationService conversations,
         IAIRequestDefaults defaults,
-        IAgent agent)
+        IAgent agent,
+        LauncherHandoffService launcherHandoff)
         : base(voice)
     {
         ArgumentNullException.ThrowIfNull(streamMessages);
@@ -73,12 +76,16 @@ public sealed partial class ChatViewModel : VoiceInteractionViewModel
         ArgumentNullException.ThrowIfNull(conversations);
         ArgumentNullException.ThrowIfNull(defaults);
         ArgumentNullException.ThrowIfNull(agent);
+        ArgumentNullException.ThrowIfNull(launcherHandoff);
 
         _streamMessages = streamMessages;
         _sendMessages = sendMessages;
         _conversations = conversations;
         _defaults = defaults;
         _agent = agent;
+        _launcherHandoff = launcherHandoff;
+        _launcherHandoff.QuestionPending += OnLauncherQuestionPending;
+        TakePendingLauncherQuestion();
 
         // Started here rather than awaited from a command so a person who types immediately is
         // not refused: the commands wait for this instead.
@@ -504,6 +511,18 @@ public sealed partial class ChatViewModel : VoiceInteractionViewModel
         generation.Dispose();
     }
 
+    private void OnLauncherQuestionPending(object? sender, EventArgs args) =>
+        TakePendingLauncherQuestion();
+
+    private void TakePendingLauncherQuestion()
+    {
+        if (_launcherHandoff.TryTake(out var question)
+            && !string.IsNullOrWhiteSpace(question))
+        {
+            DraftText = question;
+        }
+    }
+
     /// <inheritdoc />
     public override void Dispose()
     {
@@ -513,6 +532,7 @@ public sealed partial class ChatViewModel : VoiceInteractionViewModel
         }
 
         _disposed = true;
+        _launcherHandoff.QuestionPending -= OnLauncherQuestionPending;
         _generation?.Cancel();
         _generation?.Dispose();
         _generation = null;

@@ -129,6 +129,7 @@ public sealed partial class HomeViewModel : VoiceInteractionViewModel
     [RelayCommand]
     private void ClipboardAssistant()
     {
+        _navigation.Navigate(NavigationRoute.Clipboard);
     }
 
     private static string BuildGreeting(DateTime now) => now.Hour switch

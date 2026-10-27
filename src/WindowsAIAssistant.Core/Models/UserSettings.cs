@@ -27,6 +27,8 @@ public sealed class UserSettings
     public AISettings AI { get; set; } = new();
 
     public ComputerControlSettings ComputerControl { get; set; } = new();
+
+    public LauncherSettings Launcher { get; set; } = new();
 }
 
 /// <summary>
@@ -126,4 +128,14 @@ public sealed class UiSettings
 public sealed class FeatureSettings
 {
     public bool EnableLocalAI { get; set; }
+}
+
+/// <summary>The launcher choices, matching the <c>Launcher</c> configuration section.</summary>
+public sealed class LauncherSettings
+{
+    public bool Enabled { get; set; } = true;
+
+    public string Hotkey { get; set; } = "Alt+Space";
+
+    public bool RememberRecentItems { get; set; }
 }

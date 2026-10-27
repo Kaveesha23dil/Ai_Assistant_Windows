@@ -63,8 +63,11 @@ Neither file contains credentials.
 | `UIOptions` | `UI` | Theme and launch preferences for future UI behavior |
 | `VoiceOptions` | `Voice` | Speech, confidence, confirmation, and response-length behaviour |
 | `ComputerControlOptions` | `ComputerControl` | Desktop control consent, safe mode, limits, and application allow/block lists |
+| `LauncherOptions` | `Launcher` | Global shortcut, result limits, debounce, provider timeout, and recent-choice preference |
 
 All options are registered by `AddApplicationConfiguration` and validated on host startup. Settings that cannot change during a session are consumed with `IOptions<T>`. Anything that must notice a change made while the application is open, such as a privacy permission, uses `IOptionsMonitor<T>`, because a snapshot is worked out once and then reused for the rest of the process.
+
+`LauncherOptions` is also mapped at the App composition root onto the Application layer's `LauncherSearchPolicy`, so the search service keeps its limits without depending on configuration types. The launcher re-registers its shortcut when the section changes. If Windows reports that another application already owns the shortcut, the application shows an error instead of taking it, and keeps the previously working shortcut when there was one.
 
 `VoiceOptions` is read by the App composition root, which maps it onto `VoiceIntentPolicy` so that the Application layer stays free of configuration types. When a person saves the Settings page, the file is written, configuration is reloaded, and the voice policy is handed its new decisions as one whole set, so the running session continues with the choices that were just saved. Settings with no code behind them, currently launching at sign-in, notifications, and the wake phrase, are shown disabled and are never written, so a saved file never claims to hold a preference that nothing honours.
 
@@ -78,6 +81,7 @@ AI__Model=local-model
 Features__EnableVoice=false
 Privacy__AllowCloudAI=false
 UI__Theme=Dark
+Launcher__Hotkey=Ctrl+Shift+Space
 ```
 
 In PowerShell, the same override can be set for the current process as follows:
@@ -91,6 +95,13 @@ Environment variables must not contain machine-specific settings committed to th
 ## Validation
 
 Application options require a non-empty name and an environment of `Development` or `Production`.
+
+Launcher options require:
+
+- A parseable shortcut with at least one modifier, for example `Alt+Space`.
+- A result limit from `1` through `50`.
+- A debounce from `50` through `1000` milliseconds.
+- A provider timeout from `100` through `5000` milliseconds.
 
 AI options require:
 

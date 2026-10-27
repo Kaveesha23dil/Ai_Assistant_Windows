@@ -221,6 +221,71 @@
             </StackPanel>
 
             <StackPanel Spacing="12">
+                <TextBlock Style="{StaticResource AppMutedHeadingTextBlockStyle}" Text="Launcher" />
+                <Border Style="{StaticResource AppSurfaceCardStyle}">
+                    <StackPanel Spacing="16">
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="Global shortcut" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Opens the launcher from any application. Choose a shortcut such as Alt+Space or Ctrl+Shift+Space."
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Enable the launcher shortcut"
+                                IsOn="{x:Bind ViewModel.IsLauncherEnabled, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="Shortcut keys" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="If another application already uses this shortcut, the launcher explains the conflict instead of taking it."
+                                    TextWrapping="Wrap" />
+                            </StackPanel>
+                            <TextBox
+                                Grid.Column="1"
+                                MinWidth="170"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Launcher shortcut"
+                                Text="{x:Bind ViewModel.LauncherHotkeyText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        </Grid>
+
+                        <Grid Style="{StaticResource AppSectionRowStyle}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Spacing="2">
+                                <TextBlock Style="{StaticResource AppCardTitleTextBlockStyle}" Text="Remember recent choices" />
+                                <TextBlock
+                                    Style="{StaticResource AppCaptionTextBlockStyle}"
+                                    Text="Keep recent launcher choices on this device so they are easier to repeat." />
+                            </StackPanel>
+                            <ToggleSwitch
+                                Grid.Column="1"
+                                AutomationProperties.Name="Remember recent launcher choices"
+                                IsOn="{x:Bind ViewModel.RememberLauncherRecentItems, Mode=TwoWay}"
+                                Style="{StaticResource AppSettingsToggleStyle}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <StackPanel Spacing="12">
                 <TextBlock Style="{StaticResource AppMutedHeadingTextBlockStyle}" Text="Privacy" />
                 <Border Style="{StaticResource AppSurfaceCardStyle}">
                     <StackPanel Spacing="16">

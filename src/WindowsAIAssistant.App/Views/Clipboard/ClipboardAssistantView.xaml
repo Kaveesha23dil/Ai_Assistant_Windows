@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="WindowsAIAssistant.App.Views.Clipboard.ClipboardAssistantView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Padding="16" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Clipboard Assistant" FontSize="20" FontWeight="SemiBold"/>
+
+        <StackPanel Grid.Row="1" Spacing="4">
+            <TextBlock Text="{x:Bind ViewModel.DetectedType, Mode=OneWay}" FontWeight="SemiBold"/>
+            <TextBlock Text="{x:Bind ViewModel.Length, Mode=OneWay}"/>
+        </StackPanel>
+
+        <Border Grid.Row="2" Padding="12" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" CornerRadius="8">
+            <TextBlock Text="{x:Bind ViewModel.PreviewText, Mode=OneWay}" TextWrapping="WrapWholeWords" MaxLines="6"/>
+        </Border>
+
+        <ItemsControl Grid.Row="3" ItemsSource="{x:Bind ViewModel.Actions, Mode=OneWay}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapGrid Orientation="Horizontal" MaximumRowsOrColumns="3"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Content="{Binding Label}" Margin="4" Click="OnActionClick"/>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <StackPanel Grid.Row="4" Spacing="8" Visibility="{x:Bind ViewModel.HasResult, Mode=OneWay}">
+            <TextBlock Text="Result" FontWeight="SemiBold"/>
+            <Border Padding="12" Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}" CornerRadius="8">
+                <TextBlock Text="{x:Bind ViewModel.ResultText, Mode=OneWay}" TextWrapping="WrapWholeWords"/>
+            </Border>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Copy Result" Click="OnCopyClick"/>
+                <Button Content="Replace Clipboard" Click="OnReplaceClick"/>
+                <Button Content="Insert Here" Click="OnInsertClick"/>
+                <Button Content="Cancel" Click="OnCancelClick"/>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Page>

@@ -23,7 +23,7 @@ namespace WindowsAIAssistant.Infrastructure.Windows;
 /// unbounded.
 /// </para>
 /// </summary>
-public sealed class ApplicationResolver : IApplicationResolver
+public sealed class ApplicationResolver : IApplicationResolver, IApplicationCatalog
 {
     private const string AppPathsKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths";
 
@@ -79,6 +79,40 @@ public sealed class ApplicationResolver : IApplicationResolver
 
         _logger.LogInformation("No known application matched a spoken name.");
         return Result<ApplicationTarget>.Failure($"I couldn't find an application called {spoken}.");
+    }
+
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<ApplicationTarget>> GetInstalledApplicationsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var discovered = await _discovered.Value.WaitAsync(cancellationToken).ConfigureAwait(false);
+        var applications = new Dictionary<string, ApplicationTarget>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var target in discovered.Values)
+        {
+            applications.TryAdd(target.Name, target);
+        }
+
+        foreach (var application in KnownApplications.Values.DistinctBy(item => item.Name))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (application.Kind is ApplicationTargetKind.Uri or ApplicationTargetKind.AppUserModelId)
+            {
+                applications.TryAdd(application.Name, application.ToTarget());
+                continue;
+            }
+
+            var located = Locate(application);
+            if (located.IsSuccess && located.Value is not null)
+            {
+                applications.TryAdd(located.Value.Name, located.Value);
+            }
+        }
+
+        return applications.Values
+            .OrderBy(application => application.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ToArray();
     }
 
     /// <summary>
